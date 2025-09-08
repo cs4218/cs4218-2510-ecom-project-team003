@@ -51,7 +51,6 @@ describe('Register Component', () => {
 
   it('should register the user successfully', async () => {
     axios.post.mockResolvedValueOnce({ data: { success: true } });
-    axios.get.mockResolvedValueOnce({ data: { success: true, message: "All Categories List"} });
 
     const { getByText, getByPlaceholderText } = render(
         <MemoryRouter initialEntries={['/register']}>
