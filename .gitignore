@@ -5,4 +5,4 @@ node_modules
 /playwright/.cache/
 /coverage
 /.scannerwork
-.env.example
+.env
