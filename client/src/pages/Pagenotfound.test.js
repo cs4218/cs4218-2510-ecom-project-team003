@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
 import Pagenotfound from "./Pagenotfound";
 
 jest.mock("../components/Layout", () => ({ title, children }) => (
@@ -15,7 +16,12 @@ describe("Page Not Found's Page", () => {
         jest.clearAllMocks();
     });
 
-    const renderPageNotFound = () => render(<Pagenotfound />);
+    const renderPageNotFound = () =>
+        render(
+            <MemoryRouter>
+                <Pagenotfound />
+            </MemoryRouter>
+        );
 
     it("Renders Layout With Title", () => {
         renderPageNotFound();
