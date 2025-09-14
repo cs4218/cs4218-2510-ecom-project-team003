@@ -12,11 +12,11 @@ export default function useCategory() {
         setCategories(data?.category);
       } else {
         setCategories([]);
-        console.log(data?.message || "Failed to fetch categories");
+        console.log(data?.message);
       }
     } catch (error) {
       setCategories([]);
-      console.log(error || "Error while fetching categories");
+      console.log(error);
     }
   };
 
