@@ -80,7 +80,7 @@ jest.mock('../context/search', () => ({
 
 jest.mock('../hooks/useCategory', () => jest.fn(() => []));
 
-mockNavigate = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
