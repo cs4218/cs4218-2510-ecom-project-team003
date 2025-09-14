@@ -12,7 +12,7 @@ export default function useCategory() {
         setCategories(data?.category);
       } else {
         setCategories([]);
-        console.log(data?.message);
+        console.log(data?.message || "Failed to fetch categories");
       }
     } catch (error) {
       setCategories([]);
