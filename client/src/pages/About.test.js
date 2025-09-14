@@ -41,7 +41,9 @@ describe("About Page", () => {
 
     it("Renders Text", () => {
         renderAbout();
-        const text = screen.getByText("Add text");
+        const text = screen.getByText(
+            "Virtual Vault is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) e-commerce website, offering seamless connectivity and user-friendly features. The platform provides a robust framework for online shopping. The website is designed to adapt to evolving business needs and can be efficiently extended."
+        );
 
         expect(text).toBeInTheDocument();
     });

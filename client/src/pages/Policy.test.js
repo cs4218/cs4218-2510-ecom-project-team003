@@ -41,8 +41,13 @@ describe("Policy Page", () => {
 
     it("Renders Text", () => {
         renderPolicy();
-        const paras = screen.getAllByText("add privacy policy");
 
-        expect(paras).toHaveLength(7);
+        expect(screen.getByText("We collect only the data needed to manage your account and orders.")).toBeInTheDocument();
+        expect(screen.getByText("Your information is stored securely and encrypted where possible.")).toBeInTheDocument();
+        expect(screen.getByText("We never sell your personal data to third parties.")).toBeInTheDocument();
+        expect(screen.getByText("We use cookies to improve the site and remember your preferences.")).toBeInTheDocument();
+        expect(screen.getByText("You can access, update, or delete your data at any time.")).toBeInTheDocument();
+        expect(screen.getByText("We share data only with trusted providers for payments and delivery.")).toBeInTheDocument();
+        expect(screen.getByText("Contact us with any privacy questions or concerns.")).toBeInTheDocument();
     });
 });
