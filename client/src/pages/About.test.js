@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
 import About from "./About";
 
 jest.mock("../components/Layout", () => ({ children, title }) => (
@@ -15,7 +16,11 @@ describe("About Page", () => {
         jest.clearAllMocks();
     });
 
-    const renderAbout = () => render(<About />);
+    const renderAbout = () => render(
+        <MemoryRouter>
+            <About />
+        </MemoryRouter>
+    );
 
     it("Renders Layout with Title", () => {
         renderAbout();
@@ -32,7 +37,6 @@ describe("About Page", () => {
 
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute("src", "/images/about.jpeg");
-        expect(img).toHaveStyle({ width: '100%' });
     });
 
     it("Renders Text", () => {

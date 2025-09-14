@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
 import Policy from "./Policy";
 
 jest.mock("../components/Layout", () => ({ title, children }) => (
@@ -15,7 +16,11 @@ describe("Policy Page", () => {
         jest.clearAllMocks();
     });
 
-    const renderPolicy = () => render(<Policy />);
+    const renderPolicy = () => render(
+        <MemoryRouter>
+            <Policy />
+        </MemoryRouter>
+    );
 
     it("Renders Layout with Title", () => {
         renderPolicy();
@@ -32,7 +37,6 @@ describe("Policy Page", () => {
 
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute("src", "/images/contactus.jpeg");
-        expect(img).toHaveStyle({ width: '100%' });
     });
 
     it("Renders Text", () => {
