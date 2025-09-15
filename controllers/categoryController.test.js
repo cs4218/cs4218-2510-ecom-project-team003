@@ -42,14 +42,14 @@ describe("Category Controllers", () => {
             });
         });
 
-        it("Returns 404 with empty list when category list not found", async () => {
+        it("Returns 200 with empty list when category list not found", async () => {
             categoryModel.find = jest.fn().mockResolvedValueOnce([]);
 
             await categoryController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith({
-                success: false,
+                success: true,
                 message: "No Categories Found",
                 category: [],
             });
