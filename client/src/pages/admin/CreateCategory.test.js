@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import {render, fireEvent, waitFor, screen, within} from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -25,10 +25,10 @@ jest.mock('../../hooks/useCategory', () => (
     jest.fn(() => []) // Mock useCategory hook to return an empty array
 ));
 
-jest.requireActual('antd');
+// jest.requireActual('antd');
 
 
-describe('CreateCategoryTests', () => {
+describe('CreateCategory: Create tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -98,3 +98,78 @@ describe('CreateCategoryTests', () => {
         }));
     })
 });
+
+describe('CreateCategory: Read tests', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('if there are categories, expect it to exist', async () => {
+        axios.get.mockResolvedValue({
+            data: { success: true, category: [{_id: 1, name: "Category 1"}] }
+        });
+        const { getByText, getByPlaceholderText } = await waitFor(() => render(
+            <MemoryRouter initialEntries={['/dashboard/admin/create-category']}>
+                <Routes>
+                    <Route path="/dashboard/admin/create-category" element={<CreateCategory />} />
+                </Routes>
+            </MemoryRouter>
+        ));
+
+        // expected a table entry containing the category
+        await waitFor(() => {
+            expect(getByText('Category 1')).toBeInTheDocument();
+        })
+    })
+});
+
+describe('CreateCategory: Update tests', () => {
+    it('if there are categories, expect an Edit button to exist', async () => {
+        axios.get.mockResolvedValue({
+            data: { success: true, category: [{_id: 1, name: "Category 1"}] }
+        });
+        const { getByText, getByPlaceholderText } = await waitFor(() => render(
+            <MemoryRouter initialEntries={['/dashboard/admin/create-category']}>
+                <Routes>
+                    <Route path="/dashboard/admin/create-category" element={<CreateCategory />} />
+                </Routes>
+            </MemoryRouter>
+        ));
+
+        // expected a table entry containing the category
+        await waitFor(() => {
+            expect(getByText('Edit')).toBeInTheDocument();
+        })
+    });
+
+    it('clicking Edit button should open the modal', async () => {
+        axios.get.mockResolvedValue({
+            data: { success: true, category: [{_id: 1, name: "Category 1"}] }
+        });
+        const { getByText, getByPlaceholderText } = await waitFor(() => render(
+            <MemoryRouter initialEntries={['/dashboard/admin/create-category']}>
+                <Routes>
+                    <Route path="/dashboard/admin/create-category" element={<CreateCategory />} />
+                </Routes>
+            </MemoryRouter>
+        ));
+
+        // expected a table entry containing the category
+        await waitFor(() => {
+            expect(getByText('Edit')).toBeInTheDocument();
+        })
+
+        fireEvent.click(getByText('Edit'));
+
+        // presumes a modal to be opened
+        const modal = screen.getByRole('dialog');
+        const input = within(modal).getByRole('textbox');
+
+        await waitFor(() => {
+            // expect(getByText('Update Category')).toBeInTheDocument();
+            expect(input).toHaveValue('Category 1');
+        })
+    });
+});
+
+describe('CreateCategory: Delete tests', () => {});
