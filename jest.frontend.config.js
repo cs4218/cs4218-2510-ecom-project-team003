@@ -24,7 +24,8 @@ export default {
     "<rootDir>/client/src/components/**/*.test.js", 
     "<rootDir>/client/src/context/**/*.test.js", 
     "<rootDir>/client/src/pages/**/*.test.js", 
-    "<rootDir>/client/src/hooks/**/*.test.js"
+    "<rootDir>/client/src/hooks/**/*.test.js",
+    "<rootDir>/client/src/utils/**/*.test.js",
   ],
 
   // jest code coverage
@@ -34,6 +35,7 @@ export default {
     "client/src/context/**/*.js",
     "client/src/pages/**/*.js",
     "client/src/hooks/**/*.js",
+    "client/src/utils/*.js",
   ],
   passWithNoTests: true,
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],

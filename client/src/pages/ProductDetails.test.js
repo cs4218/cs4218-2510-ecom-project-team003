@@ -4,7 +4,7 @@ import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
-import ProductDetails, { getShortDescription } from "./ProductDetails";
+import ProductDetails from "./ProductDetails";
 
 const LAPTOP = {
   "_id": "1",
@@ -58,9 +58,6 @@ const TABLET = {
 };
 
 const INVALID_SLUG = "tablet";
-const DESCRIPTION_UNDER_60 = "U".repeat(59);
-const DESCRIPTION_EXACT_60 = "E".repeat(60);
-const DESCRIPTION_OVER_60 = "O".repeat(61);
 
 jest.mock('axios');
 jest.mock('react-hot-toast');
@@ -79,6 +76,11 @@ jest.mock('../context/search', () => ({
 }));
 
 jest.mock('../hooks/useCategory', () => jest.fn(() => []));
+
+jest.mock('../utils/string', () => ({
+  ...jest.requireActual('../utils/string'),
+  getShortDescription: jest.fn((desc) => desc)
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -118,34 +120,6 @@ const renderProductDetails = (slug) => {
     </MemoryRouter>
   );
 }
-
-describe('getShortDescription Function', () => {
-  it('returns empty string when input is null', async () => {
-    const res = getShortDescription(null);
-    expect(res).toEqual('');
-  });
-
-  it('returns empty string when input is undefined', async () => {
-    const res = getShortDescription(undefined);
-    expect(res).toEqual('');
-  });
-
-  it('returns full description when it is under 60 characters', async () => {
-    const res = getShortDescription(DESCRIPTION_UNDER_60);
-    expect(res).toEqual(DESCRIPTION_UNDER_60);
-  });
-
-  it('returns full description when it is exactly 60 characters', async () => {
-    const res = getShortDescription(DESCRIPTION_EXACT_60);
-    expect(res).toEqual(DESCRIPTION_EXACT_60);
-  });
-
-  it('returns truncated description and ellipsis when input is over 60 characters', async () => {
-    const exp = `${'O'.repeat(60)}...`
-    const res = getShortDescription(DESCRIPTION_OVER_60);
-    expect(res).toEqual(exp);
-  });
-});
 
 describe('Product Details Component', () => {
   beforeEach(() => {
