@@ -5,11 +5,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
 import "../styles/ProductDetailsStyles.css";
-
-export const getShortDescription = (desc) => {
-  const s = desc == null ? "" : String(desc);
-  return s.length > 60 ? `${s.slice(0, 60)}...` : s;
-};
+import { getShortDescription } from "../utils/string";
 
 const ProductDetails = () => {
   const params = useParams();
