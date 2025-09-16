@@ -29,8 +29,8 @@ jobs:
           cd client
           npm install
       
-      - name: Run Jest frontend tests
+      - name: Run frontend tests
         run: npm run test:frontend
 
-      - name: Run Jest backend tests
+      - name: Run backend tests
         run: npm run test:backend
