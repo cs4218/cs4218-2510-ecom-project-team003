@@ -61,14 +61,22 @@ export const updateCategoryController = async (req, res) => {
 export const categoryController = async (req, res) => {
   try {
     const category = await categoryModel.find({});
+    if (!category || category.length === 0) {
+      return res.status(200).send({
+        success: true,
+        message: "No Categories Found",
+        category: [],
+      });
+    }
+
     return res.status(200).send({
       success: true,
-      message: category && category.length ? "All Categories List" : "No Categories Found",
-      category: category || [],
+      message: "All Categories List",
+      category,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
       error,
       message: "Error while getting all categories",
@@ -86,14 +94,15 @@ export const singleCategoryController = async (req, res) => {
         message: "Category not found",
       });
     }
-    res.status(200).send({
+
+    return res.status(200).send({
       success: true,
       message: "Get Single Category Successfully",
       category,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
       error,
       message: "Error while getting Single Category",

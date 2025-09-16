@@ -105,7 +105,7 @@ describe("Category Controllers", () => {
             const error = new Error("Some Error");
             const doc = mockCategories[0];
             req.params.slug = doc.slug;
-            categoryModel.findOne.mockRejectedValueOnce(error);
+            categoryModel.findOne = jest.fn().mockRejectedValue(error);
 
             await singleCategoryController(req, res);
 
