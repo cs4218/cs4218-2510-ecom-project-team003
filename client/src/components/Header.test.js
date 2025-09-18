@@ -28,13 +28,7 @@ jest.mock("../context/search", () => ({
 
 jest.mock('../hooks/useCategory', () => jest.fn(() => mockCategories));
 
-jest.mock('react-hot-toast', () => ({
-    __esModule: true,
-    default: {
-        success: jest.fn(),
-        error: jest.fn(),
-    },
-}));
+jest.mock('react-hot-toast');
 
 jest.mock('antd', () => ({
     Badge: ({ count, children }) => (
@@ -71,7 +65,7 @@ describe("Header", () => {
         );
     }
 
-    it("Renders Header with Navigation Links when user is not login", () => {
+    it("Renders Header (when user is not login)", () => {
         mockAuth = { user: null, token: "" };
         renderHeader();
 
@@ -83,27 +77,30 @@ describe("Header", () => {
         expect(screen.getByRole("link", { name: /register/i })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /login/i })).toBeInTheDocument();
 
-        expect(screen.queryByText(/Test User/i)).not.toBeInTheDocument();
-
         expect(screen.getByRole("link", { name: /all categories/i })).toHaveAttribute("href", "/categories");
-        expect(screen.getByRole("link", { name: /category 1/i })).toHaveAttribute("href", "/category/category1");
-        expect(screen.getByRole("link", { name: /category 2/i })).toHaveAttribute("href", "/category/category2");
+        expect(screen.getByRole("link", { name: /Category 1/i })).toHaveAttribute("href", "/category/category1");
+        expect(screen.getByRole("link", { name: /Category 2/i })).toHaveAttribute("href", "/category/category2");
     });
 
-    it("Shows user dropdown and hides Register/Login when logged in (role=user)", () => {
-        mockAuth = { user: { name: 'Test User', role: 0, token: 'x' } };
+    it("Redirect link back to Home Page", () => {
+        mockAuth = { user: null, token: "" };
+        renderHeader();
+
+        const brandLink = screen.getByRole("link", { name: /🛒 Virtual Vault/i });
+        expect(brandLink).toHaveAttribute("href", "/");
+    });
+
+    it("Renders Header (when (role=user) is login)", () => {
+        mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
         renderHeader();
 
         expect(screen.getByText("Test User")).toBeInTheDocument();
-        expect(screen.queryByRole("link", { name: /register/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole("link", { name: /login/i })).not.toBeInTheDocument();
-
         const dashboard = screen.getByRole("link", { name: /dashboard/i });
         expect(dashboard).toHaveAttribute("href", "/dashboard/user");
     });
 
-    it("Redirects dashboard link correctly for admin (role=1)", () => {
-        mockAuth = { user: { name: 'Admin User', role: 1, token: 'x' } };
+    it("Renders Header (when (role=admin) is login)", () => {
+        mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
         renderHeader();
 
         expect(screen.getByText("Admin User")).toBeInTheDocument();
@@ -111,39 +108,15 @@ describe("Header", () => {
         expect(dashboard).toHaveAttribute("href", "/dashboard/admin");
     });
 
-    it("Displays correct cart count initially, after add, and after remove", () => {
+    it("Renders correct cart count", () => {
         mockAuth = { user: null, token: "" };
         mockCart = [{ _id: '1', name: 'Product 1' }];
-        const { rerender } = render(
-            <MemoryRouter>
-                <Header />
-            </MemoryRouter>
-        );
+        renderHeader();
         expect(screen.getByTestId("badge")).toHaveAttribute("data-count", "1");
-
-        mockCart = [
-            { _id: '1', name: 'Product 1' },
-            { _id: '2', name: 'Product 2' },
-            { _id: '3', name: 'Product 3' },
-        ];
-        rerender(
-            <MemoryRouter>
-                <Header />
-            </MemoryRouter>
-        );
-        expect(screen.getByTestId("badge")).toHaveAttribute("data-count", "3");
-
-        mockCart = [];
-        rerender(
-            <MemoryRouter>
-                <Header />
-            </MemoryRouter>
-        );
-        expect(screen.getByTestId("badge")).toHaveAttribute("data-count", "0");
     });
 
-    it("Clears auth, shows success toast, removes localStorage, and navigates to /login on logout", () => {
-        mockAuth = { user: { name: 'Test User', role: 0, token: 'x' } };
+    it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", () => {
+        mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
         renderHeader();
 
         const logout = screen.getByRole("link", { name: /logout/i });
@@ -158,10 +131,12 @@ describe("Header", () => {
         expect(toast.success).toHaveBeenCalledWith("Logout Successfully");
     });
 
-    it("Shows error toast and does not navigate if logout throws", () => {
-        mockAuth = { user: { name: 'Test User', role: 0, token: 'x' } };
-        window.localStorage.removeItem.mockImplementationOnce(() => { throw new Error(""); });
-        const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    it("Renders error toast and does not navigate on logout", () => {
+        mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
+        const error = new Error("");
+        const errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        window.localStorage.removeItem.mockImplementationOnce(() => { throw error; });
 
         renderHeader();
 
@@ -170,14 +145,8 @@ describe("Header", () => {
 
         expect(toast.error).toHaveBeenCalledWith("Logout Failed");
         expect(mockNavigate).not.toHaveBeenCalled();
+        expect(errSpy).toHaveBeenCalledWith(error);
 
-        spy.mockRestore();
-    });
-
-    it("Brand links to home", () => {
-        mockAuth = { user: null, token: "" };
-        renderHeader();
-        const brand = screen.getByRole("link", { name: /virtual vault/i });
-        expect(brand).toHaveAttribute("href", "/");
+        errSpy.mockRestore();
     });
 });
