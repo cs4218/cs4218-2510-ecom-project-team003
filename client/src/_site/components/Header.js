@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import toast from "react-hot-toast";
 import SearchInput from "./Form/SearchInput";
@@ -7,29 +7,19 @@ import useCategory from "../hooks/useCategory";
 import { useCart } from "../context/cart";
 import { Badge } from "antd";
 import "../styles/Header.css";
-
 const Header = () => {
   const [auth, setAuth] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
-  const navigate = useNavigate();
-
   const handleLogout = () => {
-    try {
-      setAuth({
-        ...auth,
-        user: null,
-        token: "",
-      });
-      localStorage.removeItem("auth");
-      toast.success("Logout Successfully");
-      navigate("/login");
-    } catch (error) {
-      console.error(error);
-      toast.error("Logout Failed");
-    }
+    setAuth({
+      ...auth,
+      user: null,
+      token: "",
+    });
+    localStorage.removeItem("auth");
+    toast.success("Logout Successfully");
   };
-
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -49,34 +39,29 @@ const Header = () => {
             <Link to="/" className="navbar-brand">
               🛒 Virtual Vault
             </Link>
-
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
               <SearchInput />
-
               <li className="nav-item">
                 <NavLink to="/" className="nav-link ">
                   Home
                 </NavLink>
               </li>
-
               <li className="nav-item dropdown">
-                <NavLink
-                    className="nav-link dropdown-toggle"
-                    to="#"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    onClick={(e) => e.preventDefault()}
+                <Link
+                  className="nav-link dropdown-toggle"
+                  to={"/categories"}
+                  data-bs-toggle="dropdown"
                 >
                   Categories
-                </NavLink>
+                </Link>
                 <ul className="dropdown-menu">
-                  <li key={"all"}>
+                  <li>
                     <Link className="dropdown-item" to={"/categories"}>
                       All Categories
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li key={c._id}>
+                    <li>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}
@@ -106,11 +91,10 @@ const Header = () => {
                   <li className="nav-item dropdown">
                     <NavLink
                       className="nav-link dropdown-toggle"
-                      to="#"
+                      href="#"
                       role="button"
                       data-bs-toggle="dropdown"
                       style={{ border: "none" }}
-                      onClick={(e) => e.preventDefault()}
                     >
                       {auth?.user?.name}
                     </NavLink>
