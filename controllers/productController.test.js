@@ -7,7 +7,7 @@ import {
   productPhotoController,
   productListController,
   braintreeTokenController,
-  brainTreePaymentController
+  braintreePaymentController
 } from "./productController.js";
 import { describe } from "node:test";
 
@@ -374,7 +374,7 @@ describe('Product Controller', () => {
     });
   });
 
-  describe('brainTreePaymentController', () => {
+  describe('braintreePaymentController', () => {
     it("should return ok:true when transaction succeeds", async () => {
       const cart = [{ price: 100 }, { price: 50 }];
       const nonce = "fake-nonce";
@@ -390,7 +390,7 @@ describe('Product Controller', () => {
       req.body = { nonce, cart };
       req.user = { _id: "user123" };
 
-      await brainTreePaymentController(req, res);
+      await braintreePaymentController(req, res);
 
       expect(fakeGateway.transaction.sale).toHaveBeenCalledWith(
         {
@@ -423,7 +423,7 @@ describe('Product Controller', () => {
 
         
 
-      await brainTreePaymentController(req, res);
+      await braintreePaymentController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(fakeError);
