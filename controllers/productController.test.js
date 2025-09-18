@@ -1,4 +1,5 @@
 import productModel from "../models/productModel.js";
+import orderModel from "../models/orderModel.js";
 import braintree from "braintree";
 import {
   getProductController,
@@ -6,8 +7,9 @@ import {
   productPhotoController,
   productListController,
   braintreeTokenController,
-  // gateway
+  brainTreePaymentController
 } from "./productController.js";
+import { describe } from "node:test";
 
 const LAPTOP = {
   "_id": "1",
@@ -36,6 +38,8 @@ const SMARTPHONE = {
 
 jest.mock('../models/productModel.js');
 
+jest.mock("../models/orderModel.js");
+
 jest.mock('braintree', () => {
   const mockGateway = {
     clientToken: {
@@ -54,19 +58,6 @@ jest.mock('braintree', () => {
 });
 
 const fakeGateway = braintree.BraintreeGateway();
-
-// const mockGateway = {
-//   clientToken: { generate: jest.fn((opts, cb) => cb(null, { clientToken: "123" })) },
-//   transaction: { sale: jest.fn() },
-// };
-
-// jest.mock('braintree', () => {
-//   return {
-//     BraintreeGateway: jest.fn((environment, merchantId, publicKey, privateKey) => (mockGateway))
-//   };
-// });
-
-
 
 const mockProductModel = (overrides = {}) => {
   const methods = {
@@ -96,6 +87,7 @@ const mockRequestResponse = (params = {}) => {
     status: jest.fn().mockReturnThis(),
     send: jest.fn(),
     set: jest.fn(),
+    json: jest.fn(),
   };
   return [req, res];
 }
@@ -376,6 +368,62 @@ describe('Product Controller', () => {
       fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(fakeError, null));
 
       await braintreeTokenController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(fakeError);
+    });
+  });
+
+  describe('brainTreePaymentController', () => {
+    it("should return ok:true when transaction succeeds", async () => {
+      const cart = [{ price: 100 }, { price: 50 }];
+      const nonce = "fake-nonce";
+      const fakeResult = { id: "txn123", status: "success" };
+
+      // Mock sale to call callback with result
+      fakeGateway.transaction.sale.mockImplementation((data, cb) => cb(null, fakeResult));
+
+      const saveMock = jest.fn().mockResolvedValue({});
+      orderModel.mockImplementation(() => ({ save: saveMock }));
+
+      const [req, res] = mockRequestResponse()
+      req.body = { nonce, cart };
+      req.user = { _id: "user123" };
+
+      await brainTreePaymentController(req, res);
+
+      expect(fakeGateway.transaction.sale).toHaveBeenCalledWith(
+        {
+          amount: 150, // sum of cart prices
+          paymentMethodNonce: nonce,
+          options: { submitForSettlement: true }
+        },
+        expect.any(Function)
+      );
+
+      expect(orderModel).toHaveBeenCalledWith({
+        products: cart,
+        payment: fakeResult,
+        buyer: "user123"
+      });
+      expect(saveMock).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({ ok: true });
+    });
+
+    it("should return 500 when transaction fails", async () => {
+      const cart = [{ price: 200 }];
+      const nonce = "fake-nonce";
+      const fakeError = { message: "Transaction failed" };
+
+      fakeGateway.transaction.sale.mockImplementation((data, cb) => cb(fakeError, null));
+
+      const [req, res] = mockRequestResponse()
+      req.body = { nonce, cart };
+      req.user = { _id: "user123" };
+
+        
+
+      await brainTreePaymentController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(fakeError);
