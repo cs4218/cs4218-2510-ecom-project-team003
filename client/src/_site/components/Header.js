@@ -60,17 +60,15 @@ const Header = () => {
               </li>
 
               <li className="nav-item dropdown">
-                <NavLink
+                <Link
                     className="nav-link dropdown-toggle"
-                    to="#"
-                    role="button"
+                    to={"/categories"}
                     data-bs-toggle="dropdown"
-                    onClick={(e) => e.preventDefault()}
                 >
                   Categories
-                </NavLink>
+                </Link>
                 <ul className="dropdown-menu">
-                  <li key={"all"}>
+                  <li>
                     <Link className="dropdown-item" to={"/categories"}>
                       All Categories
                     </Link>
