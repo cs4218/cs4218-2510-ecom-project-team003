@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import toast from "react-hot-toast";
 import SearchInput from "./Form/SearchInput";
@@ -7,19 +7,29 @@ import useCategory from "../hooks/useCategory";
 import { useCart } from "../context/cart";
 import { Badge } from "antd";
 import "../styles/Header.css";
+
 const Header = () => {
   const [auth, setAuth] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
+  const navigate = useNavigate();
+
   const handleLogout = () => {
-    setAuth({
-      ...auth,
-      user: null,
-      token: "",
-    });
-    localStorage.removeItem("auth");
-    toast.success("Logout Successfully");
+    try {
+      setAuth({
+        ...auth,
+        user: null,
+        token: "",
+      });
+      localStorage.removeItem("auth");
+      toast.success("Logout Successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout Failed");
+    }
   };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -61,7 +71,7 @@ const Header = () => {
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li>
+                    <li key={c._id}>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}
@@ -90,11 +100,11 @@ const Header = () => {
                 <>
                   <li className="nav-item dropdown">
                     <NavLink
-                      className="nav-link dropdown-toggle"
-                      href="#"
-                      role="button"
-                      data-bs-toggle="dropdown"
-                      style={{ border: "none" }}
+                        className="nav-link dropdown-toggle"
+                        to="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        style={{ border: "none" }}
                     >
                       {auth?.user?.name}
                     </NavLink>
@@ -112,7 +122,7 @@ const Header = () => {
                       <li>
                         <NavLink
                           onClick={handleLogout}
-                          to="/login"
+                          to="#"
                           className="dropdown-item"
                         >
                           Logout
