@@ -1,6 +1,9 @@
 import {
   createProductController,
   getProductController,
+  getSingleProductController,
+  productPhotoController,
+  deleteProductController
 } from "../controllers/productController.js";
 
 import productModel from "../models/productModel.js";
@@ -146,4 +149,121 @@ describe("Product Controller", () => {
       }));
     });
   });
+
+  describe("getSingleProductController", () => {
+    it("should return single product", async () => {
+      req.params.slug = "book-slug";
+
+      const fakeProduct = { name: "Book", slug: "book-slug" };
+      const mockPopulate = jest.fn().mockResolvedValue(fakeProduct);
+      const mockSelect = jest.fn().mockReturnValue({ populate: mockPopulate }); 
+      productModel.findOne.mockReturnValue({ select: mockSelect });
+
+      await getSingleProductController(req, res);
+
+      expect(productModel.findOne).toHaveBeenCalledWith({ slug: "book-slug" });
+      expect(mockSelect).toHaveBeenCalledWith("-photo");
+      expect(mockPopulate).toHaveBeenCalledWith("category");
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Single Product Fetched",
+        product: fakeProduct,
+      });
+
+    });
+
+    it("should catch errors otherwise(?)", async () => {
+      req.params.slug = "bad-slug";
+
+      const fakeError = new Error("Database error");
+      productModel.findOne.mockImplementation(() => {
+        throw fakeError;
+      });
+
+      await getSingleProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error while getitng single product",
+        error: fakeError,
+      });
+    })
+  });
+
+  describe("productPhotoController", () => {
+    it("should return photo data with correct content type", async () => {
+      req.params.pid = "123";
+      const fakePhoto = {
+        data: Buffer.from("fake image data"),
+        contentType: "image/png"
+      };
+
+      productModel.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ photo: fakePhoto })
+      });
+
+      await productPhotoController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith("123");
+      expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(fakePhoto.data);
+    });
+
+    it("should handle errors", async () => {
+      productModel.findById.mockImplementation(() => {
+        throw new Error("DB failure");
+      });
+
+      await productPhotoController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while getting photo", // keep same typo as your code
+          error: expect.any(Error)
+        })
+      );
+    });
+  });
+
+  describe("deleteProductController", () => {
+    
+    it("should delete a product and return 200 on success", async () => {
+      req = { params: { pid: "fake-id" } };
+      const mockSelect = jest.fn().mockResolvedValue({});
+      productModel.findByIdAndDelete.mockReturnValue({ select: mockSelect });
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith("fake-id");
+      expect(mockSelect).toHaveBeenCalledWith("-photo");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Product Deleted successfully"
+      });
+    });
+
+    it("should handle errors and return 500", async () => {
+      productModel.findByIdAndDelete.mockImplementation(() => {
+        throw new Error("DB failure");
+      });
+
+      await deleteProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while deleting product",
+          error: expect.any(Error)
+        })
+      );
+    });
+  });
 });
+

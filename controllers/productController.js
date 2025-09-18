@@ -101,7 +101,7 @@ export const getSingleProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Eror while getitng single product",
+      message: "Error while getitng single product",
       error,
     });
   }
@@ -119,7 +119,7 @@ export const productPhotoController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Erorr while getting photo",
+      message: "Error while getting photo",
       error,
     });
   }
