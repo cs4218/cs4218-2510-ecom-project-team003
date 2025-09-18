@@ -1,9 +1,12 @@
 import productModel from "../models/productModel.js";
+import braintree from "braintree";
 import {
   getProductController,
   getSingleProductController,
   productPhotoController,
-  productListController
+  productListController,
+  braintreeTokenController,
+  // gateway
 } from "./productController.js";
 
 const LAPTOP = {
@@ -33,7 +36,37 @@ const SMARTPHONE = {
 
 jest.mock('../models/productModel.js');
 
-jest.mock('braintree');
+jest.mock('braintree', () => {
+  const mockGateway = {
+    clientToken: {
+      generate: jest.fn()
+    },
+    transaction: {
+      sale: jest.fn()
+    }
+  };
+  return {
+    BraintreeGateway: jest.fn(() => mockGateway),
+    Environment: {
+      Sandbox: 'Sandbox'
+    }
+  };
+});
+
+const fakeGateway = braintree.BraintreeGateway();
+
+// const mockGateway = {
+//   clientToken: { generate: jest.fn((opts, cb) => cb(null, { clientToken: "123" })) },
+//   transaction: { sale: jest.fn() },
+// };
+
+// jest.mock('braintree', () => {
+//   return {
+//     BraintreeGateway: jest.fn((environment, merchantId, publicKey, privateKey) => (mockGateway))
+//   };
+// });
+
+
 
 const mockProductModel = (overrides = {}) => {
   const methods = {
@@ -50,6 +83,12 @@ const mockProductModel = (overrides = {}) => {
     productModel[key] = methods[key];
   });
 };
+
+// const mockGateway = (overrides = {}) => {
+//   clientToken: {
+//     generate: jest.fn(),
+//   }
+// };
 
 const mockRequestResponse = (params = {}) => {
   const req = { params };
@@ -314,6 +353,32 @@ describe('Product Controller', () => {
       expect(spy).toHaveBeenCalledWith(err);
 
       spy.mockRestore();
+    });
+  });
+
+  describe('braintreeTokencontroller', () => {
+    it("should send token on success", async () => {
+      const [req, res] = mockRequestResponse();
+      const fakeToken = { clientToken: "123abc" };
+
+      fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(null, fakeToken));
+
+      await braintreeTokenController(req, res);
+
+      expect(fakeGateway.clientToken.generate).toHaveBeenCalled();
+      expect(res.send).toHaveBeenCalledWith(fakeToken);
+    });
+
+    it("should send 500 on error", async () => {
+      const [req, res] = mockRequestResponse();
+      const fakeError = { message: "Failed" };
+    
+      fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(fakeError, null));
+
+      await braintreeTokenController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(fakeError);
     });
   });
 });
