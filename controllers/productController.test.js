@@ -105,7 +105,7 @@ describe("Product Controller", () => {
       };
       await createProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "photo is Required and should be less then 1mb" });
+      expect(res.send).toHaveBeenCalledWith({ error: "Photo is required and should be less then 1Mb" });
     });
 
     it("should handle photo upload", async () => {
