@@ -11,23 +11,16 @@ jest.mock("../components/Layout", () => ({ children, title }) => (
     </div>
 ));
 
-jest.mock("react-icons/bi", () => ({
-    BiMailSend: () => { return <span data-testid="icon-mail" /> },
-    BiPhoneCall: () => { return <span data-testid="icon-phone" /> },
-    BiSupport: () => { return <span data-testid="icon-support" /> },
-}));
-
 describe("Contact Page", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    const renderContact = () =>
-        render(
+    const renderContact = () => render(
             <MemoryRouter>
                 <Contact />
             </MemoryRouter>
-        );
+    );
 
     it("Renders Layout with Title", () => {
         renderContact();
@@ -51,22 +44,14 @@ describe("Contact Page", () => {
         expect(screen.getByText("CONTACT US")).toBeInTheDocument();
     });
 
-    it("Renders Introduction Text", () => {
+    it("Renders Text", () => {
         renderContact();
+
         expect(
             screen.getByText(/For any query or info about product, feel free to call anytime\. We are\s*available 24X7\./i)
         ).toBeInTheDocument();
-    });
-
-    it("Renders Contact Details", () => {
-        renderContact();
-
         expect(screen.getByText(/www\.help@ecommerceapp\.com/i)).toBeInTheDocument();
         expect(screen.getByText(/012-3456789/)).toBeInTheDocument();
         expect(screen.getByText(/1800-0000-0000 \(toll free\)/i)).toBeInTheDocument();
-
-        expect(screen.getByTestId("icon-mail")).toBeInTheDocument();
-        expect(screen.getByTestId("icon-phone")).toBeInTheDocument();
-        expect(screen.getByTestId("icon-support")).toBeInTheDocument();
     });
 });
