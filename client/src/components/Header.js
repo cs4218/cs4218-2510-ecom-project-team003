@@ -14,7 +14,8 @@ const Header = () => {
   const categories = useCategory();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e?.preventDefault?.();
     try {
       setAuth({
         ...auth,
@@ -122,7 +123,7 @@ const Header = () => {
                       <li>
                         <NavLink
                           onClick={handleLogout}
-                          to="/login"
+                          to="#"
                           className="dropdown-item"
                         >
                           Logout
