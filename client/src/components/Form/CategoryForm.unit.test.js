@@ -19,32 +19,32 @@ describe('CategoryForm', () => {
         );
     });
 
-    it("form is empty initially", () => {
+    it("is empty initially", () => {
         const inputElement = screen.getByPlaceholderText("Enter new category");
         expect(inputElement.value).toBe('');
     })
 
-    it("form allows 5 characters input", () => {
+    it("allows 5 characters input", () => {
         const inputElement = screen.getByPlaceholderText("Enter new category");
         fireEvent.change(inputElement, { target: { value: 'ABCDE' } });
         expect(mockSetValue).toHaveBeenCalledWith('ABCDE');
     });
 
-    it("form allows 29 characters input", () => {
+    it("allows 29 characters input", () => {
         const testString = 'A'.repeat(29);
         const inputElement = screen.getByPlaceholderText("Enter new category");
         fireEvent.change(inputElement, { target: { value: testString } });
         expect(mockSetValue).toHaveBeenCalledWith(testString);
     });
 
-    it("form allows 30 characters input", () => {
+    it("allows 30 characters input", () => {
         const testString = 'A'.repeat(30);
         const inputElement = screen.getByPlaceholderText("Enter new category");
         fireEvent.change(inputElement, { target: { value: testString } });
         expect(mockSetValue).toHaveBeenCalledWith(testString);
     });
 
-    it("form does not allow 31 characters input", () => {
+    it("does not allow 31 characters input", () => {
         const testString = 'A'.repeat(31);
         const inputElement = screen.getByPlaceholderText("Enter new category");
         fireEvent.change(inputElement, { target: { value: testString } });
