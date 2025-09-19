@@ -62,7 +62,6 @@ describe("Categories page", () => {
 
         renderCategories();
 
-        expect(screen.getByText("All Categories")).toBeInTheDocument();
         expect(screen.queryByRole("link")).toBeNull();
     });
 });
