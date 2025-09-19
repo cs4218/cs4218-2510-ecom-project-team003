@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Header from "./Header";
 import "@testing-library/jest-dom";
@@ -115,7 +115,7 @@ describe("Header", () => {
         expect(screen.getByTestId("badge")).toHaveAttribute("data-count", "1");
     });
 
-    it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", () => {
+    it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", async () => {
         mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
         renderHeader();
 
@@ -128,7 +128,11 @@ describe("Header", () => {
         expect(newState.token).toBe("");
 
         expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");
-        expect(toast.success).toHaveBeenCalledWith("Logout Successfully");
+
+        await waitFor(() => {
+            expect(toast.success).toHaveBeenCalled();
+            expect(toast.success.mock.calls[0][0]).toBe("Logout Successfully");
+        });
     });
 
     it("Renders error toast and does not navigate on logout", () => {
@@ -143,7 +147,8 @@ describe("Header", () => {
         const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
-        expect(toast.error).toHaveBeenCalledWith("Logout Failed");
+        expect(toast.error).toHaveBeenCalled();
+        expect(toast.error.mock.calls[0][0]).toBe("Logout Failed");
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(errSpy).toHaveBeenCalledWith(error);
 

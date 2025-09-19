@@ -23,11 +23,13 @@ const Header = () => {
         token: "",
       });
       localStorage.removeItem("auth");
-      toast.success("Logout Successfully");
-      navigate("/login");
+      navigate("/login", { replace: true });
+      setTimeout(() => {
+        toast.success("Logout Successfully", { duration: 5000 });
+      }, 0);
     } catch (error) {
       console.error(error);
-      toast.error("Logout Failed");
+      toast.error("Logout Failed", { duration: 5000 });
     }
   };
 
