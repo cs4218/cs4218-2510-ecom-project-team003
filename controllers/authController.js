@@ -56,36 +56,39 @@ export const registerController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Errro in Registeration",
+      message: "Error in Registeration",
       error,
     });
   }
 };
 
-//POST LOGIN
+// POST LOGIN
 export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    //validation
-    if (!email || !password) {
-      return res.status(404).send({
+    // validation
+    // return statuse 400 for missing fields, 401 for invalid credentials, 200 for success, 500 for server errors.
+    // this case is handled by frontend since the fields are required in the form itself.
+    // if (!email || !password) {
+    //   return res.status(400).send({
+    //     success: false,
+    //     message: "Email and password are required",
+    //   });
+    // }
+    // check user
+    // error message returns invalid email or password for both cases to avoid revealing which one is incorrect.
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(401).send({
         success: false,
         message: "Invalid email or password",
       });
     }
-    //check user
-    const user = await userModel.findOne({ email });
-    if (!user) {
-      return res.status(404).send({
-        success: false,
-        message: "Email is not registerd",
-      });
-    }
     const match = await comparePassword(password, user.password);
     if (!match) {
-      return res.status(200).send({
+      return res.status(401).send({
         success: false,
-        message: "Invalid Password",
+        message: "Invalid email or password",
       });
     }
     //token
@@ -94,7 +97,7 @@ export const loginController = async (req, res) => {
     });
     res.status(200).send({
       success: true,
-      message: "login successfully",
+      message: "Login successfully",
       user: {
         _id: user._id,
         name: user.name,

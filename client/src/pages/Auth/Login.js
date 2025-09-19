@@ -40,12 +40,16 @@ const Login = () => {
         });
         localStorage.setItem("auth", JSON.stringify(res.data));
         navigate(location.state || "/");
-      } else {
-        toast.error(res.data.message);
-      }
+      } 
+      // removed since no cases will reach here
+      // else {
+      //   toast.error(res.data.message);
+      // }
     } catch (error) {
+      // issue here, this causes people to not know what the issue is.
       console.log(error);
-      toast.error("Something went wrong");
+      let message = error?.response?.data?.message
+      toast.error(message);
     }
   };
   return (
@@ -63,7 +67,7 @@ const Login = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter Your Email "
-              required
+              required 
             />
           </div>
           <div className="mb-3">
