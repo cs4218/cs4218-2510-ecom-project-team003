@@ -369,7 +369,7 @@ export const braintreeTokenController = async (req, res) => {
 };
 
 //payment
-export const brainTreePaymentController = async (req, res) => {
+export const braintreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
     let total = 0;

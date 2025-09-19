@@ -1,10 +1,15 @@
 import productModel from "../models/productModel.js";
+import orderModel from "../models/orderModel.js";
+import braintree from "braintree";
 import {
   getProductController,
   getSingleProductController,
   productPhotoController,
-  productListController
+  productListController,
+  braintreeTokenController,
+  braintreePaymentController
 } from "./productController.js";
+import { describe } from "node:test";
 
 const LAPTOP = {
   "_id": "1",
@@ -33,7 +38,26 @@ const SMARTPHONE = {
 
 jest.mock('../models/productModel.js');
 
-jest.mock('braintree');
+jest.mock("../models/orderModel.js");
+
+jest.mock('braintree', () => {
+  const mockGateway = {
+    clientToken: {
+      generate: jest.fn()
+    },
+    transaction: {
+      sale: jest.fn()
+    }
+  };
+  return {
+    BraintreeGateway: jest.fn(() => mockGateway),
+    Environment: {
+      Sandbox: 'Sandbox'
+    }
+  };
+});
+
+const fakeGateway = braintree.BraintreeGateway();
 
 const mockProductModel = (overrides = {}) => {
   const methods = {
@@ -51,12 +75,19 @@ const mockProductModel = (overrides = {}) => {
   });
 };
 
+// const mockGateway = (overrides = {}) => {
+//   clientToken: {
+//     generate: jest.fn(),
+//   }
+// };
+
 const mockRequestResponse = (params = {}) => {
   const req = { params };
   const res = {
     status: jest.fn().mockReturnThis(),
     send: jest.fn(),
     set: jest.fn(),
+    json: jest.fn(),
   };
   return [req, res];
 }
@@ -314,6 +345,88 @@ describe('Product Controller', () => {
       expect(spy).toHaveBeenCalledWith(err);
 
       spy.mockRestore();
+    });
+  });
+
+  describe('braintreeTokencontroller', () => {
+    it("should send token on success", async () => {
+      const [req, res] = mockRequestResponse();
+      const fakeToken = { clientToken: "123abc" };
+
+      fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(null, fakeToken));
+
+      await braintreeTokenController(req, res);
+
+      expect(fakeGateway.clientToken.generate).toHaveBeenCalled();
+      expect(res.send).toHaveBeenCalledWith(fakeToken);
+    });
+
+    it("should send 500 on error", async () => {
+      const [req, res] = mockRequestResponse();
+      const fakeError = { message: "Failed" };
+    
+      fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(fakeError, null));
+
+      await braintreeTokenController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(fakeError);
+    });
+  });
+
+  describe('braintreePaymentController', () => {
+    it("should return ok:true when transaction succeeds", async () => {
+      const cart = [{ price: 100 }, { price: 50 }];
+      const nonce = "fake-nonce";
+      const fakeResult = { id: "txn123", status: "success" };
+
+      // Mock sale to call callback with result
+      fakeGateway.transaction.sale.mockImplementation((data, cb) => cb(null, fakeResult));
+
+      const saveMock = jest.fn().mockResolvedValue({});
+      orderModel.mockImplementation(() => ({ save: saveMock }));
+
+      const [req, res] = mockRequestResponse()
+      req.body = { nonce, cart };
+      req.user = { _id: "user123" };
+
+      await braintreePaymentController(req, res);
+
+      expect(fakeGateway.transaction.sale).toHaveBeenCalledWith(
+        {
+          amount: 150, // sum of cart prices
+          paymentMethodNonce: nonce,
+          options: { submitForSettlement: true }
+        },
+        expect.any(Function)
+      );
+
+      expect(orderModel).toHaveBeenCalledWith({
+        products: cart,
+        payment: fakeResult,
+        buyer: "user123"
+      });
+      expect(saveMock).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({ ok: true });
+    });
+
+    it("should return 500 when transaction fails", async () => {
+      const cart = [{ price: 200 }];
+      const nonce = "fake-nonce";
+      const fakeError = { message: "Transaction failed" };
+
+      fakeGateway.transaction.sale.mockImplementation((data, cb) => cb(fakeError, null));
+
+      const [req, res] = mockRequestResponse()
+      req.body = { nonce, cart };
+      req.user = { _id: "user123" };
+
+        
+
+      await braintreePaymentController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(fakeError);
     });
   });
 });
