@@ -1,6 +1,6 @@
 import CategoryForm from './CategoryForm';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import userEvent from "@testing-library/user-event";
 
 
@@ -90,7 +90,31 @@ describe("text counter tests", () => {
         const str = "a".repeat(31);
         const inputElement = screen.getByPlaceholderText("Enter new category");
         // apparently fireEvent.change would override the maxLength attribute on the input element.
-        userEvent.type(inputElement, str);
+        waitFor(() => userEvent.type(inputElement, str));
         expect(screen.getByText("30/30")).toBeInTheDocument();
+    });
+})
+
+describe("Create Category Submission test", () => {
+    const mockHandleSubmit = jest.fn();
+    const mockSetValue = jest.fn();
+    const initialValue = '';
+
+    beforeEach(() => {
+        render(
+            <CategoryForm
+                handleSubmit={mockHandleSubmit}
+                value={initialValue}
+                setValue={mockSetValue}
+            />
+        );
+    });
+
+    it("calls handleSubmit on form submission", () => {
+        const inputElement = screen.getByPlaceholderText("Enter new category");
+        const submitButton = screen.getByRole("button", { name: /Submit/i });
+        fireEvent.change(inputElement, { target: { value: "NewCategory" } });
+        fireEvent.submit(submitButton);
+        expect(mockHandleSubmit).toHaveBeenCalledTimes(1);
     });
 })

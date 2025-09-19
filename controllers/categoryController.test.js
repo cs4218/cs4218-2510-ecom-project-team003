@@ -1,5 +1,10 @@
-import { expect, jest } from "@jest/globals";
-import { categoryController, singleCategoryController } from "./categoryController.js";
+import {expect, jest} from "@jest/globals";
+import {
+    categoryController,
+    createCategoryController,
+    singleCategoryController,
+    updateCategoryController
+} from "./categoryController.js";
 import categoryModel from "../models/categoryModel.js";
 
 jest.mock("../models/categoryModel.js");
@@ -118,4 +123,124 @@ describe("Category Controllers", () => {
             });
         });
     });
+
+    describe("Category Controllers Create operations", () => {
+        // Add tests for createCategoryController here
+        it("Accepts non-repeated category and returns 201", async () => {
+            const newCategory = { name: "NewCategory" };
+            req.body = newCategory;
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
+            categoryModel.prototype.save = jest.fn().mockResolvedValue({ ...newCategory, slug: "newcategory" });
+
+            await createCategoryController(req, res);
+
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "NewCategory" });
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.send).toHaveBeenCalledWith({
+                success: true,
+                message: "New Category Created",
+                category: { ...newCategory, slug: "newcategory" },
+            });
+        })
+
+        it("Rejects repeated category and returns 409", async () => {
+            const newCategory = { name: "Category1" };
+            req.body = newCategory;
+            categoryModel.findOne = jest.fn().mockResolvedValue(newCategory);
+
+            await createCategoryController(req, res);
+
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Category1" });
+            expect(res.status).toHaveBeenCalledWith(409);
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                message: "Category Already Exists",
+            });
+        });
+
+        it("Returns 500 when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "NewCategory"};
+            categoryModel.findOne = jest.fn().mockRejectedValue(error);
+
+            await createCategoryController(req, res);
+
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                error: error,
+                message: "Error in Category Creation",
+            });
+        });
+    });
+
+    describe("Category Controllers Update operations", () => {
+        it("Updates existing category in DB", async () => {
+           req.body = {name: "UpdatedCategory"};
+           req.params.id = "12345";
+           categoryModel.findByIdAndUpdate = jest.fn();
+
+           await updateCategoryController(req, res);
+
+           expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
+               "12345",
+               { name: "UpdatedCategory", slug: "UpdatedCategory" },
+               { new: true }
+           );
+        });
+
+        it("Returns 200 when update is successful", async () => {
+          req.body = {name: "UpdatedCategory"};
+          req.params.id = "12345";
+          categoryModel.findByIdAndUpdate = jest.fn();
+
+          await updateCategoryController(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(200);
+        });
+
+        it("Expects DB to return updated category", async () => {
+            const updatedCategory = { name: "UpdatedCategory", slug: "updatedcategory" };
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockResolvedValue(updatedCategory);
+
+            await updateCategoryController(req, res);
+
+            expect(res.send).toHaveBeenCalledWith({
+                success: true,
+                message: "Category Updated Successfully",
+                category: updatedCategory,
+            });
+        });
+
+        it("Returns 500 when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
+
+            await updateCategoryController(req, res);
+
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+        });
+
+        it("Sends error message when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
+
+            await updateCategoryController(req, res);
+
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                error: error,
+                message: "Error while updating category",
+            });
+        });
+    });
 });
+
