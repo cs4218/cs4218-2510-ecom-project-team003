@@ -29,10 +29,11 @@ const mockCategories = [
 describe("Categories page", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        useCategory.mockReturnValue([]);
     });
 
     it("Renders the title", () => {
+        useCategory.mockReturnValue([]);
+
         renderCategories();
 
         expect(screen.getByTestId("layout")).toHaveAttribute(
