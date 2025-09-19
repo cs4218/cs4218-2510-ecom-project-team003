@@ -30,12 +30,6 @@ jest.mock('../hooks/useCategory', () => jest.fn(() => mockCategories));
 
 jest.mock('react-hot-toast');
 
-jest.mock('antd', () => ({
-    Badge: ({ count, children }) => (
-        <div data-testid="badge" data-count={count}>{children}</div>
-    ),
-}));
-
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useNavigate: () => mockNavigate,
@@ -71,19 +65,18 @@ describe("Header", () => {
 
         expect(screen.getByText("🛒 Virtual Vault")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /home/i })).toBeInTheDocument();
+
         expect(screen.getByRole("link", { name: /^Categories$/i })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /cart/i })).toBeInTheDocument();
-
-        expect(screen.getByRole("link", { name: /register/i })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /login/i })).toBeInTheDocument();
-
         expect(screen.getByRole("link", { name: /all categories/i })).toHaveAttribute("href", "/categories");
         expect(screen.getByRole("link", { name: /Category 1/i })).toHaveAttribute("href", "/category/category1");
         expect(screen.getByRole("link", { name: /Category 2/i })).toHaveAttribute("href", "/category/category2");
+
+        expect(screen.getByRole("link", { name: /register/i })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /login/i })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /cart/i })).toBeInTheDocument();
     });
 
     it("Redirect link back to Home Page", () => {
-        mockAuth = { user: null, token: "" };
         renderHeader();
 
         const brandLink = screen.getByRole("link", { name: /🛒 Virtual Vault/i });
@@ -109,14 +102,11 @@ describe("Header", () => {
     });
 
     it("Renders correct cart count", () => {
-        mockAuth = { user: null, token: "" };
-        mockCart = [{ _id: '1', name: 'Product 1' }];
         renderHeader();
-        expect(screen.getByTestId("badge")).toHaveAttribute("data-count", "1");
+        expect(screen.getByTestId('badge')).toHaveTextContent('1');
     });
 
     it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", async () => {
-        mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
         renderHeader();
 
         const logout = screen.getByRole("link", { name: /logout/i });
@@ -136,7 +126,6 @@ describe("Header", () => {
     });
 
     it("Renders error toast and does not navigate on logout", () => {
-        mockAuth = { user: { name: 'Test User', role: 0, token: 'token' } };
         const error = new Error("");
         const errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
