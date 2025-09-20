@@ -66,6 +66,7 @@ const HomePage = () => {
     if (page === 1 || isFiltering || products.length === 0) return;
     loadMore();
   }, [page]);
+
   //load more
   const loadMore = async () => {
     try {
@@ -89,6 +90,7 @@ const HomePage = () => {
     }
     setChecked(all);
   };
+
   useEffect(() => {
     if (checked.length === 0 && radio.length === 0) getAllProducts(1);
   }, [checked.length, radio.length]);
@@ -109,6 +111,7 @@ const HomePage = () => {
       console.log(error);
     }
   };
+
   return (
     <Layout title={"ALL Products - Best offers "}>
       {/* banner image */}
