@@ -24,14 +24,44 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24'
+
+      - name: Restore backend node_modules
+        id: cache_backend
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: backend-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       
-      - name: Install dependencies
+      - name: Install backend dependencies
+        if: ${{ !steps.cache_backend.outputs.cache-hit }}
         run: npm install
       
-      - name: Install client dependencies
+      - name: Save backend node_modules
+        uses: actions/cache/save@v4
+        if: ${{ !steps.cache_backend.outputs.cache-hit }}
+        with:
+          path: node_modules
+          key: ${{ steps.cache_backend.outputs.cache-primary-key }}
+
+      - name: Restore frontend node_modules
+        id: cache_frontend
+        uses: actions/cache/restore@v4
+        with:
+          path: client/node_modules
+          key: frontend-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+      
+      - name: Install frontend dependencies
+        if: ${{ !steps.cache_frontend.outputs.cache-hit }}
         run: |
           cd client
           npm install
+      
+      - name: Save frontend node_modules
+        uses: actions/cache/save@v4
+        if: ${{ !steps.cache_frontend.outputs.cache-hit }}
+        with:
+          path: client/node_modules
+          key: ${{ steps.cache_frontend.outputs.cache-primary-key }}
       
       - name: Run frontend tests
         run: npm run test:frontend
