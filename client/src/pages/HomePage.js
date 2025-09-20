@@ -19,6 +19,7 @@ const HomePage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const isFiltering = checked.length > 0 || radio.length > 0;
 
   //get all cat
   const getAllCategory = async () => {
@@ -36,20 +37,22 @@ const HomePage = () => {
     getAllCategory();
     getTotal();
   }, []);
+
   //get products
-  const getAllProducts = async () => {
+  const getAllProducts = async (page) => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
       setLoading(false);
       setProducts(data.products);
+      setPage(page);
     } catch (error) {
       setLoading(false);
       console.log(error);
     }
   };
 
-  //getTOtal COunt
+  //getTotal Count
   const getTotal = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/product-count");
@@ -60,7 +63,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (page === 1) return;
+    if (page === 1 || isFiltering || products.length === 0) return;
     loadMore();
   }, [page]);
   //load more
@@ -87,14 +90,14 @@ const HomePage = () => {
     setChecked(all);
   };
   useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
+    if (checked.length === 0 && radio.length === 0) getAllProducts(1);
   }, [checked.length, radio.length]);
 
   useEffect(() => {
     if (checked.length || radio.length) filterProduct();
   }, [checked, radio]);
 
-  //get filterd product
+  //get filtered product
   const filterProduct = async () => {
     try {
       const { data } = await axios.post("/api/v1/product/product-filters", {
@@ -123,6 +126,7 @@ const HomePage = () => {
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
+                checked={checked.includes(c._id)}
                 onChange={(e) => handleFilter(e.target.checked, c._id)}
               >
                 {c.name}
@@ -132,7 +136,7 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group onChange={(e) => setRadio(e.target.value)}>
+            <Radio.Group onChange={(e) => setRadio(e.target.value)} value={radio}>
               {Prices?.map((p) => (
                 <div key={p._id}>
                   <Radio value={p.array}>{p.name}</Radio>
@@ -143,7 +147,12 @@ const HomePage = () => {
           <div className="d-flex flex-column">
             <button
               className="btn btn-danger"
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                  setChecked([]);
+                  setRadio([]);
+                  setPage(1);
+                  getAllProducts(1);
+              }}
             >
               RESET FILTERS
             </button>
@@ -198,7 +207,7 @@ const HomePage = () => {
             ))}
           </div>
           <div className="m-2 p-3">
-            {products && products.length < total && (
+            {!isFiltering && products && products.length < total && (
               <button
                 className="btn loadmore"
                 onClick={(e) => {
@@ -211,7 +220,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     {" "}
-                    Loadmore <AiOutlineReload />
+                    Load More Products! <AiOutlineReload />
                   </>
                 )}
               </button>
