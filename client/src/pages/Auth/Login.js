@@ -41,17 +41,17 @@ const Login = () => {
         localStorage.setItem("auth", JSON.stringify(res.data));
         navigate(location.state || "/");
       } 
-      // removed since no cases will reach here
-      // else {
-      //   toast.error(res.data.message);
-      // }
+      else {
+        console.log("else loop");
+        toast.error(res.data.message);
+      }
     } catch (error) {
-      // issue here, this causes people to not know what the issue is.
       console.log(error);
       let message = error?.response?.data?.message
       toast.error(message);
     }
   };
+  // added role = "form" to retrieve form element in test file
   return (
     <Layout title="Login - Ecommerce App">
       <div className="form-container " style={{ minHeight: "90vh" }}>
@@ -67,7 +67,7 @@ const Login = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter Your Email "
-              required 
+
             />
           </div>
           <div className="mb-3">
