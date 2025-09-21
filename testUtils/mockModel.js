@@ -1,4 +1,4 @@
-export const mockModel = (model) => {
+export default mockModel = (model) => {
   const ops = [
     'find', 'findOne', 'findById', 'populate',
     'select', 'skip', 'limit', 'sort',
