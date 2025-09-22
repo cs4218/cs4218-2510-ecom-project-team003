@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, fireEvent, waitFor, within, screen } from '@testing-library/react';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import axios from 'axios';
-import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import HomePage from './HomePage';
 import { Prices } from '../components/Prices';
@@ -74,16 +74,23 @@ const LAPTOP = {
 };
 
 const mockSetCart = jest.fn();
-let mockSetAuth = jest.fn();
 const mockNavigate = jest.fn();
+let logSpy;
 
 jest.mock('axios');
 
-jest.mock('react-hot-toast', () => ({
-    __esModule: true,
-    default: { success: jest.fn(), error: jest.fn() },
-    Toaster: () => null,
-}));
+jest.mock('react-hot-toast', () => {
+    const mockToast = Object.assign(jest.fn(), {
+        success: jest.fn(),
+        error: jest.fn(),
+    });
+
+    return {
+        __esModule: true,
+        default: mockToast,
+        Toaster: () => null,
+    };
+});
 
 jest.mock('../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()])
@@ -116,8 +123,8 @@ Object.defineProperty(window, 'localStorage', {
 describe('HomePage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSetAuth.mockReset();
         mockNavigate.mockReset();
+        logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
         axios.get.mockImplementation((url) => {
             if (url === '/api/v1/category/get-category') {
@@ -133,6 +140,10 @@ describe('HomePage', () => {
         });
 
         axios.post.mockResolvedValue({ data: { products: [] } });
+    });
+
+    afterEach(() => {
+        logSpy?.mockRestore();
     });
 
     const renderHomePage = () => render(
@@ -154,7 +165,7 @@ describe('HomePage', () => {
         expect(screen.getByText("RESET FILTERS")).toBeInTheDocument();
     });
 
-    it('Render all categories in Home Page', async () => {
+    it('Render all categories in Home Page (data.success = true)', async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
@@ -191,6 +202,33 @@ describe('HomePage', () => {
         expect(await screen.findByText('Electronics')).toBeInTheDocument();
         expect(await screen.findByText('Book')).toBeInTheDocument();
         expect(await screen.findByText('Clothing')).toBeInTheDocument();
+    });
+
+    it("Render no category in Home Page (data.success = false)", async () => {
+        axios.get.mockImplementation((url) => {
+            if (url === "/api/v1/category/get-category") {
+                return Promise.resolve({
+                    data: {
+                        success: false,
+                        category: [LAPTOP.category],
+                    },
+                });
+            }
+            if (url === "/api/v1/product/product-count") {
+                return Promise.resolve({ data: { total: 0 } });
+            }
+            if (url === "/api/v1/product/product-list/1") {
+                return Promise.resolve({ data: { products: [] } });
+            }
+            return Promise.resolve({ data: {} });
+        });
+
+        renderHomePage();
+
+        await screen.findByText("All Products");
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
+
+        expect(screen.queryByText("Electronics")).not.toBeInTheDocument();
     });
 
     it('Render all price ranges in Home Page', async () => {
@@ -471,77 +509,109 @@ describe('HomePage', () => {
         expect(radioAfterReset).not.toBeChecked();
     });
 
-    it('logs error when getAllCategory fails', async () => {
-        const err = new Error('category fail');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    it('Logs error when get all categories fail', async () => {
+        const error = new Error('Category Fail!');
 
         axios.get.mockImplementation((url) => {
-            if (url === '/api/v1/category/get-category') return Promise.reject(err);
-            if (url === '/api/v1/product/product-count') return Promise.resolve({ data: { total: 0 } });
-            if (url === '/api/v1/product/product-list/1') return Promise.resolve({ data: { products: [] } });
+            if (url === '/api/v1/category/get-category') {
+                return Promise.reject(error);
+            } else if (url === '/api/v1/product/product-count') {
+                return Promise.resolve({ data: { total: 0 } });
+            } else if (url === '/api/v1/product/product-list/1') {
+                return Promise.resolve({ data: { products: [] } });
+            }
             return Promise.resolve({ data: {} });
         });
 
         renderHomePage();
-        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(err));
-
-        logSpy.mockRestore();
+        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
-    it('logs error when getTotal fails', async () => {
-        const err = new Error('total fail');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    it('Logs error when get total count fail', async () => {
+        const error = new Error('Total Count Fail!');
 
         axios.get.mockImplementation((url) => {
-            if (url === '/api/v1/category/get-category') return Promise.resolve({ data: { success: true, category: [] } });
-            if (url === '/api/v1/product/product-count') return Promise.reject(err);
-            if (url === '/api/v1/product/product-list/1') return Promise.resolve({ data: { products: [] } });
+            if (url === '/api/v1/category/get-category') {
+                return Promise.resolve({ data: { success: true, category: [] } });
+            } else if (url === '/api/v1/product/product-count') {
+                return Promise.reject(error);
+            } else if (url === '/api/v1/product/product-list/1') {
+                return Promise.resolve({ data: { products: [] } });
+            }
             return Promise.resolve({ data: {} });
         });
 
         renderHomePage();
-        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(err));
-
-        logSpy.mockRestore();
+        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
-    it('logs error when getAllProducts fails on initial fetch', async () => {
-        const err = new Error('products fail');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    it('Logs error when get all products fail', async () => {
+        const error = new Error('Product Fail!');
 
         axios.get.mockImplementation((url) => {
-            if (url === '/api/v1/category/get-category') return Promise.resolve({ data: { success: true, category: [] } });
-            if (url === '/api/v1/product/product-count') return Promise.resolve({ data: { total: 1 } });
-            if (url === '/api/v1/product/product-list/1') return Promise.reject(err);
+            if (url === '/api/v1/category/get-category') {
+                return Promise.resolve({ data: { success: true, category: [] } });
+            } else if (url === '/api/v1/product/product-count') {
+                return Promise.resolve({ data: { total: 1 } });
+            } else if(url === '/api/v1/product/product-list/1') {
+                return Promise.reject(error);
+            }
             return Promise.resolve({ data: {} });
         });
 
         renderHomePage();
-        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(err));
-
-        logSpy.mockRestore();
+        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
-    it('useEffect page change triggers loadMore and handles loadMore error', async () => {
-        const err = new Error('load more fail');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    it('Logs error when filterProduct fails', async () => {
+        const error = new Error('Filter Fail!');
+
+        axios.get.mockImplementation((url) => {
+            if (url === "/api/v1/category/get-category") {
+                return Promise.resolve({
+                    data: {
+                        success: true,
+                        message: "All Category List",
+                        category: [LAPTOP.category, NOVEL.category],
+                    },
+                });
+            } else if (url === "/api/v1/product/product-count") {
+                return Promise.resolve({ data: { success: true, total: 2 } });
+            } else if (url === "/api/v1/product/product-list/1") {
+                return Promise.resolve({
+                    data: { success: true, products: [LAPTOP, NOVEL] },
+                });
+            }
+            return Promise.reject(new Error("Not Found!"));
+        });
+
+        axios.post.mockRejectedValueOnce(error);
+
+        renderHomePage();
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
+
+        const bookCheckbox = await screen.findByRole('checkbox', { name: 'Book' });
+        fireEvent.click(bookCheckbox);
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
+    });
+
+    it('Render loadMore and handles loadMore error', async () => {
+        const error = new Error('Load More Fail!');
 
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
                     data: { success: true, category: [LAPTOP.category, NOVEL.category] }
                 });
-            }
-            if (url === "/api/v1/product/product-count") {
+            } else if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 12 } });
-            }
-            if (url === "/api/v1/product/product-list/1") {
+            } else if (url === "/api/v1/product/product-list/1") {
                 return Promise.resolve({
                     data: { success: true, products: [LAPTOP, SMARTPHONE, NOVEL, TEXTBOOK, CONTRACT, NUS_TSHIRT] }
                 });
-            }
-            if (url === "/api/v1/product/product-list/2") {
-                return Promise.reject(err);
+            } else if (url === "/api/v1/product/product-list/2") {
+                return Promise.reject(error);
             }
             return Promise.resolve({ data: {} });
         });
@@ -553,14 +623,12 @@ describe('HomePage', () => {
         fireEvent.click(loadBtn);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledWith('/api/v1/product/product-list/2'));
-        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(err));
+        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
 
         expect(await screen.findByRole('button', { name: /Load More Products!/ })).toBeInTheDocument();
-
-        logSpy.mockRestore();
     });
 
-    it('handleFilter unchecks correctly (tests the filter(...) removal branch) while price remains selected', async () => {
+    it('Renders "handleFilter" unchecks correctly', async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
@@ -611,43 +679,7 @@ describe('HomePage', () => {
         expect(bookCheckbox).not.toBeChecked();
     });
 
-    it('logs error when filterProduct fails', async () => {
-        const err = new Error('filter fail');
-        const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-        axios.get.mockImplementation((url) => {
-            if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: {
-                        success: true,
-                        message: "All Category List",
-                        category: [LAPTOP.category, NOVEL.category],
-                    },
-                });
-            } else if (url === "/api/v1/product/product-count") {
-                return Promise.resolve({ data: { success: true, total: 2 } });
-            } else if (url === "/api/v1/product/product-list/1") {
-                return Promise.resolve({
-                    data: { success: true, products: [LAPTOP, NOVEL] },
-                });
-            }
-            return Promise.reject(new Error("Not Found!"));
-        });
-
-        axios.post.mockRejectedValueOnce(err);
-
-        renderHomePage();
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
-
-        const bookCheckbox = await screen.findByRole('checkbox', { name: 'Book' });
-        fireEvent.click(bookCheckbox);
-
-        await waitFor(() => expect(logSpy).toHaveBeenCalledWith(err));
-
-        logSpy.mockRestore();
-    });
-
-    it('navigates on "More Details" and adds to cart on "ADD TO CART"', async () => {
+    it('Navigates to product details by using "More Details"', async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
@@ -672,6 +704,29 @@ describe('HomePage', () => {
         const moreDetails = await screen.findByRole('button', { name: /More Details/i });
         fireEvent.click(moreDetails);
         expect(mockNavigate).toHaveBeenCalledWith(`/product/${LAPTOP.slug}`);
+    });
+
+    it('Add product by using "Add To Cart"', async () => {
+        axios.get.mockImplementation((url) => {
+            if (url === "/api/v1/category/get-category") {
+                return Promise.resolve({
+                    data: {
+                        success: true,
+                        category: [LAPTOP.category],
+                    },
+                });
+            } else if (url === "/api/v1/product/product-count") {
+                return Promise.resolve({ data: { success: true, total: 1 } });
+            } else if (url === "/api/v1/product/product-list/1") {
+                return Promise.resolve({
+                    data: { success: true, products: [LAPTOP] },
+                });
+            }
+            return Promise.reject(new Error("Not Found!"));
+        });
+
+        renderHomePage();
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
 
         const addToCart = await screen.findByRole('button', { name: /ADD TO CART/i });
         fireEvent.click(addToCart);
@@ -680,7 +735,7 @@ describe('HomePage', () => {
         expect(toast.success).toHaveBeenCalledWith('Item Added to cart');
     });
 
-    it('shows Load More Products! when not filtering and more items exist; hides it when filtering', async () => {
+    it('Renders "Load More Products!" when it is not filtering and more items exist', async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
@@ -704,6 +759,29 @@ describe('HomePage', () => {
 
         const loadMoreBtn = await screen.findByRole('button', { name: /Load More Products!/ });
         expect(loadMoreBtn).toBeInTheDocument();
+    });
+
+    it('Hides "Load More Products!" when it is filtering', async () => {
+        axios.get.mockImplementation((url) => {
+            if (url === "/api/v1/category/get-category") {
+                return Promise.resolve({
+                    data: {
+                        success: true,
+                        category: [LAPTOP.category, NOVEL.category],
+                    },
+                });
+            } else if (url === "/api/v1/product/product-count") {
+                return Promise.resolve({ data: { success: true, total: 10 } });
+            } else if (url === "/api/v1/product/product-list/1") {
+                return Promise.resolve({
+                    data: { success: true, products: [LAPTOP, SMARTPHONE, NOVEL] },
+                });
+            }
+            return Promise.reject(new Error("Not Found!"));
+        });
+
+        renderHomePage();
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
 
         const bookCheckbox = await screen.findByRole('checkbox', { name: 'Book' });
         axios.post.mockResolvedValueOnce({ data: { success: true, products: [NOVEL] } });
@@ -713,7 +791,7 @@ describe('HomePage', () => {
         expect(screen.queryByRole('button', { name: /Load More Products!/ })).not.toBeInTheDocument();
     });
 
-    it('loadMore appends products and stops loading', async () => {
+    it('Renders "Load More Products!" appends products and stops loading', async () => {
         let resolvePage2;
 
         axios.get.mockImplementation((url) => {
@@ -721,18 +799,15 @@ describe('HomePage', () => {
                 return Promise.resolve({
                     data: { success: true, category: [LAPTOP.category, NOVEL.category] },
                 });
-            }
-            if (url === "/api/v1/product/product-count") {
+            } else if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 10 } });
-            }
-            if (url === "/api/v1/product/product-list/1") {
+            } else if (url === "/api/v1/product/product-list/1") {
                 return Promise.resolve({
                     data: { success: true, products: [LAPTOP, NOVEL] },
                 });
-            }
-            if (url === "/api/v1/product/product-list/2") {
+            } else if (url === "/api/v1/product/product-list/2") {
                 return new Promise((resolve) => {
-                    resolvePage2 = resolve; // resolve later to observe the loading state
+                    resolvePage2 = resolve;
                 });
             }
             return Promise.reject(new Error("Not Found!"));
@@ -757,42 +832,13 @@ describe('HomePage', () => {
             expect(screen.queryByText('Loading ...')).not.toBeInTheDocument()
         );
 
+        await waitFor(() =>
+            expect(axios.get).toHaveBeenCalledWith('/api/v1/product/product-list/2')
+        );
+
         expect(await screen.findByText('Smartphone')).toBeInTheDocument();
         expect(await screen.findByText('Textbook')).toBeInTheDocument();
         expect(screen.getByText('Laptop')).toBeInTheDocument();
         expect(screen.getByText('Novel')).toBeInTheDocument();
-
-        await waitFor(() =>
-            expect(axios.get).toHaveBeenCalledWith('/api/v1/product/product-list/2')
-        );
-    });
-
-    it("does not set categories when API returns success=false (covers the if guard's false branch)", async () => {
-        axios.get.mockImplementation((url) => {
-            if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: {
-                        success: false,
-                        category: [LAPTOP.category, NOVEL.category, NUS_TSHIRT.category],
-                    },
-                });
-            }
-            if (url === "/api/v1/product/product-count") {
-                return Promise.resolve({ data: { total: 0 } });
-            }
-            if (url === "/api/v1/product/product-list/1") {
-                return Promise.resolve({ data: { products: [] } });
-            }
-            return Promise.resolve({ data: {} });
-        });
-
-        renderHomePage();
-
-        await screen.findByText("All Products");
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
-
-        expect(screen.queryByText("Electronics")).not.toBeInTheDocument();
-        expect(screen.queryByText("Book")).not.toBeInTheDocument();
-        expect(screen.queryByText("Clothing")).not.toBeInTheDocument();
     });
 });
