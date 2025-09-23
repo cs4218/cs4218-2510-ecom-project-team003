@@ -3,7 +3,8 @@ import {
     categoryController,
     createCategoryController,
     singleCategoryController,
-    updateCategoryController
+    updateCategoryController,
+    deleteCategoryController,
 } from "./categoryController.js";
 import categoryModel from "../models/categoryModel.js";
 
@@ -242,5 +243,71 @@ describe("Category Controllers", () => {
             });
         });
     });
+
+    describe("Category Controller Delete Operations", () => {
+        it("Should remove an entry from DB", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(categoryModel.findByIdAndDelete).toHaveBeenCalledWith("12345");
+        });
+
+        it("Returns 200 when deletion is successful", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(res.status).toHaveBeenCalledWith(200);
+        })
+
+        it("Returns success message when deletion is successful", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+                success: true,
+                message: expect.stringMatching(/deleted|success|successful/i),
+            }));
+        })
+
+        it("Returns 404 when id is not found", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue(null);
+            await deleteCategoryController(req, res);
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+
+        it("Returns Not Found message if id is not found", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue(null);
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining(
+                {
+                success: false,
+                message: expect.stringContaining("not found"),
+                }
+            ));
+        })
+
+        it("Returns 500 when handling other errors", async () => {
+            const error = new Error("Some Error");
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockRejectedValue(error);
+            await deleteCategoryController(req, res);
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+        });
+
+        it("Sends error message when handling other errors", async () => {
+            const error = new Error("Some Error");
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockRejectedValue(error);
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+                success: false,
+                message: expect.stringMatching(/error/i),
+                error,
+            }));
+        })
+    })
 });
 
