@@ -42,7 +42,6 @@ const Login = () => {
         navigate(location.state || "/");
       } 
       else {
-        console.log("else loop");
         toast.error(res.data.message);
       }
     } catch (error) {
@@ -67,7 +66,7 @@ const Login = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter Your Email "
-
+              required
             />
           </div>
           <div className="mb-3">
