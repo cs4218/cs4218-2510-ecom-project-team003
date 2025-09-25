@@ -264,7 +264,7 @@ describe('Product Controller', () => {
 
     it('should return 500 upon database failure', async () => {
       const body = { checked: [LAPTOP.category._id], radio: [500, 1500] };
-      const [req, res] = mockRequestResponse({body});
+      const [req, res] = mockRequestResponse({ body });
       productFiltersSchema.safeParse.mockReturnValue({ success: true, data: body });
       buildProductFiltersArgs.mockReturnValue({
         category: [LAPTOP.category._id],
@@ -367,7 +367,7 @@ describe('Product Controller', () => {
     });
   });
 
-   describe('searchProductController', () => {
+  describe('searchProductController', () => {
     it('should return 200 with search results', async () => {
       const [req, res] = mockRequestResponse({ params: { keyword: 'laptop' } });
       mockModel(productModel).mockResolvedValue('select', [LAPTOP]);
@@ -442,7 +442,7 @@ describe('Product Controller', () => {
 
       spy.mockRestore();
     });
-    
+
     it('should return 500 upon database failure in productModel', async () => {
       const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.category.slug } });
       mockModel(categoryModel).mockResolvedValue('findOne', LAPTOP.category);
