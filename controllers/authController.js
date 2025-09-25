@@ -7,30 +7,31 @@ import JWT from "jsonwebtoken";
 export const registerController = async (req, res) => {
   try {
     const { name, email, password, phone, address, answer } = req.body;
-    //validations
+    // Validations
+    // return statuses 400 for missing fields, 409 for conflict (existing user), 200 for success, 500 for server errors.
     if (!name) {
-      return res.send({ error: "Name is Required" });
+      return res.status(400).send({ success: false, message: "Name is required" });
     }
     if (!email) {
-      return res.send({ message: "Email is Required" });
+      return res.status(400).send({ success: false, message: "Email is required" });
     }
     if (!password) {
-      return res.send({ message: "Password is Required" });
+      return res.status(400).send({ success: false, message: "Password is required" });
     }
     if (!phone) {
-      return res.send({ message: "Phone no is Required" });
+      return res.status(400).send({ success: false, message: "Phone number is required" });
     }
     if (!address) {
-      return res.send({ message: "Address is Required" });
+      return res.status(400).send({ success: false, message: "Address is required" });
     }
     if (!answer) {
-      return res.send({ message: "Answer is Required" });
+      return res.status(400).send({ success: false, message: "Answer is required" });
     }
     //check user
     const exisitingUser = await userModel.findOne({ email });
     //exisiting user
     if (exisitingUser) {
-      return res.status(200).send({
+      return res.status(409).send({
         success: false,
         message: "Already Register please login",
       });
@@ -47,7 +48,7 @@ export const registerController = async (req, res) => {
       answer,
     }).save();
 
-    res.status(201).send({
+    res.status(200).send({
       success: true,
       message: "User Register Successfully",
       user,
@@ -56,36 +57,40 @@ export const registerController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Errro in Registeration",
+      message: "Error in Registeration",
       error,
     });
   }
 };
 
-//POST LOGIN
+// POST LOGIN
 export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    //validation
+    //validations
+    // return statuses 400 for missing fields, 401 for invalid credentials, 200 for success, 500 for server errors.
+    // this case is handled by frontend since the fields are required in the form itself.
+    // question is should i keep it as status 200 or change to 400?
     if (!email || !password) {
-      return res.status(404).send({
+      return res.status(200).send({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+    // check user
+    // error message returns invalid email or password for both cases to avoid revealing which one is incorrect.
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(401).send({
         success: false,
         message: "Invalid email or password",
       });
     }
-    //check user
-    const user = await userModel.findOne({ email });
-    if (!user) {
-      return res.status(404).send({
-        success: false,
-        message: "Email is not registerd",
-      });
-    }
     const match = await comparePassword(password, user.password);
     if (!match) {
-      return res.status(200).send({
+      return res.status(401).send({
         success: false,
-        message: "Invalid Password",
+        message: "Invalid email or password",
       });
     }
     //token
@@ -94,7 +99,7 @@ export const loginController = async (req, res) => {
     });
     res.status(200).send({
       success: true,
-      message: "login successfully",
+      message: "Login successfully",
       user: {
         _id: user._id,
         name: user.name,

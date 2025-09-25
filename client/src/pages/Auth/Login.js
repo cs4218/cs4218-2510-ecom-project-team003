@@ -40,14 +40,17 @@ const Login = () => {
         });
         localStorage.setItem("auth", JSON.stringify(res.data));
         navigate(location.state || "/");
-      } else {
+      } 
+      else {
         toast.error(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      let message = error?.response?.data?.message
+      toast.error(message);
     }
   };
+  // added role = "form" to retrieve form element in test file
   return (
     <Layout title="Login - Ecommerce App">
       <div className="form-container " style={{ minHeight: "90vh" }}>
