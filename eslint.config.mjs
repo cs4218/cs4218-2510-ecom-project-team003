@@ -18,6 +18,9 @@ export default defineConfig([
         ...globals.jest,
       } 
     },
+    rules: {
+      "no-unused-vars": "warn",
+    },
   },
   {
     files: ["**/*.test.js"],
