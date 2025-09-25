@@ -1,15 +1,18 @@
+import {expect, jest} from "@jest/globals";
 import productModel from "../models/productModel.js";
 import orderModel from "../models/orderModel.js";
 import braintree from "braintree";
 import {
+  braintreePaymentController,
+  braintreeTokenController,
+  createProductController, deleteProductController,
   getProductController,
   getSingleProductController,
-  productPhotoController,
   productListController,
-  braintreeTokenController,
-  braintreePaymentController
+  productPhotoController
 } from "./productController.js";
-import { describe } from "node:test";
+import {beforeEach, describe} from "node:test";
+import fs from "fs";
 
 const LAPTOP = {
   "_id": "1",
@@ -36,6 +39,16 @@ const SMARTPHONE = {
   },
 };
 
+const LAPTOP_CREATE = {
+  fields: { name: "foo", description: "desc", price: 10, category: "cat", quantity: 1 },
+  files: {photo: {
+      size: 1,
+      path: "fakepath",
+      type: "image/png"
+    }
+  },
+}
+
 jest.mock('../models/productModel.js');
 
 jest.mock("../models/orderModel.js");
@@ -57,10 +70,15 @@ jest.mock('braintree', () => {
   };
 });
 
+jest.mock('axios');
+
+jest.mock("fs");
+
 const fakeGateway = braintree.BraintreeGateway();
 
 const mockProductModel = (overrides = {}) => {
   const methods = {
+    // Reads
     find: jest.fn().mockReturnThis(),
     findOne: jest.fn().mockReturnThis(),
     findById: jest.fn().mockReturnThis(),
@@ -68,11 +86,27 @@ const mockProductModel = (overrides = {}) => {
     select: jest.fn().mockReturnThis(),
     skip: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
+
+    // Creates
+    create: jest.fn(),
+    save: jest.fn(), // used on document instances
+
+    // Updates
+    findByIdAndUpdate: jest.fn(),
+    updateOne: jest.fn(),
+    updateMany: jest.fn(),
+
+    // Deletes
+    findByIdAndDelete: jest.fn(),
+    deleteOne: jest.fn(),
+    deleteMany: jest.fn(),
+
     ...overrides,
   };
-  Object.keys(methods).forEach((key) => {
-    productModel[key] = methods[key];
-  });
+
+  Object.assign(productModel, methods);
+
+  return methods; // return mocks so tests can inspect them
 };
 
 // const mockGateway = (overrides = {}) => {
@@ -95,6 +129,149 @@ const mockRequestResponse = (params = {}) => {
 describe('Product Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+  describe("createProductController", () => {
+    beforeEach(() => {
+      fs.readFileSync.mockReturnValue('fakeimagedata');
+    })
+    it("should return 500 if name is missing", async () => {
+      const no_name = {
+        ...LAPTOP_CREATE,
+        fields: { ...LAPTOP_CREATE.fields }, // ensure nested copy
+      };
+      delete no_name.fields.name;
+      const [_, res] = mockRequestResponse(no_name);
+      await createProductController(no_name, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({ error: "Name is Required" });
+    });
+
+    it("should return 500 if description is missing", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+      });
+      req.fields = { name: "name", price: 10, category: "cat", quantity: 1 };
+      req.files = {photo: {
+          size: 1,
+          path: "fakepath",
+          type: "image/png"
+        }
+      };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({ error: "Description is Required" });
+    });
+
+    it("should return 500 if price is missing", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+
+      req.fields = { name: "name", description: "desc", category: "cat", quantity: 1};
+      req.files = {photo: {
+          size: 1,
+          path: "fakepath",
+          type: "image/png"
+        }
+      };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({ error: "Price is Required" });
+    });
+
+    it("should return 500 if category is missing", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+      });
+      req.fields = { name: "name", description: "desc", price: 10, quantity: 1 };
+      req.files = { photo: jest.fn() };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({ error: "Category is Required" });
+    });
+
+    it("should return 500 if quantity is missing", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+      });
+      req.fields = { name: "name", description: "desc", price: 10, category: "cat"};
+      req.files = { photo: jest.fn() };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({ error: "Quantity is Required" });
+    });
+
+    it("should save product and return 201 on success", async () => {
+      jest.spyOn(fs, 'readFileSync').mockReturnValue('fakeimagedata');
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+        save: jest.fn().mockResolvedValue({}),
+      });
+      req.fields = { name: "Book", description: "Nice", price: 100, category: "cat", quantity: 2 };
+      req.files = {}; // no photo
+
+      const mockSave = jest.fn().mockResolvedValue({});
+      productModel.mockImplementation(() => ({ save: mockSave }));
+
+      await createProductController(req, res);
+
+      expect(mockSave).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: true,
+            message: "Product Created Successfully"
+          })
+      );
+    });
+
+    it("should return 500 if photo is too big", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      req.fields = { name: "Book", description: "Nice", price: 100, category: "cat", quantity: 2 };
+      req.files = {
+        photo: {
+          size: 2000000,  // 2 MB
+          path: "fakepath",
+          type: "image/png"
+        }
+      };
+      await createProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: expect.stringMatching(/too big|(?=.*less than)(?=.*1mb)/i),
+          })
+      );
+    });
+
+    it("should handle photo upload", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      req.fields = { name: "Book", description: "Nice", price: 100, category: "cat", quantity: 2 };
+      req.files = {}
+      req.files.photo = { path: "somepath", type: "image/png" };
+
+      const mockSave = jest.fn().mockResolvedValue({});
+      productModel.mockImplementation(() => ({
+        save: mockSave,
+        photo: {}
+      }));
+
+      await createProductController(req, res);
+
+      expect(fs.readFileSync).toHaveBeenCalledWith("somepath");
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
   });
 
   describe('getProductController', () => {
@@ -183,6 +360,46 @@ describe('Product Controller', () => {
       expect(spy).toHaveBeenCalledWith(err);
 
       spy.mockRestore();
+    });
+  });
+
+  describe("updateProductController", () => {});
+
+
+  describe("deleteProductController", () => {
+
+    it("should delete a product and return 200 on success", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      const mockSelect = jest.fn().mockResolvedValue({});
+      productModel.findByIdAndDelete.mockReturnValue({ select: mockSelect });
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith("fake-id");
+      expect(mockSelect).toHaveBeenCalledWith("-photo");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Product Deleted successfully"
+      });
+    });
+
+    it("should handle errors and return 500", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      productModel.findByIdAndDelete.mockImplementation(() => {
+        throw new Error("DB failure");
+      });
+
+      await deleteProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: false,
+            message: "Error while deleting product",
+            error: expect.any(Error)
+          })
+      );
     });
   });
 
