@@ -1,5 +1,5 @@
-export default mockRequestResponse = (params = {}) => {
-  const req = { params };
+export default mockRequestResponse = ({ params = {}, body = {} } = {}) => {
+  const req = { params, body };
   const res = {
     status: jest.fn().mockReturnThis(),
     send: jest.fn(),
