@@ -14,7 +14,8 @@ import {
   getSingleProductController,
   productListController,
   productPhotoController, 
-  updateProductControllerproductFiltersController,
+  updateProductController,
+  productFiltersController,
   productCountController,
   searchProductController,
   relatedProductController,
@@ -143,17 +144,6 @@ const mockProductModel = (overrides = {}) => {
 //     generate: jest.fn(),
 //   }
 // };
-
-const mockRequestResponse = (params = {}) => {
-  const req = { params };
-  const res = {
-    status: jest.fn().mockReturnThis(),
-    send: jest.fn(),
-    set: jest.fn(),
-    json: jest.fn(),
-  };
-  return [req, res];
-}
 
 console.log = jest.fn();
 
@@ -460,7 +450,8 @@ describe('Product Controller', () => {
   describe("deleteProductController", () => {
 
     it("should delete the corresponding product", async () => {
-      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      let [req, res] = mockRequestResponse({pid: "fake-id"});
+      req.params.pid = "fake-id"; // usually mockRequestResponse should handle this but this is just in case
       const mockSelect = jest.fn().mockResolvedValue({});
       productModel.findByIdAndDelete.mockReturnValue({ select: mockSelect });
       await deleteProductController(req, res);
