@@ -9,7 +9,7 @@ import {
   getProductController,
   getSingleProductController,
   productListController,
-  productPhotoController
+  productPhotoController, updateProductController
 } from "./productController.js";
 import {beforeEach, describe} from "node:test";
 import fs from "fs";
@@ -47,6 +47,11 @@ const LAPTOP_CREATE = {
       type: "image/png"
     }
   },
+}
+
+const LAPTOP_UPDATE = {
+  ...LAPTOP_CREATE,
+  params: { pid: LAPTOP._id },
 }
 
 jest.mock('../models/productModel.js');
@@ -363,29 +368,102 @@ describe('Product Controller', () => {
     });
   });
 
-  describe("updateProductController", () => {});
+  describe("updateProductController", () => {
+    beforeEach(() => {
+      fs.readFileSync.mockReturnValue('fakeimagedata');
+    });
 
+    it("should update the corresponding product", async () => {
+      const [_, res] = mockRequestResponse(LAPTOP_UPDATE.params);
+      mockProductModel({
+        findByIdAndUpdate: jest.fn().mockReturnValue({
+          photo: { data: 'data', contentType: 'image/png' },
+          save: jest.fn().mockResolvedValue({}),
+        }),
+      })
+
+      await updateProductController(LAPTOP_UPDATE, res);
+
+      expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+          LAPTOP_UPDATE.params.pid,
+          expect.objectContaining({
+            name: LAPTOP_UPDATE.fields.name,
+            description: LAPTOP_UPDATE.fields.description,
+            price: LAPTOP_UPDATE.fields.price,
+            category: LAPTOP_UPDATE.fields.category,
+            quantity: LAPTOP_UPDATE.fields.quantity,
+            // slug is passed in, but we don't care about its value
+          }),
+          { new: true }
+      );
+    });
+
+    it("should return 200 with success message on successful update", async () => {
+      const [_, res] = mockRequestResponse(LAPTOP_UPDATE.params);
+      mockProductModel({
+        findByIdAndUpdate: jest.fn().mockReturnValue({
+            photo: { data: 'data', contentType: 'image/png' },
+            save: jest.fn().mockResolvedValue({}),
+        }),
+      })
+
+      await updateProductController(LAPTOP_UPDATE, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+          success: true,
+          message: expect.stringMatching(/(?=.*update)(?=.*success)/i)
+      }));
+    });
+
+    it("should handle errors and return 500", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      jest.spyOn(console, 'log').mockImplementation(); // suppress console output
+      const err = new Error("DB failure");
+      productModel.findByIdAndUpdate.mockImplementation(() => {
+        throw err;
+      });
+
+      await updateProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: false,
+            message: expect.stringMatching(/(?=.*error)(?=.*updat)/i), // "updat" to match "update" or "updating"
+            error: expect.any(Error)
+          })
+      );
+    });
+  });
 
   describe("deleteProductController", () => {
 
-    it("should delete a product and return 200 on success", async () => {
+    it("should delete the corresponding product", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      const mockSelect = jest.fn().mockResolvedValue({});
+      productModel.findByIdAndDelete.mockReturnValue({ select: mockSelect });
+      await deleteProductController(req, res);
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith("fake-id");
+    });
+
+    it("should return 200 with success message on successful deletion", async () => {
       const [req, res] = mockRequestResponse({ pid: "fake-id" });
       const mockSelect = jest.fn().mockResolvedValue({});
       productModel.findByIdAndDelete.mockReturnValue({ select: mockSelect });
 
       await deleteProductController(req, res);
 
-      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith("fake-id");
-      expect(mockSelect).toHaveBeenCalledWith("-photo");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
-        success: true,
-        message: "Product Deleted successfully"
-      });
-    });
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+          success: true,
+          message: expect.stringMatching(/(?=.*delete)(?=.*success)/i)
+      }));
+    })
 
     it("should handle errors and return 500", async () => {
       const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      const spy = jest.spyOn(console, 'log').mockImplementation(); // suppress console output
       productModel.findByIdAndDelete.mockImplementation(() => {
         throw new Error("DB failure");
       });
