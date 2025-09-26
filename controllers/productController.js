@@ -45,7 +45,7 @@ export const createProductController = async (req, res) => {
       case photo && photo.size > 1000000:
         return res
           .status(500)
-          .send({ error: "photo is Required and should be less then 1mb" });
+          .send({ error: "photo is Required and should be less than 1mb" });
     }
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
@@ -64,7 +64,7 @@ export const createProductController = async (req, res) => {
     res.status(500).send({
       success: false,
       error,
-      message: "Error in crearing product",
+      message: "Error in creating product",
     });
   }
 };
@@ -105,7 +105,7 @@ export const getSingleProductController = async (req, res) => {
         success: false,
         message: "Product not found",
       });
-    };
+    }
 
     res.status(200).send({
       success: true,
@@ -190,7 +190,7 @@ export const updateProductController = async (req, res) => {
       case photo && photo.size > 1000000:
         return res
           .status(500)
-          .send({ error: "photo is Required and should be less then 1mb" });
+          .send({ error: "photo is Required and should be less than 1mb" });
     }
 
     const products = await productModel.findByIdAndUpdate(
@@ -203,7 +203,7 @@ export const updateProductController = async (req, res) => {
       products.photo.contentType = photo.type;
     }
     await products.save();
-    res.status(201).send({
+    res.status(200).send({
       success: true,
       message: "Product Updated Successfully",
       products,
@@ -213,7 +213,7 @@ export const updateProductController = async (req, res) => {
     res.status(500).send({
       success: false,
       error,
-      message: "Error in Updte product",
+      message: "Error in updating product",
     });
   }
 };

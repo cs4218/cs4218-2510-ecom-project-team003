@@ -14,7 +14,7 @@
 export const mockModel = (model) => {
   const ops = [
     'find', 'findOne', 'findById', 'populate',
-    'select', 'skip', 'limit', 'sort', 'estimatedDocumentCount'
+    'select', 'skip', 'limit', 'sort', 'estimatedDocumentCount', 'save',
   ];
 
   ops.forEach((method) => {
