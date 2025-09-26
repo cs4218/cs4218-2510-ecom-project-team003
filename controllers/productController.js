@@ -6,6 +6,7 @@ import fs from "fs";
 import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import * as z from "zod";
 
 dotenv.config();
 
@@ -15,6 +16,13 @@ var gateway = new braintree.BraintreeGateway({
   merchantId: process.env.BRAINTREE_MERCHANT_ID,
   publicKey: process.env.BRAINTREE_PUBLIC_KEY,
   privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+});
+
+export const productFiltersSchema = z.object({
+  checked: z.array(z.string()).default([]),
+  radio: z.array(z.number()).default([]).refine((arr) => [0, 2].includes(arr.length), {
+    error: 'radio must be length 0 or 2', abort: true,
+  }),
 });
 
 export const createProductController = async (req, res) => {
@@ -211,12 +219,26 @@ export const updateProductController = async (req, res) => {
 };
 
 // filters
+
+export const buildProductFiltersArgs = (checked, radio) => {
+  let args = {};
+  if (checked.length > 0) args.category = checked;
+  if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+  return args;
+};
+
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked, radio } = req.body;
-    let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+    const result = productFiltersSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send({
+        success: false,
+        message: 'Invalid request',
+        error: z.prettifyError(result.error),
+      });
+    }
+    const { checked, radio } = result.data;
+    const args = buildProductFiltersArgs(checked, radio);
     const products = await productModel.find(args);
     res.status(200).send({
       success: true,
@@ -224,10 +246,10 @@ export const productFiltersController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "Error WHile Filtering Products",
-      error,
+      message: "Error while filtering products",
+      error: error.message,
     });
   }
 };
@@ -242,10 +264,10 @@ export const productCountController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
-      message: "Error in product count",
-      error,
+    res.status(500).send({
       success: false,
+      message: "Error in product count",
+      error: error.message,
     });
   }
 };
@@ -287,7 +309,7 @@ export const productListController = async (req, res) => {
 export const searchProductController = async (req, res) => {
   try {
     const { keyword } = req.params;
-    const resutls = await productModel
+    const results = await productModel
       .find({
         $or: [
           { name: { $regex: keyword, $options: "i" } },
@@ -295,19 +317,19 @@ export const searchProductController = async (req, res) => {
         ],
       })
       .select("-photo");
-    res.json(resutls);
+    res.status(200).json(results);
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "Error In Search Product API",
-      error,
+      message: "Error in product search",
+      error: error.message,
     });
   }
 };
 
 // similar products
-export const realtedProductController = async (req, res) => {
+export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
     const products = await productModel
@@ -324,15 +346,15 @@ export const realtedProductController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "error while geting related product",
-      error,
+      message: "Error while getting related products",
+      error: error.message,
     });
   }
 };
 
-// get prdocyst by catgory
+// get products by catgory
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -344,10 +366,10 @@ export const productCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      error,
-      message: "Error While Getting products",
+      error: error.message,
+      message: "Error while getting category products",
     });
   }
 };
@@ -369,7 +391,7 @@ export const braintreeTokenController = async (req, res) => {
 };
 
 //payment
-export const brainTreePaymentController = async (req, res) => {
+export const braintreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
     let total = 0;
