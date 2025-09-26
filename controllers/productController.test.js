@@ -435,6 +435,18 @@ describe('Product Controller', () => {
           })
       );
     });
+
+    it("should console.log the error when update fails", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      const spy = jest.spyOn(console, 'log').mockImplementation(); // suppress console output
+      const err = new Error("DB failure");
+      productModel.findByIdAndUpdate.mockImplementation(() => {
+        throw err;
+      });
+
+      await updateProductController(req, res);
+      expect(spy).toHaveBeenCalledWith(expect.any(Error));
+    })
   });
 
   describe("deleteProductController", () => {
@@ -463,7 +475,7 @@ describe('Product Controller', () => {
 
     it("should handle errors and return 500", async () => {
       const [req, res] = mockRequestResponse({ pid: "fake-id" });
-      const spy = jest.spyOn(console, 'log').mockImplementation(); // suppress console output
+      jest.spyOn(console, 'log').mockImplementation(); // suppress console output
       productModel.findByIdAndDelete.mockImplementation(() => {
         throw new Error("DB failure");
       });
@@ -479,6 +491,18 @@ describe('Product Controller', () => {
           })
       );
     });
+
+    it("should console.log the error when deletion fails", async () => {
+      const [req, res] = mockRequestResponse({ pid: "fake-id" });
+      const spy = jest.spyOn(console, 'log').mockImplementation(); // suppress console output
+      productModel.findByIdAndDelete.mockImplementation(() => {
+        throw new Error("DB failure");
+      });
+
+      await deleteProductController(req, res);
+
+      expect(spy).toHaveBeenCalledWith(expect.any(Error));
+    })
   });
 
   describe('productPhotoController', () => {
