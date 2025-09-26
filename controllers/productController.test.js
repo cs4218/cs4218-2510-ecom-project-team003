@@ -1,32 +1,30 @@
-import {expect, jest} from "@jest/globals";
 import productModel from '../models/productModel.js';
 import categoryModel from '../models/categoryModel.js';
 import orderModel from '../models/orderModel.js';
 import mockRequestResponse from '../testUtils/requests.js';
 import braintree from 'braintree';
 import * as z from 'zod';
-
 import {
-  braintreePaymentController,
-  braintreeTokenController,
-  createProductController, deleteProductController,
   getProductController,
   getSingleProductController,
-  productListController,
-  productPhotoController, 
   updateProductController,
+  deleteProductController,
+  productPhotoController,
   productFiltersController,
   productCountController,
+  productListController,
   searchProductController,
   relatedProductController,
   productCategoryController,
+  braintreeTokenController,
+  braintreePaymentController,
   buildProductFiltersArgs,
-  productFiltersSchema
+  productFiltersSchema,
+  createProductController
 } from './productController.js';
-import {beforeEach, describe} from "node:test";
-import fs from "fs";
 import * as productController from './productController.js';
 import { expectDatabaseError, mockModel } from '../testUtils/database.js';
+import fs from 'fs';
 
 const ELECTRONICS = {
   '_id': '1',
