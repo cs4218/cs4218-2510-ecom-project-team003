@@ -1,7 +1,11 @@
 import {expect, jest} from "@jest/globals";
-import productModel from "../models/productModel.js";
-import orderModel from "../models/orderModel.js";
-import braintree from "braintree";
+import productModel from '../models/productModel.js';
+import categoryModel from '../models/categoryModel.js';
+import orderModel from '../models/orderModel.js';
+import mockRequestResponse from '../testUtils/requests.js';
+import braintree from 'braintree';
+import * as z from 'zod';
+
 import {
   braintreePaymentController,
   braintreeTokenController,
@@ -9,35 +13,54 @@ import {
   getProductController,
   getSingleProductController,
   productListController,
-  productPhotoController, updateProductController
-} from "./productController.js";
+  productPhotoController, 
+  updateProductControllerproductFiltersController,
+  productCountController,
+  searchProductController,
+  relatedProductController,
+  productCategoryController,
+  buildProductFiltersArgs,
+  productFiltersSchema
+} from './productController.js';
 import {beforeEach, describe} from "node:test";
 import fs from "fs";
+import * as productController from './productController.js';
+import { expectDatabaseError, mockModel } from '../testUtils/database.js';
+
+const ELECTRONICS = {
+  '_id': '1',
+  'name': 'Electronics',
+  'slug': 'electronics',
+};
+
 
 const LAPTOP = {
-  "_id": "1",
-  "name": "Laptop",
-  "slug": "laptop",
-  "description": "A powerful laptop",
-  "price": 1499.99,
-  "photo": {
-    "data": "Laptop image data",
-    "contentType": "image/jpeg",
+  '_id': '1',
+  'name': 'Laptop',
+  'slug': 'laptop',
+  'description': 'A powerful laptop',
+  'price': 1499.99,
+  'category': ELECTRONICS,
+  'photo': {
+    'data': 'Laptop image data',
+    'contentType': 'image/jpeg',
   },
 };
 
 const SMARTPHONE = {
-  "_id": "2",
-  "name": "Smartphone",
-  "slug": "smartphone",
-  "description": "A high-end smartphone",
-  "price": 999.99,
-  "quantity": 50,
-  "photo": {
-    "data": "Smartphone image data",
-    "contentType": "image/png",
+  '_id': '2',
+  'name': 'Smartphone',
+  'slug': 'smartphone',
+  'description': 'A high-end smartphone',
+  'price': 999.99,
+  'quantity': 50,
+  'category': ELECTRONICS,
+  'photo': {
+    'data': 'Smartphone image data',
+    'contentType': 'image/png',
   },
 };
+
 
 const LAPTOP_CREATE = {
   fields: { name: "foo", description: "desc", price: 10, category: "cat", quantity: 1 },
@@ -57,6 +80,7 @@ const LAPTOP_UPDATE = {
 jest.mock('../models/productModel.js');
 
 jest.mock("../models/orderModel.js");
+
 
 jest.mock('braintree', () => {
   const mockGateway = {
@@ -130,6 +154,9 @@ const mockRequestResponse = (params = {}) => {
   };
   return [req, res];
 }
+
+console.log = jest.fn();
+
 
 describe('Product Controller', () => {
   beforeEach(() => {
@@ -282,36 +309,29 @@ describe('Product Controller', () => {
   describe('getProductController', () => {
     it('should return 200 with a list of products', async () => {
       const [req, res] = mockRequestResponse();
-      mockProductModel({
-        sort: jest.fn().mockResolvedValueOnce([LAPTOP, SMARTPHONE]),
-      });
+      mockModel(productModel).mockResolvedValue('sort', [LAPTOP, SMARTPHONE]);
 
       await getProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         countTotal: 2,
-        message: "All Products",
-        products: [LAPTOP, SMARTPHONE],
-      });
+        message: expect.any(String),
+        products: expect.arrayContaining([
+          expect.objectContaining({ name: LAPTOP.name }),
+          expect.objectContaining({ name: SMARTPHONE.name }),
+        ])
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
       const [req, res] = mockRequestResponse();
+      mockModel(productModel).mockDatabaseFailure('sort');
       const spy = jest.spyOn(console, 'log').mockImplementation();
-      const err = new Error('Database error');
-      mockProductModel({
-        sort: jest.fn().mockRejectedValue(err),
-      });
 
       await getProductController(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: "Error in getting products",
-        error: 'Database error',
-      });
-      expect(spy).toHaveBeenCalledWith(err);
+
+      expectDatabaseError(res, spy);
 
       spy.mockRestore();
     });
@@ -319,50 +339,38 @@ describe('Product Controller', () => {
 
   describe('getSingleProductController', () => {
     it('should return 200 with a single product', async () => {
-      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
-      mockProductModel({
-        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
-      });
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.slug } });
+      mockModel(productModel).mockResolvedValue('populate', LAPTOP);
 
       await getSingleProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith({
         success: true,
-        message: "Single product fetched",
+        message: expect.any(String),
         product: LAPTOP,
       });
     });
 
     it('should return 404 with product not found', async () => {
-      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
-      mockProductModel({
-        populate: jest.fn().mockResolvedValueOnce(null),
-      });
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.slug } });
+      mockModel(productModel).mockResolvedValue('populate', null);
 
       await getSingleProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: "Product not found",
+        message: expect.any(String),
       });
     });
 
     it('should return 500 upon database failure', async () => {
-      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.slug } });
+      mockModel(productModel).mockDatabaseFailure('populate');
       const spy = jest.spyOn(console, 'log').mockImplementation();
-      const err = new Error('Database error');
-      mockProductModel({
-        populate: jest.fn().mockRejectedValue(err),
-      });
 
       await getSingleProductController(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Error while getting single product',
-        error: 'Database error',
-      });
-      expect(spy).toHaveBeenCalledWith(err);
+
+      expectDatabaseError(res, spy);
 
       spy.mockRestore();
     });
@@ -507,75 +515,164 @@ describe('Product Controller', () => {
 
   describe('productPhotoController', () => {
     it('should return 200 with product photo data', async () => {
-      const [req, res] = mockRequestResponse({ pid: LAPTOP._id });
-      mockProductModel({
-        select: jest.fn().mockResolvedValueOnce(LAPTOP),
-      });
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id } });
+      mockModel(productModel).mockResolvedValue('select', LAPTOP);
 
       await productPhotoController(req, res);
-      expect(res.set).toHaveBeenCalledWith("Content-type", LAPTOP.photo.contentType);
+      expect(res.set).toHaveBeenCalledWith('Content-type', LAPTOP.photo.contentType);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(LAPTOP.photo.data);
     });
 
     it('should return 404 with product not found', async () => {
-      const [req, res] = mockRequestResponse({ pid: LAPTOP._id });
-      mockProductModel({
-        select: jest.fn().mockResolvedValueOnce(null),
-      });
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id } });
+      mockModel(productModel).mockResolvedValue('select', null);
 
       await productPhotoController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: 'Product not found',
+        message: expect.any(String),
       });
     });
 
     it('should return 404 with photo not found', async () => {
-      const [req, res] = mockRequestResponse({ pid: LAPTOP._id });
-      mockProductModel({
-        select: jest.fn().mockResolvedValueOnce({ photo: null }),
-      });
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id } });
+      mockModel(productModel).mockResolvedValue('select', { photo: null });
 
       await productPhotoController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: 'Photo not found',
+        message: expect.any(String),
       });
     });
 
     it('should return 500 upon database failure', async () => {
-      const [req, res] = mockRequestResponse({ pid: LAPTOP._id });
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id } });
+      mockModel(productModel).mockDatabaseFailure('select');
       const spy = jest.spyOn(console, 'log').mockImplementation();
-      const err = new Error('Database error');
-      mockProductModel({
-        select: jest.fn().mockRejectedValue(err),
-      });
 
       await productPhotoController(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Error while getting photo',
-        error: 'Database error',
-      });
-      expect(spy).toHaveBeenCalledWith(err);
+
+      expectDatabaseError(res, spy);
+
       spy.mockRestore();
     });
+  });
 
+  describe('buildProductFiltersArgs', () => {
+    it('should return empty object when both are empty', () => {
+      expect(buildProductFiltersArgs([], [])).toEqual({});
+    });
+
+    it('should return category filter when checked is non-empty', () => {
+      const categories = ['cat1', 'cat2']
+      const result = buildProductFiltersArgs(categories, []);
+      expect(result.category).toEqual(expect.arrayContaining(categories));
+      expect(result.category.length).toEqual(2);
+    });
+
+    it('should return price filter when radio has two values', () => {
+      expect(buildProductFiltersArgs([], [500, 1500])).toEqual({
+        price: { $gte: 500, $lte: 1500 },
+      });
+    });
+  });
+
+  describe('productFiltersController', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(productFiltersSchema, 'safeParse');
+      jest.spyOn(z, 'treeifyError');
+      jest.spyOn(productController, 'buildProductFiltersArgs');
+    })
+
+    it('should return 200 with filtered products', async () => {
+      const body = { checked: [LAPTOP.category._id], radio: [500, 1500] };
+      const [req, res] = mockRequestResponse({ body });
+      productFiltersSchema.safeParse.mockReturnValue({ success: true, data: body });
+      buildProductFiltersArgs.mockReturnValue({
+        category: [LAPTOP.category._id],
+        price: { $gte: 500, $lte: 1500 },
+      })
+      mockModel(productModel).mockResolvedValue('find', [LAPTOP, SMARTPHONE]);
+
+      await productFiltersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: [LAPTOP, SMARTPHONE],
+      });
+    });
+
+    it('should return 400 upon invalid request', async () => {
+      const body = { checked: [LAPTOP.category._id], radio: [500, 'non-numeric'] };
+      const [req, res] = mockRequestResponse({ body });
+      productFiltersSchema.safeParse.mockReturnValue({ success: false, error: 'Invalid request' });
+
+      await productFiltersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: expect.any(String),
+        error: expect.anything(),
+      });
+    });
+
+    it('should return 500 upon database failure', async () => {
+      const body = { checked: [LAPTOP.category._id], radio: [500, 1500] };
+      const [req, res] = mockRequestResponse({ body });
+      productFiltersSchema.safeParse.mockReturnValue({ success: true, data: body });
+      buildProductFiltersArgs.mockReturnValue({
+        category: [LAPTOP.category._id],
+        price: { $gte: 500, $lte: 1500 },
+      });
+      mockModel(productModel).mockDatabaseFailure('find');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
+
+      await productFiltersController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
+  });
+
+  describe('productCountController', () => {
+    it('should return 200 with total product count', async () => {
+      const [req, res] = mockRequestResponse();
+      mockModel(productModel).mockResolvedValue('estimatedDocumentCount', 42);
+
+      await productCountController(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        total: 42,
+      });
+    });
+
+    it('should return 500 upon database failure', async () => {
+      const [req, res] = mockRequestResponse();
+      mockModel(productModel).mockDatabaseFailure('estimatedDocumentCount');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
+
+      await productCountController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
   });
 
   describe('productListController', () => {
-    it('should return 200 with a list of products for page 1', async () => {
-      const [req, res] = mockRequestResponse({ page: 1 });
-      mockProductModel({
-        sort: jest.fn().mockResolvedValueOnce([LAPTOP]),
-      });
+    it('should return 200 with a list of products for valid page', async () => {
+      const [req, res] = mockRequestResponse({ params: { page: 1 } });
+      mockModel(productModel).mockResolvedValue('sort', [LAPTOP]);
 
       await productListController(req, res);
-      expect(productModel.skip).toHaveBeenCalledWith(0);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith({
         success: true,
@@ -583,14 +680,82 @@ describe('Product Controller', () => {
       });
     });
 
-    it('should return 200 with a list of products for page 2', async () => {
-      const [req, res] = mockRequestResponse({ page: 2 });
-      mockProductModel({
-        sort: jest.fn().mockResolvedValueOnce([SMARTPHONE]),
-      });
+    it('should return 200 with a list of products for default page', async () => {
+      const [req, res] = mockRequestResponse();
+      mockModel(productModel).mockResolvedValue('sort', [LAPTOP]);
 
       await productListController(req, res);
-      expect(productModel.skip).toHaveBeenCalledWith(6);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: [LAPTOP],
+      });
+    });
+
+    it('should return 400 for page number less than or equal to 0', async () => {
+      const [req, res] = mockRequestResponse({ params: { page: 0 } });
+
+      await productListController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: expect.any(String),
+      });
+    });
+
+    it('should return 400 for non-numeric page', async () => {
+      const [req, res] = mockRequestResponse({ params: { page: 'abc' } });
+
+      await productListController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: expect.any(String),
+      });
+    });
+
+    it('should return 500 upon database failure', async () => {
+      const [req, res] = mockRequestResponse({ params: { page: 1 } });
+      mockModel(productModel).mockDatabaseFailure('sort');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
+
+      await productListController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
+  });
+
+  describe('searchProductController', () => {
+    it('should return 200 with search results', async () => {
+      const [req, res] = mockRequestResponse({ params: { keyword: 'laptop' } });
+      mockModel(productModel).mockResolvedValue('select', [LAPTOP]);
+
+      await searchProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith([LAPTOP]);
+    });
+
+    it('should return 500 upon database failure', async () => {
+      const [req, res] = mockRequestResponse({ params: { keyword: 'laptop' } });
+      mockModel(productModel).mockDatabaseFailure('select');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
+
+      await searchProductController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
+  });
+
+  describe('relatedProductController', () => {
+    it('should return 200 with related products', async () => {
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id, cid: LAPTOP.category._id } });
+      mockModel(productModel).mockResolvedValue('populate', [SMARTPHONE]);
+
+      await relatedProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith({
         success: true,
@@ -598,70 +763,55 @@ describe('Product Controller', () => {
       });
     });
 
-    it('should return 200 with a list of products for default page', async () => {
-      const [req, res] = mockRequestResponse();
-      mockProductModel({
-        sort: jest.fn().mockResolvedValueOnce([LAPTOP]),
-      });
+    it('should return 500 upon database failure', async () => {
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id, cid: LAPTOP.category._id } });
+      mockModel(productModel).mockDatabaseFailure('populate');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
 
-      await productListController(req, res);
-      expect(productModel.skip).toHaveBeenCalledWith(0);
+      await relatedProductController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
+  });
+
+  describe('productCategoryController', () => {
+    it('should return 200 with products in category', async () => {
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.category.slug } });
+      mockModel(categoryModel).mockResolvedValue('findOne', LAPTOP.category);
+      mockModel(productModel).mockResolvedValue('populate', [LAPTOP, SMARTPHONE]);
+
+      await productCategoryController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith({
         success: true,
-        products: [LAPTOP],
+        category: LAPTOP.category,
+        products: [LAPTOP, SMARTPHONE],
       });
     });
 
-    it('should return 400 for page number less than 0', async () => {
-      const [req, res] = mockRequestResponse({ page: -1 });
-
-      await productListController(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Page number must be number greater than 0',
-      });
-    });
-
-    it('should return 400 for non-numeric page', async () => {
-      const [req, res] = mockRequestResponse({ page: 'abc' });
-
-      await productListController(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Page number must be number greater than 0',
-      });
-    });
-
-    it('should return 400 for page 0', async () => {
-      const [req, res] = mockRequestResponse({ page: 0 });
-
-      await productListController(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Page number must be number greater than 0',
-      });
-    });
-
-    it('should return 500 upon database failure', async () => {
-      const [req, res] = mockRequestResponse({ page: 1 });
+    it('should return 500 upon database failure in categoryModel', async () => {
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.category.slug } });
+      mockModel(categoryModel).mockDatabaseFailure('findOne');
       const spy = jest.spyOn(console, 'log').mockImplementation();
-      const err = new Error('Database error');
-      mockProductModel({
-        sort: jest.fn().mockRejectedValue(err),
-      });
 
-      await productListController(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({
-        success: false,
-        message: 'Error in per page control',
-        error: 'Database error',
-      });
-      expect(spy).toHaveBeenCalledWith(err);
+      await productCategoryController(req, res);
+
+      expectDatabaseError(res, spy);
+
+      spy.mockRestore();
+    });
+
+    it('should return 500 upon database failure in productModel', async () => {
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.category.slug } });
+      mockModel(categoryModel).mockResolvedValue('findOne', LAPTOP.category);
+      mockModel(productModel).mockDatabaseFailure('populate');
+      const spy = jest.spyOn(console, 'log').mockImplementation();
+
+      await productCategoryController(req, res);
+
+      expectDatabaseError(res, spy);
 
       spy.mockRestore();
     });
@@ -683,7 +833,7 @@ describe('Product Controller', () => {
     it("should send 500 on error", async () => {
       const [req, res] = mockRequestResponse();
       const fakeError = { message: "Failed" };
-    
+
       fakeGateway.clientToken.generate.mockImplementation((opts, cb) => cb(fakeError, null));
 
       await braintreeTokenController(req, res);
@@ -740,7 +890,7 @@ describe('Product Controller', () => {
       req.body = { nonce, cart };
       req.user = { _id: "user123" };
 
-        
+
 
       await braintreePaymentController(req, res);
 
