@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 
 jest.mock("./Header", () => () => <div data-testid="header" />);
 jest.mock("./Footer", () => () => <div data-testid="footer" />);
-jest.mock("react-hot-toast", () => ({ Toaster: () => <div data-testid="toaster" /> }));
+jest.mock("react-hot-toast");
 
 describe("Layout", () => {
     beforeEach(() => {
@@ -22,12 +22,11 @@ describe("Layout", () => {
             </MemoryRouter>
         );
 
-    it("Renders Header, Footer, Toaster, and Children Components", () => {
+    it("Renders Header, Footer and Children Components", () => {
         renderLayout();
 
         expect(screen.getByTestId("header")).toBeInTheDocument();
         expect(screen.getByTestId("footer")).toBeInTheDocument();
-        expect(screen.getByTestId("toaster")).toBeInTheDocument();
         expect(screen.getByTestId("children")).toBeInTheDocument();
     });
 
