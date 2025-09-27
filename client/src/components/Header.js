@@ -123,13 +123,14 @@ const Header = () => {
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink
-                          onClick={handleLogout}
-                          to="#"
-                          className="dropdown-item"
-                        >
-                          Logout
-                        </NavLink>
+                          <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={handleLogout}
+                              role="menuitem"
+                          >
+                              LOGOUT
+                          </button>
                       </li>
                     </ul>
                   </li>
