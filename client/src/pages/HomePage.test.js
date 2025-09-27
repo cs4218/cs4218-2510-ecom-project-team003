@@ -8,68 +8,68 @@ import { Prices } from '../components/Prices';
 import toast from 'react-hot-toast';
 
 const NUS_TSHIRT = {
-    _id: "nus t-shirt",
-    name: "NUS T-shirt",
-    slug: "nus-tshirt",
-    description: "Plain NUS T-shirt for sale",
-    price: 0.00,
+    _id: "campus-hoodie",
+    name: "Campus Hoodie",
+    slug: "campus-hoodie",
+    description: "Soft university hoodie",
+    price: 25.00,
     category: { _id: "clothing", name: "Clothing", slug: "clothing" },
-    quantity: 200,
+    quantity: 120,
     shipping: true,
 };
 
 const TEXTBOOK = {
-    _id: "textbook",
-    name: "Textbook",
-    slug: "textbook",
-    description: "A comprehensive textbook",
-    price: 20.00,
+    _id: "study-guide",
+    name: "Study Guide",
+    slug: "study-guide",
+    description: "Concise exam study guide",
+    price: 22.00,
     category: { _id: "book", name: "Book", slug: "book" },
-    quantity: 50,
+    quantity: 60,
     shipping: false,
 };
 
 const NOVEL = {
-    _id: "novel",
-    name: "Novel",
-    slug: "novel",
-    description: "A best-selling novel",
-    price: 40.00,
+    _id: "mystery-novel",
+    name: "Mystery Novel",
+    slug: "mystery-novel",
+    description: "A gripping mystery tale",
+    price: 45.00,
     category: { _id: "book", name: "Book", slug: "book" },
-    quantity: 200,
+    quantity: 120,
     shipping: true,
 };
 
 const CONTRACT = {
-    _id: "contract",
-    name: "The Law of Contract in Singapore",
-    slug: "the-law-of-contract-in-singapore",
-    description: "A best selling book in Singapore",
-    price: 60.00,
+    _id: "singapore-contract-law",
+    name: "Singapore Contract Law",
+    slug: "singapore-contract-law",
+    description: "The definitive text on contract law",
+    price: 70.00,
     category: { _id: "book", name: "Book", slug: "book" },
-    quantity: 200,
+    quantity: 180,
     shipping: true,
 };
 
 const SMARTPHONE = {
-    _id: "smartphone",
-    name: "Smartphone",
-    slug: "smartphone",
-    description: "A high-end smartphone",
-    price: 80.00,
+    _id: "flagship-phone",
+    name: "Flagship Phone",
+    slug: "flagship-phone",
+    description: "A premium flagship phone",
+    price: 899.00,
     category: { _id: "electronics", name: "Electronics", slug: "electronics" },
-    quantity: 50,
+    quantity: 35,
     shipping: false,
 };
 
 const LAPTOP = {
-    _id: "laptop",
-    name: "Laptop",
-    slug: "laptop",
-    description: "A powerful laptop",
-    price: 100.00,
+    _id: "ultrabook-laptop",
+    name: "Ultrabook Laptop",
+    slug: "ultrabook-laptop",
+    description: "A lightweight ultrabook",
+    price: 1299.00,
     category: { _id: "electronics", name: "Electronics", slug: "electronics" },
-    quantity: 30,
+    quantity: 80,
     shipping: true,
 };
 
@@ -276,12 +276,12 @@ describe('HomePage', () => {
         await screen.findByText("All Products");
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
 
-        expect(await screen.findByText('Textbook')).toBeInTheDocument();
-        expect(screen.getByText(/A comprehensive textbook/)).toBeInTheDocument();
-        expect(screen.getByText('$20.00')).toBeInTheDocument();
+        expect(await screen.findByText('Study Guide')).toBeInTheDocument();
+        expect(screen.getByText(/Concise exam study guide/)).toBeInTheDocument();
+        expect(screen.getByText('$22.00')).toBeInTheDocument();
 
-        const textbookImage = screen.getByAltText('Textbook');
-        expect(textbookImage).toHaveAttribute('src', '/api/v1/product/product-photo/textbook');
+        const textbookImage = screen.getByAltText('Study Guide');
+        expect(textbookImage).toHaveAttribute('src', '/api/v1/product/product-photo/study-guide');
 
         const detailsButton = screen.getByRole('button', { name: /More Details/i });
         expect(detailsButton).toBeInTheDocument();
@@ -328,8 +328,8 @@ describe('HomePage', () => {
             )
         );
 
-        expect(await screen.findByText('Textbook')).toBeInTheDocument();
-        expect(screen.getByText(/A comprehensive textbook/)).toBeInTheDocument();
+        expect(await screen.findByText('Study Guide')).toBeInTheDocument();
+        expect(screen.getByText(/Concise exam study guide/)).toBeInTheDocument();
     });
 
     it('Filter products by Price', async () => {
@@ -375,7 +375,7 @@ describe('HomePage', () => {
             )
         );
 
-        expect(await screen.findByText('Novel')).toBeInTheDocument();
+        expect(await screen.findByText('Mystery Novel')).toBeInTheDocument();
     });
 
     it('Filter products by Category and Price', async () => {
@@ -437,7 +437,7 @@ describe('HomePage', () => {
             )
         );
 
-        expect(await screen.findByText('The Law of Contract in Singapore')).toBeInTheDocument();
+        expect(await screen.findByText('Singapore Contract Law')).toBeInTheDocument();
     });
 
     it('Reset all filters', async () => {
@@ -483,7 +483,7 @@ describe('HomePage', () => {
         const radio = screen.getByRole('radio', { name: fortyToFiftyNine.name });
         fireEvent.click(radio);
 
-        expect(await screen.findByText('Novel')).toBeInTheDocument();
+        expect(await screen.findByText('Mystery Novel')).toBeInTheDocument();
 
         const resetBtn = screen.getByText('RESET FILTERS');
         fireEvent.click(resetBtn);
@@ -495,12 +495,12 @@ describe('HomePage', () => {
             expect(callsToList).toBeGreaterThanOrEqual(2);
         });
 
-        expect(await screen.findByText('Laptop')).toBeInTheDocument();
-        expect(await screen.getByText('Textbook')).toBeInTheDocument();
-        expect(await screen.getByText('Novel')).toBeInTheDocument();
-        expect(await screen.getByText('The Law of Contract in Singapore')).toBeInTheDocument();
-        expect(await screen.getByText('Smartphone')).toBeInTheDocument();
-        expect(await screen.getByText('NUS T-shirt')).toBeInTheDocument();
+        expect(await screen.findByText('Ultrabook Laptop')).toBeInTheDocument();
+        expect(await screen.getByText('Study Guide')).toBeInTheDocument();
+        expect(await screen.getByText('Mystery Novel')).toBeInTheDocument();
+        expect(await screen.getByText('Singapore Contract Law')).toBeInTheDocument();
+        expect(await screen.getByText('Flagship Phone')).toBeInTheDocument();
+        expect(await screen.getByText('Campus Hoodie')).toBeInTheDocument();
 
         const bookAfterReset = screen.getByRole('checkbox', { name: 'Book' });
         expect(bookAfterReset).not.toBeChecked();
@@ -816,8 +816,8 @@ describe('HomePage', () => {
         renderHomePage();
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
 
-        expect(await screen.findByText('Laptop')).toBeInTheDocument();
-        expect(await screen.findByText('Novel')).toBeInTheDocument();
+        expect(await screen.findByText('Ultrabook Laptop')).toBeInTheDocument();
+        expect(await screen.findByText('Mystery Novel')).toBeInTheDocument();
 
         const loadMoreBtn = await screen.findByRole('button', { name: /Load More Products!/ });
         fireEvent.click(loadMoreBtn);
@@ -836,9 +836,9 @@ describe('HomePage', () => {
             expect(axios.get).toHaveBeenCalledWith('/api/v1/product/product-list/2')
         );
 
-        expect(await screen.findByText('Smartphone')).toBeInTheDocument();
-        expect(await screen.findByText('Textbook')).toBeInTheDocument();
-        expect(screen.getByText('Laptop')).toBeInTheDocument();
-        expect(screen.getByText('Novel')).toBeInTheDocument();
+        expect(await screen.findByText('Flagship Phone')).toBeInTheDocument();
+        expect(await screen.findByText('Study Guide')).toBeInTheDocument();
+        expect(screen.getByText('Ultrabook Laptop')).toBeInTheDocument();
+        expect(screen.getByText('Mystery Novel')).toBeInTheDocument();
     });
 });
