@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import toast from "react-hot-toast";
 import SearchInput from "./Form/SearchInput";
@@ -7,19 +7,31 @@ import useCategory from "../hooks/useCategory";
 import { useCart } from "../context/cart";
 import { Badge } from "antd";
 import "../styles/Header.css";
+
 const Header = () => {
   const [auth, setAuth] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
+  const navigate = useNavigate();
+
   const handleLogout = () => {
-    setAuth({
-      ...auth,
-      user: null,
-      token: "",
-    });
-    localStorage.removeItem("auth");
-    toast.success("Logout Successfully");
+    try {
+      setAuth({
+        ...auth,
+        user: null,
+        token: "",
+      });
+      localStorage.removeItem("auth");
+      navigate("/login", { replace: true });
+      setTimeout(() => {
+        toast.success("Logout Successfully", { duration: 5000 });
+      }, 0);
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout Failed", { duration: 5000 });
+    }
   };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -61,7 +73,7 @@ const Header = () => {
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li>
+                    <li key={c._id}>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}
@@ -90,11 +102,11 @@ const Header = () => {
                 <>
                   <li className="nav-item dropdown">
                     <NavLink
-                      className="nav-link dropdown-toggle"
-                      href="#"
-                      role="button"
-                      data-bs-toggle="dropdown"
-                      style={{ border: "none" }}
+                        className="nav-link dropdown-toggle"
+                        to="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        style={{ border: "none" }}
                     >
                       {auth?.user?.name}
                     </NavLink>
@@ -110,20 +122,21 @@ const Header = () => {
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink
-                          onClick={handleLogout}
-                          to="/login"
-                          className="dropdown-item"
-                        >
-                          Logout
-                        </NavLink>
+                          <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={handleLogout}
+                              role="menuitem"
+                          >
+                              LOGOUT
+                          </button>
                       </li>
                     </ul>
                   </li>
                 </>
               )}
               <li className="nav-item">
-                <Badge count={cart?.length} showZero>
+                <Badge count={cart?.length} showZero data-testid="badge">
                   <NavLink to="/cart" className="nav-link">
                     Cart
                   </NavLink>
