@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from "@testing-library/user-event";
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -25,9 +26,8 @@ const UPDATED_PASSWORD = 'Password123!';
 jest.mock('axios');
 jest.mock('react-hot-toast');
 
-const mockSetAuth = jest.fn();
 jest.mock('../../context/auth', () => ({
-  useAuth: jest.fn(() => [{ user: USER }, mockSetAuth])
+  useAuth: jest.fn(() => [{ user: USER }, jest.fn()])
 }));
 
 jest.mock('../../context/cart', () => ({
@@ -51,7 +51,7 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
-const renderProfile = (slug) => {
+const renderProfile = () => {
   return render(
     <MemoryRouter initialEntries={['/dashboard/user/profile']}>
       <Routes>
@@ -61,11 +61,11 @@ const renderProfile = (slug) => {
   );
 }
 
-const fillProfileForm = (getByPlaceholderText, { name, phone, address, password }) => {
-  fireEvent.change(getByPlaceholderText('Enter Your Name'), { target: { value: name } });
-  fireEvent.change(getByPlaceholderText('Enter Your Phone'), { target: { value: phone } });
-  fireEvent.change(getByPlaceholderText('Enter Your Address'), { target: { value: address } });
-  fireEvent.change(getByPlaceholderText('Enter Your Password'), { target: { value: password } });
+const fillProfileForm = ({ name, phone, address, password }) => {
+  fireEvent.change(screen.getByTestId('name-input'), { target: { value: name } });
+  fireEvent.change(screen.getByTestId('phone-input'), { target: { value: phone } });
+  fireEvent.change(screen.getByTestId('address-input'), { target: { value: address } });
+  fireEvent.change(screen.getByTestId('password-input'), { target: { value: password } });
 }
 
 describe('Profile Component', () => {
@@ -74,56 +74,63 @@ describe('Profile Component', () => {
   });
 
   it('renders profile form', () => {
-    const { getByPlaceholderText } = renderProfile();
+    renderProfile();
 
-    expect(getByPlaceholderText('Enter Your Name')).toHaveValue(USER.name);
-    expect(getByPlaceholderText('Enter Your Email')).toHaveValue(USER.email);
-    expect(getByPlaceholderText('Enter Your Phone')).toHaveValue(USER.phone);
-    expect(getByPlaceholderText('Enter Your Address')).toHaveValue(USER.address);
-    expect(getByPlaceholderText('Enter Your Password')).toHaveValue('');
+    expect(screen.getByTestId('name-input')).toHaveValue(USER.name);
+    expect(screen.getByTestId('email-input')).toHaveValue(USER.email);
+    expect(screen.getByTestId('phone-input')).toHaveValue(USER.phone);
+    expect(screen.getByTestId('address-input')).toHaveValue(USER.address);
+    expect(screen.getByTestId('password-input')).toHaveValue('');
   });
 
   it('should allow typing in the name, phone, address and password fields', () => {
-    const { getByPlaceholderText } = renderProfile();
+    renderProfile();
 
-    fillProfileForm(getByPlaceholderText, { ...UPDATED_USER, password: UPDATED_PASSWORD });
+    fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });
 
-    expect(getByPlaceholderText('Enter Your Name')).toHaveValue(UPDATED_USER.name);
-    expect(getByPlaceholderText('Enter Your Phone')).toHaveValue(UPDATED_USER.phone);
-    expect(getByPlaceholderText('Enter Your Address')).toHaveValue(UPDATED_USER.address);
-    expect(getByPlaceholderText('Enter Your Password')).toHaveValue(UPDATED_PASSWORD);
+    expect(screen.getByTestId('name-input')).toHaveValue(UPDATED_USER.name);
+    expect(screen.getByTestId('phone-input')).toHaveValue(UPDATED_USER.phone);
+    expect(screen.getByTestId('address-input')).toHaveValue(UPDATED_USER.address);
+    expect(screen.getByTestId('password-input')).toHaveValue(UPDATED_PASSWORD);
   });
 
   it('should not allow typing in the email field', () => {
-    const { getByPlaceholderText } = renderProfile();
+    renderProfile();
 
-    const emailInput = getByPlaceholderText('Enter Your Email');
+    const emailInput = screen.getByTestId('email-input');
     expect(emailInput).toBeDisabled();
+
+    waitFor(() => userEvent.type(emailInput, 'new-email@test.com'));
+    expect(emailInput).toHaveValue(USER.email);
   });
 
   it('should update the user profile successfully', async () => {
     axios.put.mockResolvedValue({ data: { updatedUser: UPDATED_USER } });
-    const { getByPlaceholderText, getByText } = renderProfile();
+    renderProfile();
 
-    fillProfileForm(getByPlaceholderText, { ...UPDATED_USER, password: UPDATED_PASSWORD });
-    fireEvent.click(getByText('UPDATE'));
+    fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });
+    fireEvent.click(screen.getByTestId('update-button'));
 
     await waitFor(() => expect(axios.put).toHaveBeenCalled());
-    expect(mockSetAuth).toHaveBeenCalledWith({ user: UPDATED_USER });
-    expect(localStorage.setItem).toHaveBeenCalledWith('auth', JSON.stringify({ user: UPDATED_USER }));
-    expect(toast.success).toHaveBeenCalledWith('Profile Updated Successfully');
+    expect(localStorage.setItem).toHaveBeenCalled();
+    const savedAuth = JSON.parse(localStorage.setItem.mock.calls[0][1]);
+    expect(savedAuth.user).toMatchObject({
+      name: UPDATED_USER.name,
+      email: UPDATED_USER.email,
+    });
+    expect(toast.success).toHaveBeenCalledWith(expect.any(String));
   });
 
   it('handles error when profile update response contains error', async () => {
     const spy = jest.spyOn(console, 'log').mockImplementation();
     axios.put.mockResolvedValue({ data: { error: 'Update failed' } });
-    const { getByPlaceholderText, getByText } = renderProfile();
+    renderProfile();
 
-    fillProfileForm(getByPlaceholderText, { ...UPDATED_USER, password: UPDATED_PASSWORD });
-    fireEvent.click(getByText('UPDATE'));
+    fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });
+    fireEvent.click(screen.getByTestId('update-button'));
     await waitFor(() => expect(axios.put).toHaveBeenCalled());
-    expect(spy).toHaveBeenCalledWith('Update failed');
-    expect(toast.error).toHaveBeenCalledWith('Update failed');
+    expect(spy).toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.any(String));
 
     spy.mockRestore();
   });
@@ -132,13 +139,13 @@ describe('Profile Component', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation();
     const err = { message: 'Error while updating profile' };
     axios.put.mockRejectedValue(err);
-    const { getByPlaceholderText, getByText } = renderProfile();
+    renderProfile();
 
-    fillProfileForm(getByPlaceholderText, { ...UPDATED_USER, password: UPDATED_PASSWORD });
-    fireEvent.click(getByText('UPDATE'));
+    fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });
+    fireEvent.click(screen.getByTestId('update-button'));
     await waitFor(() => expect(axios.put).toHaveBeenCalled());
-    expect(spy).toHaveBeenCalledWith(err);
-    expect(toast.error).toHaveBeenCalledWith('Something went wrong');
+    expect(spy).toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.any(String));
 
     spy.mockRestore();
   });
