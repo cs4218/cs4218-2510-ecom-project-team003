@@ -1,5 +1,11 @@
-import { expect, jest } from "@jest/globals";
-import { categoryController, singleCategoryController } from "./categoryController.js";
+import {expect, jest} from "@jest/globals";
+import {
+    categoryController,
+    createCategoryController,
+    singleCategoryController,
+    updateCategoryController,
+    deleteCategoryController,
+} from "./categoryController.js";
 import categoryModel from "../models/categoryModel.js";
 
 jest.mock("../models/categoryModel.js");
@@ -118,4 +124,190 @@ describe("Category Controllers", () => {
             });
         });
     });
+
+    describe("Category Controllers Create operations", () => {
+        // Add tests for createCategoryController here
+        it("Accepts non-repeated category and returns 201", async () => {
+            const newCategory = { name: "NewCategory" };
+            req.body = newCategory;
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
+            categoryModel.prototype.save = jest.fn().mockResolvedValue({ ...newCategory, slug: "newcategory" });
+
+            await createCategoryController(req, res);
+
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "NewCategory" });
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.send).toHaveBeenCalledWith({
+                success: true,
+                message: "New Category Created",
+                category: { ...newCategory, slug: "newcategory" },
+            });
+        })
+
+        it("Rejects repeated category and returns 409", async () => {
+            const newCategory = { name: "Category1" };
+            req.body = newCategory;
+            categoryModel.findOne = jest.fn().mockResolvedValue(newCategory);
+
+            await createCategoryController(req, res);
+
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Category1" });
+            expect(res.status).toHaveBeenCalledWith(409);
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                message: "Category Already Exists",
+            });
+        });
+
+        it("Returns 500 when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "NewCategory"};
+            categoryModel.findOne = jest.fn().mockRejectedValue(error);
+
+            await createCategoryController(req, res);
+
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                error: error,
+                message: "Error in Category Creation",
+            });
+        });
+    });
+
+    describe("Category Controllers Update operations", () => {
+        it("Updates existing category in DB", async () => {
+           req.body = {name: "UpdatedCategory"};
+           req.params.id = "12345";
+           categoryModel.findByIdAndUpdate = jest.fn();
+
+           await updateCategoryController(req, res);
+
+           expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
+               "12345",
+               { name: "UpdatedCategory", slug: "UpdatedCategory" },
+               { new: true }
+           );
+        });
+
+        it("Returns 200 when update is successful", async () => {
+          req.body = {name: "UpdatedCategory"};
+          req.params.id = "12345";
+          categoryModel.findByIdAndUpdate = jest.fn();
+
+          await updateCategoryController(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(200);
+        });
+
+        it("Expects DB to return updated category", async () => {
+            const updatedCategory = { name: "UpdatedCategory", slug: "updatedcategory" };
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockResolvedValue(updatedCategory);
+
+            await updateCategoryController(req, res);
+
+            expect(res.send).toHaveBeenCalledWith({
+                success: true,
+                message: "Category Updated Successfully",
+                category: updatedCategory,
+            });
+        });
+
+        it("Returns 500 when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
+
+            await updateCategoryController(req, res);
+
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+        });
+
+        it("Sends error message when handling error", async () => {
+            const error = new Error("Some Error");
+            req.body = {name: "UpdatedCategory"};
+            req.params.id = "12345";
+            categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
+
+            await updateCategoryController(req, res);
+
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                error: error,
+                message: "Error while updating category",
+            });
+        });
+    });
+
+    describe("Category Controller Delete Operations", () => {
+        it("Should remove an entry from DB", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(categoryModel.findByIdAndDelete).toHaveBeenCalledWith("12345");
+        });
+
+        it("Returns 200 when deletion is successful", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(res.status).toHaveBeenCalledWith(200);
+        })
+
+        it("Returns success message when deletion is successful", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+                success: true,
+                message: expect.stringMatching(/deleted|success|successful/i),
+            }));
+        })
+
+        it("Returns 404 when id is not found", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue(null);
+            await deleteCategoryController(req, res);
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+
+        it("Returns Not Found message if id is not found", async () => {
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue(null);
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining(
+                {
+                success: false,
+                message: expect.stringContaining("not found"),
+                }
+            ));
+        })
+
+        it("Returns 500 when handling other errors", async () => {
+            const error = new Error("Some Error");
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockRejectedValue(error);
+            await deleteCategoryController(req, res);
+            expect(logSpy).toHaveBeenCalledWith(error);
+            expect(res.status).toHaveBeenCalledWith(500);
+        });
+
+        it("Sends error message when handling other errors", async () => {
+            const error = new Error("Some Error");
+            req.params.id = "12345";
+            categoryModel.findByIdAndDelete = jest.fn().mockRejectedValue(error);
+            await deleteCategoryController(req, res);
+            expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+                success: false,
+                message: expect.stringMatching(/error/i),
+                error,
+            }));
+        })
+    })
 });
+
