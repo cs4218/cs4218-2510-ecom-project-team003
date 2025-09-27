@@ -14,8 +14,7 @@ const Header = () => {
   const categories = useCategory();
   const navigate = useNavigate();
 
-  const handleLogout = (e) => {
-    e?.preventDefault?.();
+  const handleLogout = () => {
     try {
       setAuth({
         ...auth,

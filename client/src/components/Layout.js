@@ -1,11 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Footer from './Footer';
 import Header from './Header';
 import { Helmet } from "react-helmet";
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
+import { useLocation } from "react-router-dom";
 
 const Layout = ({ children, title, description, keywords, author }) => {
-  return (
+    const location = useLocation();
+
+    // Dismiss toast on location change
+    useEffect(() => {
+        toast.dismiss();
+    }, [location.pathname]);
+
+    return (
     <div>
       <Helmet>
         <meta charSet="utf-8" />
