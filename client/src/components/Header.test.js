@@ -7,17 +7,11 @@ import toast from "react-hot-toast";
 
 let mockAuth = { user: { name: 'Test User', role: 0, token: 'test-token' } };
 let mockSetAuth = jest.fn();
-let mockCart = [{ _id: '1', name: 'Product 1' }];
-const mockCategories = [
-    { _id: '1', name: 'Category 1', slug: 'category1' },
-    { _id: '2', name: 'Category 2', slug: 'category2' },
-];
-const mockNavigate = jest.fn();
-
 jest.mock('../context/auth', () => ({
     useAuth: jest.fn(() => [mockAuth, mockSetAuth]),
 }));
 
+let mockCart = [{ _id: '1', name: 'Product 1' }];
 jest.mock('../context/cart', () => ({
     useCart: jest.fn(() => [mockCart, jest.fn()]),
 }));
@@ -26,14 +20,19 @@ jest.mock("../context/search", () => ({
     useSearch: jest.fn(() => ["", jest.fn()]),
 }));
 
+const mockCategories = [
+    { _id: '1', name: 'Category 1', slug: 'category1' },
+    { _id: '2', name: 'Category 2', slug: 'category2' },
+];
 jest.mock('../hooks/useCategory', () => jest.fn(() => mockCategories));
 
 jest.mock('react-hot-toast');
 
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useNavigate: () => mockNavigate,
-}))
+}));
 
 Object.defineProperty(window, "localStorage", {
     value: {
@@ -57,7 +56,7 @@ describe("Header", () => {
                 <Header/>
             </MemoryRouter>
         );
-    }
+    };
 
     it("Renders Header (when user is not login)", () => {
         mockAuth = { user: null, token: "" };
@@ -107,9 +106,13 @@ describe("Header", () => {
     });
 
     it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", async () => {
+        mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
         renderHeader();
 
-        const logout = screen.getByRole("link", { name: /logout/i });
+        const userToggle = screen.getByRole("button", { name: /admin user/i });
+        fireEvent.click(userToggle);
+
+        const logout = screen.getByRole("menuitem", { name: /logout/i });
         fireEvent.click(logout);
 
         expect(mockSetAuth).toHaveBeenCalledTimes(1);
@@ -123,6 +126,8 @@ describe("Header", () => {
             expect(toast.success).toHaveBeenCalled();
             expect(toast.success.mock.calls[0][0]).toBe("Logout Successfully");
         });
+
+        expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
 
     it("Renders error toast and does not navigate on logout", () => {
@@ -131,9 +136,13 @@ describe("Header", () => {
 
         window.localStorage.removeItem.mockImplementationOnce(() => { throw error; });
 
+        mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
         renderHeader();
 
-        const logout = screen.getByRole("link", { name: /logout/i });
+        const userToggle = screen.getByRole("button", { name: /admin user/i });
+        fireEvent.click(userToggle);
+
+        const logout = screen.getByRole("menuitem", { name: /logout/i });
         fireEvent.click(logout);
 
         expect(toast.error).toHaveBeenCalled();
