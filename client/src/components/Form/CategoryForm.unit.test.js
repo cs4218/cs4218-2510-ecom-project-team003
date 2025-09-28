@@ -89,6 +89,7 @@ describe("text counter tests", () => {
         );
     }
 
+    // if needed for it, just set console.error to originalError in the test body
     const originalError = console.error;
     beforeAll(() => {
         console.error = (...args) => {
@@ -126,7 +127,7 @@ describe("text counter tests", () => {
         const str = "a".repeat(31);
         const inputElement = screen.getByPlaceholderText("Enter new category");
         // apparently fireEvent.change would override the maxLength attribute on the input element.
-        await act(() => userEvent.type(inputElement, str));
+        await userEvent.type(inputElement, str);
         expect(screen.getByText("30/30")).toBeInTheDocument();
     });
 })
