@@ -94,13 +94,13 @@ describe('Profile Component', () => {
     expect(screen.getByTestId('password-input')).toHaveValue(UPDATED_PASSWORD);
   });
 
-  it('should not allow typing in the email field', () => {
+  it('should not allow typing in the email field', async () => {
     renderProfile();
 
     const emailInput = screen.getByTestId('email-input');
     expect(emailInput).toBeDisabled();
 
-    waitFor(() => userEvent.type(emailInput, 'new-email@test.com'));
+    await userEvent.type(emailInput, 'new-email@test.com');
     expect(emailInput).toHaveValue(USER.email);
   });
 
