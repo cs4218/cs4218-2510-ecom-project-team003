@@ -89,6 +89,18 @@ describe("text counter tests", () => {
         );
     }
 
+    const originalError = console.error;
+    beforeAll(() => {
+        console.error = (...args) => {
+            if (/not wrapped in act/.test(args[0])) return; // swallow unreasonable act warnings
+            originalError.call(console, ...args);
+        };
+    });
+
+    afterAll(() => {
+        console.error = originalError;
+    });
+
     it("char count displays correctly for empty input", () => {
         render(<Wrapper />);
         const charCount = screen.getByText("0/30");
