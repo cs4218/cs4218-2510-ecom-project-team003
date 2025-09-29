@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -15,10 +15,21 @@ jest.mock('../../context/auth', () => ({
 
 jest.mock('../Spinner', () => () => <div data-testid='spinner' />);
 
+jest.mock('../Loader', () => () => <div data-testid='loader' />);
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div data-testid='outlet' />,
 }));
+
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+  writable: true,
+});
 
 const renderAdminRoute = () => {
   return render(
@@ -31,56 +42,93 @@ const renderAdminRoute = () => {
 };
 
 describe('AdminRoute Component', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    it('renders Outlet if admin auth is successful', async () => {
-        mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
-        axios.get.mockResolvedValue({ data: { ok: true } });
+  it('renders Loader while awaiting admin auth', async () => {
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
+    axios.get.mockImplementation(() => new Promise(() => { }));
 
-        const { findByTestId, queryByTestId } = renderAdminRoute();
+    renderAdminRoute();
 
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(await findByTestId('outlet')).toBeInTheDocument();
-        expect(queryByTestId('spinner')).toBeNull();
-    });
+    expect(await screen.findByTestId('loader')).toBeInTheDocument();
+  });
 
-    it('renders Spinner if admin auth is unsuccessful', async () => {
-        mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
-        axios.get.mockResolvedValue({ data: { ok: false } });
+  it('renders Outlet if admin auth is successful', async () => {
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
+    axios.get.mockResolvedValue({ data: { ok: true } });
 
-        const { findByTestId, queryByTestId } = renderAdminRoute();
+    renderAdminRoute();
 
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(await findByTestId('spinner')).toBeInTheDocument();
-        expect(queryByTestId('outlet')).toBeNull();
-    });
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(await screen.findByTestId('outlet')).toBeInTheDocument();
+    expect(screen.queryByTestId('spinner')).toBeNull();
+  });
 
-    it('renders Spinner if admin auth request fails', async () => {
-        const spy = jest.spyOn(console, 'log').mockImplementation();
-        const err = { message: 'Error while fetching' };
-        mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
-        axios.get.mockRejectedValue(err);
+  it('renders Spinner if admin auth is unsuccessful', async () => {
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
+    axios.get.mockResolvedValue({ data: { ok: false } });
 
-        const { findByTestId, queryByTestId } = renderAdminRoute();
+    renderAdminRoute();
 
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(await findByTestId('spinner')).toBeInTheDocument();
-        expect(queryByTestId('outlet')).toBeNull();
-        expect(spy).toHaveBeenCalledWith(err);
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
+    expect(screen.queryByTestId('outlet')).toBeNull();
+  });
 
-        spy.mockRestore();
-    });
+  it('renders Spinner if admin auth request fails', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation();
+    const err = { message: 'Error while fetching' };
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn()]);
+    axios.get.mockRejectedValue(err);
 
-    it('renders Spinner if no token', async () => {
-        mockUseAuth.mockReturnValue([null, jest.fn()]);
+    renderAdminRoute();
 
-        const { findByTestId, queryByTestId } = renderAdminRoute();
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
+    expect(screen.queryByTestId('outlet')).toBeNull();
+    expect(spy).toHaveBeenCalledWith(err);
 
-        expect(axios.get).not.toHaveBeenCalled();
-        expect(await findByTestId('spinner')).toBeInTheDocument();
-        expect(queryByTestId('outlet')).toBeNull();
-    });
+    spy.mockRestore();
+  });
 
+  it('renders Spinner if no token', async () => {
+    mockUseAuth.mockReturnValue([null, jest.fn()]);
+
+    renderAdminRoute();
+
+    expect(axios.get).not.toHaveBeenCalled();
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
+    expect(screen.queryByTestId('outlet')).toBeNull();
+  });
+
+  it('does not log out user if admin auth is successful', async () => {
+    const mockSetAuth = jest.fn();
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, mockSetAuth]);
+    axios.get.mockResolvedValue({ data: { ok: true } });
+
+    // Render and await side effects
+    renderAdminRoute();
+    expect(await screen.findByTestId('outlet')).toBeInTheDocument();
+
+    expect(mockSetAuth).not.toHaveBeenCalled();
+    expect(window.localStorage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('logs out user if admin auth is unsuccessful', async () => {
+    const mockSetAuth = jest.fn();
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, mockSetAuth]);
+    axios.get.mockResolvedValue({ data: { ok: false } });
+
+    // Render and await state updates
+    renderAdminRoute();
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
+
+    expect(mockSetAuth).toHaveBeenCalledWith(expect.objectContaining({
+      token: "",
+      user: null,
+    }));
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");
+  });
 });

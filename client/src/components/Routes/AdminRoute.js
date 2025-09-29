@@ -4,26 +4,54 @@ import { useAuth } from "../../context/auth";
 import { Outlet } from "react-router-dom";
 import axios from 'axios';
 import Spinner from "../Spinner";
+import Loader from "../Loader";
 
 export default function AdminRoute() {
-  const [ok, setOk] = useState(false);
-  const [auth] = useAuth();
+  const [state, setState] = useState("loading");
+  const [auth, setAuth] = useAuth();
+
+  const handleLogout = () => {
+    setAuth({
+      ...auth,
+      user: null,
+      token: "",
+    });
+    localStorage.removeItem("auth");
+  };
 
   useEffect(() => {
     const authCheck = async () => {
       try {
         const res = await axios.get("/api/v1/auth/admin-auth");
         if (res.data?.ok) {
-          setOk(true);
+          setState("authorized");
         } else {
-          setOk(false);
+          setState("unauthorized");
         }
       } catch (error) {
         console.log(error);
-        setOk(false);
+        setState("unauthorized");
       }
     };
-    if (auth?.token) authCheck();
+    if (auth?.token) {
+      authCheck();
+    } else {
+      setState("unauthorized");
+    }
   }, [auth?.token]);
-  return ok ? <Outlet /> : <Spinner />;
+
+  useEffect(() => {
+    if (state === "unauthorized") {
+      handleLogout();
+    }
+  }, [state]);
+
+  switch (state) {
+    case "authorized":
+      return <Outlet />;
+    case "unauthorized":
+      return <Spinner />;
+    default:
+      return <Loader />;
+  }
 }
