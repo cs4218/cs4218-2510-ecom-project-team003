@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -156,19 +156,19 @@ describe('Product Details Component', () => {
     describe('Product Details', () => {
       it('renders product details', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Product Details')).toBeInTheDocument();
-        expect(await findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
-        expect(await findByText(`Description : ${LAPTOP.description}`)).toBeInTheDocument();
-        expect(await findByText(`Price : $1,499.99`)).toBeInTheDocument();
-        expect(await findByText(`Category : ${LAPTOP.category.name}`)).toBeInTheDocument();
-        expect(getByText('ADD TO CART')).toBeInTheDocument();
+        expect(screen.getByText('Product Details')).toBeInTheDocument();
+        expect(await screen.findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
+        expect(await screen.findByText(`Description : ${LAPTOP.description}`)).toBeInTheDocument();
+        expect(await screen.findByText(`Price : $1,499.99`)).toBeInTheDocument();
+        expect(await screen.findByText(`Category : ${LAPTOP.category.name}`)).toBeInTheDocument();
+        expect(screen.getByText('ADD TO CART')).toBeInTheDocument();
       });
 
       it('renders product details when no slug is provided', async () => {
-        const { getByText } = render(
+        render(
           <MemoryRouter initialEntries={[`/product`]}>
             <Routes>
               <Route path="/product" element={<ProductDetails />} />
@@ -176,20 +176,20 @@ describe('Product Details Component', () => {
           </MemoryRouter>
         );
 
-        expect(getByText('Product Details')).toBeInTheDocument();
-        expect(getByText('Name :')).toBeInTheDocument();
-        expect(getByText('Description :')).toBeInTheDocument();
-        expect(getByText('Price :')).toBeInTheDocument();
-        expect(getByText('Category :')).toBeInTheDocument();
-        expect(getByText('ADD TO CART')).toBeInTheDocument();
+        expect(screen.getByText('Product Details')).toBeInTheDocument();
+        expect(screen.getByText('Name :')).toBeInTheDocument();
+        expect(screen.getByText('Description :')).toBeInTheDocument();
+        expect(screen.getByText('Price :')).toBeInTheDocument();
+        expect(screen.getByText('Category :')).toBeInTheDocument();
+        expect(screen.getByText('ADD TO CART')).toBeInTheDocument();
       });
 
       it('renders product image', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByAltText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        const img = await findByAltText(LAPTOP.name);
+        const img = await screen.findByAltText(LAPTOP.name);
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute('src', `/api/v1/product/product-photo/${LAPTOP._id}`);
       });
@@ -198,45 +198,45 @@ describe('Product Details Component', () => {
     describe('Related products', () => {
       it('renders no related products', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText('No Similar Products found')).toBeInTheDocument();
+        expect(screen.getByText('Similar Products ➡️')).toBeInTheDocument();
+        expect(await screen.findByText('No Similar Products found')).toBeInTheDocument();
       });
 
       it('renders related product', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE]);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
-        expect(await findByText('$999.99')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.description)).toBeInTheDocument();
+        expect(screen.getByText('Similar Products ➡️')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
+        expect(await screen.findByText('$999.99')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.description)).toBeInTheDocument();
       });
 
       it('renders multiple related products', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE, TABLET]);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
-        expect(await findByText('$999.99')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.description)).toBeInTheDocument();
+        expect(screen.getByText('Similar Products ➡️')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
+        expect(await screen.findByText('$999.99')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.description)).toBeInTheDocument();
 
-        expect(await findByText(TABLET.name)).toBeInTheDocument();
-        expect(await findByText('$599.99')).toBeInTheDocument();
-        expect(await findByText(TABLET.description)).toBeInTheDocument();
+        expect(await screen.findByText(TABLET.name)).toBeInTheDocument();
+        expect(await screen.findByText('$599.99')).toBeInTheDocument();
+        expect(await screen.findByText(TABLET.description)).toBeInTheDocument();
       });
 
       it('renders related product image', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE]);
-        const { findByAltText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        const img = await findByAltText(SMARTPHONE.name);
+        const img = await screen.findByAltText(SMARTPHONE.name);
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute('src', `/api/v1/product/product-photo/${SMARTPHONE._id}`);
       });
@@ -246,11 +246,11 @@ describe('Product Details Component', () => {
   describe('User interactions', () => {
     it('adds product to cart', async () => {
       mockProductApi(LAPTOP, []);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
+      renderProductDetails(LAPTOP.slug);
       await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
+      expect(await screen.findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
 
-      fireEvent.click(getByTestId('add-to-cart-btn'));
+      fireEvent.click(screen.getByTestId('add-to-cart-btn'));
 
       expect(mockSetCart).toHaveBeenCalledWith([LAPTOP]);
       expect(localStorage.setItem).toHaveBeenCalled();
@@ -259,11 +259,11 @@ describe('Product Details Component', () => {
 
     it('adds related product to cart', async () => {
       mockProductApi(LAPTOP, [SMARTPHONE]);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
+      renderProductDetails(LAPTOP.slug);
       await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
+      expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
 
-      fireEvent.click(getByTestId('add-related-to-cart-btn'));
+      fireEvent.click(screen.getByTestId('add-related-to-cart-btn'));
 
       expect(mockSetCart).toHaveBeenCalledWith([SMARTPHONE]);
       expect(localStorage.setItem).toHaveBeenCalled();
@@ -272,11 +272,11 @@ describe('Product Details Component', () => {
 
     it('navigates to similar product details', async () => {
       mockProductApi(LAPTOP, [SMARTPHONE]);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
+      renderProductDetails(LAPTOP.slug);
       await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
+      expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
 
-      fireEvent.click(getByTestId('more-details-btn'));
+      fireEvent.click(screen.getByTestId('more-details-btn'));
 
       expect(mockNavigate).toHaveBeenCalledWith(`/product/${SMARTPHONE.slug}`);
     });

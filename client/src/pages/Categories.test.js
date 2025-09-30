@@ -51,11 +51,15 @@ describe("Categories page", () => {
 
         const firstCategory = within(categories).getByText("Category 1");
         expect(firstCategory).toBeInTheDocument();
-        expect(firstCategory.closest("a")).toHaveAttribute("href", "/category/category1");
+
+        const firstLink = within(categories).getByRole("link", { name: "Category 1" });
+        expect(firstLink).toHaveAttribute("href", "/category/category1");
 
         const secondCategory = within(categories).getByText("Category 2");
         expect(secondCategory).toBeInTheDocument();
-        expect(secondCategory.closest("a")).toHaveAttribute("href", "/category/category2");
+
+        const secondLink = within(categories).getByRole("link", { name: "Category 2" });
+        expect(secondLink).toHaveAttribute("href", "/category/category2");
     });
 
     it("Renders empty list when there are no categories", () => {

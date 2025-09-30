@@ -28,11 +28,11 @@ describe("Footer", () => {
      */
     it("Renders Separator Between Links", () => {
         renderFooter();
-        const footer = document.querySelector(".footer");
-        expect(footer).toBeInTheDocument();
 
-        const text = footer.textContent.replace(/\s+/g, "");
-        expect(text).toMatch(/About\|Contact\|PrivacyPolicy/);
+        const footerRegion = screen.getByTestId("footer");
+        expect(footerRegion).toHaveTextContent(
+            /About\s*\|\s*Contact\s*\|\s*Privacy\s*Policy/i
+        );
     });
 
     /**
@@ -40,15 +40,19 @@ describe("Footer", () => {
      */
     it("Renders Link Labels And Exact Count", () => {
         renderFooter();
+        const footerRegion = screen.getByTestId("footer");
 
-        expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "Contact" })).toBeInTheDocument();
         expect(
-            screen.getByRole("link", { name: "Privacy Policy" })
+            within(footerRegion).getByRole("link", { name: "About" })
+        ).toBeInTheDocument();
+        expect(
+            within(footerRegion).getByRole("link", { name: "Contact" })
+        ).toBeInTheDocument();
+        expect(
+            within(footerRegion).getByRole("link", { name: "Privacy Policy" })
         ).toBeInTheDocument();
 
-        const footer = document.querySelector(".footer");
-        const linksInFooter = within(footer).getAllByRole("link");
+        const linksInFooter = within(footerRegion).getAllByRole("link");
         expect(linksInFooter).toHaveLength(3);
     });
     
