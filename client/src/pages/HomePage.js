@@ -153,7 +153,6 @@ const HomePage = () => {
               onClick={() => {
                   setChecked([]);
                   setRadio([]);
-                  setPage(1);
                   getAllProducts(1);
               }}
             >
