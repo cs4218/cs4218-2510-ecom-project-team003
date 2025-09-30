@@ -8,16 +8,11 @@ import { useCart } from "../context/cart";
 import { Badge } from "antd";
 import "../styles/Header.css";
 const Header = () => {
-  const [auth, setAuth] = useAuth();
+  const [auth, setAuth, logout] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
   const handleLogout = () => {
-    setAuth({
-      ...auth,
-      user: null,
-      token: "",
-    });
-    localStorage.removeItem("auth");
+    logout();
     toast.success("Logout Successfully");
   };
   return (
