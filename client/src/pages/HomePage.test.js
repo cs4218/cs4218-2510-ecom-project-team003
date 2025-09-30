@@ -73,29 +73,28 @@ const LAPTOP = {
     shipping: true,
 };
 
-const mockSetCart = jest.fn();
-const mockNavigate = jest.fn();
 let logSpy;
 
 jest.mock('axios');
 
-jest.mock('react-hot-toast', () => {
-    const mockToast = Object.assign(jest.fn(), {
-        success: jest.fn(),
-        error: jest.fn(),
-    });
+jest.mock('../components/Prices', () => ({
+    Prices: [
+        { _id: 0, name: "$0 to 19", array: [0, 19] },
+        { _id: 1, name: "$20 to 39", array: [20, 39] },
+        { _id: 2, name: "$40 to 59", array: [40, 59] },
+        { _id: 3, name: "$60 to 79", array: [60, 79] },
+        { _id: 4, name: "$80 to 99", array: [80, 99] },
+        { _id: 5, name: "$100 or more", array: [100, 9999] },
+    ],
+}));
 
-    return {
-        __esModule: true,
-        default: mockToast,
-        Toaster: () => null,
-    };
-});
+jest.mock('react-hot-toast');
 
 jest.mock('../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()])
 }));
 
+const mockSetCart = jest.fn();
 jest.mock('../context/cart', () => ({
     useCart: jest.fn(() => [[], mockSetCart])
 }));
@@ -106,6 +105,7 @@ jest.mock('../context/search', () => ({
 
 jest.mock('../hooks/useCategory', () => jest.fn(() => []));
 
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useNavigate: () => mockNavigate,
@@ -120,6 +120,14 @@ Object.defineProperty(window, 'localStorage', {
     writable: true,
 });
 
+window.matchMedia = window.matchMedia || function () {
+    return {
+        matches: false,
+        addListener: function () { },
+        removeListener: function () { }
+    };
+};
+
 describe('HomePage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -129,11 +137,9 @@ describe('HomePage', () => {
         axios.get.mockImplementation((url) => {
             if (url === '/api/v1/category/get-category') {
                 return Promise.resolve({ data: { success: true, category: [] } });
-            }
-            if (url === '/api/v1/product/product-count') {
+            } else if (url === '/api/v1/product/product-count') {
                 return Promise.resolve({ data: { total: 0 } });
-            }
-            if (url.startsWith('/api/v1/product/product-list/')) {
+            } else if (url.startsWith('/api/v1/product/product-list/')) {
                 return Promise.resolve({ data: { products: [] } });
             }
             return Promise.resolve({ data: {} });
@@ -213,11 +219,9 @@ describe('HomePage', () => {
                         category: [LAPTOP.category],
                     },
                 });
-            }
-            if (url === "/api/v1/product/product-count") {
+            } else if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 0 } });
-            }
-            if (url === "/api/v1/product/product-list/1") {
+            } else if (url === "/api/v1/product/product-list/1") {
                 return Promise.resolve({ data: { products: [] } });
             }
             return Promise.resolve({ data: {} });
@@ -524,6 +528,7 @@ describe('HomePage', () => {
         });
 
         renderHomePage();
+
         await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
@@ -542,6 +547,7 @@ describe('HomePage', () => {
         });
 
         renderHomePage();
+
         await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
@@ -560,6 +566,7 @@ describe('HomePage', () => {
         });
 
         renderHomePage();
+
         await waitFor(() => expect(logSpy).toHaveBeenCalledWith(error));
     });
 
@@ -703,6 +710,7 @@ describe('HomePage', () => {
 
         const moreDetails = await screen.findByRole('button', { name: /More Details/i });
         fireEvent.click(moreDetails);
+
         expect(mockNavigate).toHaveBeenCalledWith(`/product/${LAPTOP.slug}`);
     });
 
@@ -730,9 +738,10 @@ describe('HomePage', () => {
 
         const addToCart = await screen.findByRole('button', { name: /ADD TO CART/i });
         fireEvent.click(addToCart);
+
         expect(mockSetCart).toHaveBeenCalledWith(expect.arrayContaining([LAPTOP]));
         expect(localStorage.setItem).toHaveBeenCalledWith('cart', JSON.stringify([LAPTOP]));
-        expect(toast.success).toHaveBeenCalledWith('Item Added to cart');
+        expect(toast.success).toHaveBeenCalledWith('Item Added to Cart');
     });
 
     it('Renders "Load More Products!" when it is not filtering and more items exist', async () => {
@@ -755,6 +764,7 @@ describe('HomePage', () => {
         });
 
         renderHomePage();
+
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3));
 
         const loadMoreBtn = await screen.findByRole('button', { name: /Load More Products!/ });
