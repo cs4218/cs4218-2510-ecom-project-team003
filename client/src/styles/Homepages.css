@@ -56,7 +56,11 @@
   }
   
   .ant-checkbox-wrapper:first-of-type {
-    margin-left: 8px;
+    /*margin-left: 8px;*/
+    /* The first checkbox had an extra 8px left margin applied by default.
+       It is unclear whether this is intentional styling or not,
+       but removing it ensures all checkboxes are aligned. */
+     margin-left: 0 !important;
   }
   
   .ant-checkbox-wrapper {
