@@ -21,7 +21,6 @@ const Header = () => {
       navigate("/login", { replace: true });
     } catch (error) {
       console.error(error);
-      toast.error("Logout Failed", { duration: 5000 });
     }
   };
 

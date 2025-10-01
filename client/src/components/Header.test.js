@@ -155,8 +155,6 @@ describe("Header", () => {
         const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
-        expect(toast.error).toHaveBeenCalled();
-        expect(toast.error.mock.calls[0][0]).toBe("Logout Failed");
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(errSpy).toHaveBeenCalledWith(error);
 
