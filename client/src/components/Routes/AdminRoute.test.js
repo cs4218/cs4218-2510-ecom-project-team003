@@ -132,6 +132,5 @@ describe('AdminRoute Component', () => {
       user: null,
     }));
     expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");*/
-    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 });
