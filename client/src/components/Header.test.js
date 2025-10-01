@@ -140,7 +140,7 @@ describe("Header", () => {
         expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
 
-    it("Renders error toast and does not navigate on logout", () => {
+    it("Handles logout failure by showing error and skipping navigation", () => {
         const error = new Error("");
         const errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
