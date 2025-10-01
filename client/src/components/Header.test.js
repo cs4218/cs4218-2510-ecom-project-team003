@@ -7,8 +7,9 @@ import toast from "react-hot-toast";
 
 let mockAuth = { user: { name: 'Test User', role: 0, token: 'test-token' } };
 let mockSetAuth = jest.fn();
+let mockLogout = jest.fn();
 jest.mock('../context/auth', () => ({
-    useAuth: jest.fn(() => [mockAuth, mockSetAuth]),
+    useAuth: jest.fn(() => [mockAuth, mockSetAuth, mockLogout]),
 }));
 
 let mockCart = [{ _id: '1', name: 'Product 1' }];
@@ -56,6 +57,7 @@ describe("Header", () => {
         jest.clearAllMocks();
         mockSetAuth.mockReset();
         mockNavigate.mockReset();
+        mockLogout.mockReset();
     });
 
     const renderHeader = () => {
@@ -115,6 +117,9 @@ describe("Header", () => {
 
     it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", async () => {
         mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
+        mockLogout.mockImplementation(() => {
+            window.localStorage.removeItem('auth');
+        });
         renderHeader();
 
         const userToggle = screen.getByRole("button", { name: /admin user/i });
@@ -123,10 +128,7 @@ describe("Header", () => {
         const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
-        expect(mockSetAuth).toHaveBeenCalledTimes(1);
-        const newState = mockSetAuth.mock.calls[0][0];
-        expect(newState.user).toBeNull();
-        expect(newState.token).toBe("");
+        expect(mockLogout).toHaveBeenCalledTimes(1);
 
         expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");
 
@@ -142,7 +144,7 @@ describe("Header", () => {
         const error = new Error("");
         const errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-        window.localStorage.removeItem.mockImplementationOnce(() => { throw error; });
+        mockLogout.mockImplementationOnce(() => { throw error; });
 
         mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
         renderHeader();

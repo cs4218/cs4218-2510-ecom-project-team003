@@ -12,6 +12,15 @@ const AuthProvider = ({ children }) => {
     //default axios
     axios.defaults.headers.common["Authorization"] = auth?.token;
 
+    const logout = () => {
+        setAuth((prev) => ({
+            ...prev,
+            user: null,
+            token: "",
+        }));
+        localStorage.removeItem("auth");
+    };
+
     useEffect(() => {
        const data = localStorage.getItem("auth");
        if (data) {
@@ -25,7 +34,7 @@ const AuthProvider = ({ children }) => {
        //eslint-disable-next-line
     }, []);
     return (
-        <AuthContext.Provider value={[auth, setAuth]}>
+        <AuthContext.Provider value={[auth, setAuth, logout]}>
             {children}
         </AuthContext.Provider>
     );
