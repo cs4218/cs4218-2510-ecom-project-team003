@@ -22,10 +22,8 @@ const Header = () => {
         token: "",
       });
       localStorage.removeItem("auth");
+      toast.success("Logout Successfully", { duration: 5000 });
       navigate("/login", { replace: true });
-      setTimeout(() => {
-        toast.success("Logout Successfully", { duration: 5000 });
-      }, 0);
     } catch (error) {
       console.error(error);
       toast.error("Logout Failed", { duration: 5000 });
@@ -122,14 +120,13 @@ const Header = () => {
                         </NavLink>
                       </li>
                       <li>
-                          <button
-                              type="button"
-                              className="dropdown-item"
-                              onClick={handleLogout}
-                              role="menuitem"
-                          >
-                              LOGOUT
-                          </button>
+                        <NavLink
+                            onClick={handleLogout}
+                            to="/login"
+                            className="dropdown-item"
+                        >
+                            Logout
+                        </NavLink>
                       </li>
                     </ul>
                   </li>

@@ -50,17 +50,4 @@
       margin-top: 10px; /* Add top margin */
     }
   }
-
-/* Ensure dropdown items that are buttons look like links (since Logout is a button, and not a NavLink)*/
-button.dropdown-item {
-    background: transparent;
-    border: 0;
-    width: 100%;
-    text-align: left;
-    padding: .25rem 1rem;
-}
-
-button.dropdown-item:focus {
-    box-shadow: none;
-}
   

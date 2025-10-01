@@ -43,6 +43,14 @@ Object.defineProperty(window, "localStorage", {
     writable: true,
 });
 
+window.matchMedia = window.matchMedia || function () {
+    return {
+        matches: false,
+        addListener: function () { },
+        removeListener: function () { }
+    };
+};
+
 describe("Header", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -112,7 +120,7 @@ describe("Header", () => {
         const userToggle = screen.getByRole("button", { name: /admin user/i });
         fireEvent.click(userToggle);
 
-        const logout = screen.getByRole("menuitem", { name: /logout/i });
+        const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
         expect(mockSetAuth).toHaveBeenCalledTimes(1);
@@ -142,7 +150,7 @@ describe("Header", () => {
         const userToggle = screen.getByRole("button", { name: /admin user/i });
         fireEvent.click(userToggle);
 
-        const logout = screen.getByRole("menuitem", { name: /logout/i });
+        const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
         expect(toast.error).toHaveBeenCalled();
