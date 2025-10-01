@@ -9,7 +9,6 @@ jest.mock('axios');
 jest.mock('react-hot-toast');
 
 const mockUseAuth = jest.fn();
-const mockLogout = jest.fn();
 jest.mock('../../context/auth', () => ({
   useAuth: () => mockUseAuth(),
 }));
@@ -22,15 +21,6 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div data-testid='outlet' />,
 }));
-
-Object.defineProperty(window, 'localStorage', {
-  value: {
-    setItem: jest.fn(),
-    getItem: jest.fn(),
-    removeItem: jest.fn(),
-  },
-  writable: true,
-});
 
 const renderAdminRoute = () => {
   return render(
@@ -48,7 +38,7 @@ describe('AdminRoute Component', () => {
   });
 
   it('renders Loader while awaiting admin auth', async () => {
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), jest.fn()]);
     axios.get.mockImplementation(() => new Promise(() => { }));
 
     renderAdminRoute();
@@ -57,7 +47,7 @@ describe('AdminRoute Component', () => {
   });
 
   it('renders Outlet if admin auth is successful', async () => {
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), jest.fn()]);
     axios.get.mockResolvedValue({ data: { ok: true } });
 
     renderAdminRoute();
@@ -68,7 +58,7 @@ describe('AdminRoute Component', () => {
   });
 
   it('renders Spinner if admin auth is unsuccessful', async () => {
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), jest.fn()]);
     axios.get.mockResolvedValue({ data: { ok: false } });
 
     renderAdminRoute();
@@ -81,7 +71,7 @@ describe('AdminRoute Component', () => {
   it('renders Spinner if admin auth request fails', async () => {
     const spy = jest.spyOn(console, 'log').mockImplementation();
     const err = { message: 'Error while fetching' };
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), jest.fn()]);
     axios.get.mockRejectedValue(err);
 
     renderAdminRoute();
@@ -95,7 +85,7 @@ describe('AdminRoute Component', () => {
   });
 
   it('renders Spinner if no token', async () => {
-    mockUseAuth.mockReturnValue([null, jest.fn(), mockLogout]);
+    mockUseAuth.mockReturnValue([null, jest.fn(), jest.fn()]);
 
     renderAdminRoute();
 
@@ -105,32 +95,26 @@ describe('AdminRoute Component', () => {
   });
 
   it('does not log out user if admin auth is successful', async () => {
-    const mockSetAuth = jest.fn();
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, mockSetAuth, mockLogout]);
+    const mockLogout = jest.fn();
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
     axios.get.mockResolvedValue({ data: { ok: true } });
 
     // Render and await side effects
     renderAdminRoute();
     expect(await screen.findByTestId('outlet')).toBeInTheDocument();
 
-    expect(mockSetAuth).not.toHaveBeenCalled();
     expect(mockLogout).not.toHaveBeenCalled();
-    expect(window.localStorage.setItem).not.toHaveBeenCalled();
   });
 
   it('logs out user if admin auth is unsuccessful', async () => {
-    const mockSetAuth = jest.fn();
-    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, mockSetAuth, mockLogout]);
+    const mockLogout = jest.fn();
+    mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), mockLogout]);
     axios.get.mockResolvedValue({ data: { ok: false } });
 
     // Render and await state updates
-    /*renderAdminRoute();
+    renderAdminRoute();
     expect(await screen.findByTestId('spinner')).toBeInTheDocument();
 
-    expect(mockSetAuth).toHaveBeenCalledWith(expect.objectContaining({
-      token: "",
-      user: null,
-    }));
-    expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");*/
+    expect(mockLogout).toHaveBeenCalled();
   });
 });
