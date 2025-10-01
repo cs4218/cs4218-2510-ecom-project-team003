@@ -6,7 +6,6 @@ import { MemoryRouter } from "react-router-dom";
 
 jest.mock("./Header", () => () => <div data-testid="header" />);
 jest.mock("./Footer", () => () => <div data-testid="footer" />);
-jest.mock("react-hot-toast");
 
 describe("Layout", () => {
     beforeEach(() => {
