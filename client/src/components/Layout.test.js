@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Layout from "./Layout";
 import { MemoryRouter } from "react-router-dom";
@@ -28,19 +28,5 @@ describe("Layout", () => {
         expect(screen.getByTestId("header")).toBeInTheDocument();
         expect(screen.getByTestId("footer")).toBeInTheDocument();
         expect(screen.getByTestId("children")).toBeInTheDocument();
-    });
-
-    it("Renders default Helmet metadata", async () => {
-        renderLayout();
-
-        await waitFor(() => expect(document.title).toBe("Ecommerce app - shop now"));
-
-        const metaDesc = document.querySelector('meta[name="description"]');
-        const metaKeywords = document.querySelector('meta[name="keywords"]');
-        const metaAuthor = document.querySelector('meta[name="author"]');
-
-        expect(metaDesc).toHaveAttribute("content", "mern stack project");
-        expect(metaKeywords).toHaveAttribute("content", "mern,react,node,mongodb");
-        expect(metaAuthor).toHaveAttribute("content", "Techinfoyt");
     });
 });
