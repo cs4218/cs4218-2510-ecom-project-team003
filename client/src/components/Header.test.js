@@ -29,12 +29,6 @@ jest.mock('../hooks/useCategory', () => jest.fn(() => mockCategories));
 
 jest.mock('react-hot-toast');
 
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: () => mockNavigate,
-}));
-
 Object.defineProperty(window, "localStorage", {
     value: {
         setItem: jest.fn(),
@@ -56,7 +50,6 @@ describe("Header", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSetAuth.mockReset();
-        mockNavigate.mockReset();
         mockLogout.mockReset();
     });
 
@@ -115,7 +108,7 @@ describe("Header", () => {
         expect(screen.getByTestId('badge')).toHaveTextContent('1');
     });
 
-    it("Renders clearing of auth, shows success toast, removes localStorage, and navigates to /login on logout", async () => {
+    it("Calls logout, clears localStorage, and shows success toast on logout", async () => {
         mockAuth = { user: { name: 'Admin User', role: 1, token: 'token' } };
         mockLogout.mockImplementation(() => {
             window.localStorage.removeItem('auth');
@@ -125,22 +118,21 @@ describe("Header", () => {
         const userToggle = screen.getByRole("button", { name: /admin user/i });
         fireEvent.click(userToggle);
 
-        const logout = screen.getByRole("link", { name: /logout/i });
-        fireEvent.click(logout);
+        const logoutLink = screen.getByRole("link", { name: /logout/i });
+        expect(logoutLink).toHaveAttribute('href', '/login');
+
+        fireEvent.click(logoutLink);
 
         expect(mockLogout).toHaveBeenCalledTimes(1);
-
         expect(window.localStorage.removeItem).toHaveBeenCalledWith("auth");
 
         await waitFor(() => {
             expect(toast.success).toHaveBeenCalled();
             expect(toast.success.mock.calls[0][0]).toBe("Logout Successfully");
         });
-
-        expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
     });
 
-    it("Handles logout failure by showing error and skipping navigation", () => {
+    it("Handles logout failure by showing error in console", () => {
         const error = new Error("");
         const errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
@@ -155,7 +147,6 @@ describe("Header", () => {
         const logout = screen.getByRole("link", { name: /logout/i });
         fireEvent.click(logout);
 
-        expect(mockNavigate).not.toHaveBeenCalled();
         expect(errSpy).toHaveBeenCalledWith(error);
 
         errSpy.mockRestore();

@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import toast from "react-hot-toast";
 import SearchInput from "./Form/SearchInput";
@@ -12,13 +12,11 @@ const Header = () => {
   const [auth, setAuth, logout] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     try {
       logout();
       toast.success("Logout Successfully", { duration: 5000 });
-      navigate("/login", { replace: true });
     } catch (error) {
       console.error(error);
     }
