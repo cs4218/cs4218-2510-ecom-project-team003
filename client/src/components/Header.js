@@ -7,14 +7,21 @@ import useCategory from "../hooks/useCategory";
 import { useCart } from "../context/cart";
 import { Badge } from "antd";
 import "../styles/Header.css";
+
 const Header = () => {
   const [auth, setAuth, logout] = useAuth();
   const [cart] = useCart();
   const categories = useCategory();
+
   const handleLogout = () => {
-    logout();
-    toast.success("Logout Successfully");
+    try {
+      logout();
+      toast.success("Logout Successfully", { duration: 5000 });
+    } catch (error) {
+      console.error(error);
+    }
   };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -56,7 +63,7 @@ const Header = () => {
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li>
+                    <li key={c._id}>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}
@@ -85,11 +92,11 @@ const Header = () => {
                 <>
                   <li className="nav-item dropdown">
                     <NavLink
-                      className="nav-link dropdown-toggle"
-                      href="#"
-                      role="button"
-                      data-bs-toggle="dropdown"
-                      style={{ border: "none" }}
+                        className="nav-link dropdown-toggle"
+                        to="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        style={{ border: "none" }}
                     >
                       {auth?.user?.name}
                     </NavLink>
@@ -106,11 +113,11 @@ const Header = () => {
                       </li>
                       <li>
                         <NavLink
-                          onClick={handleLogout}
-                          to="/login"
-                          className="dropdown-item"
+                            onClick={handleLogout}
+                            to="/login"
+                            className="dropdown-item"
                         >
-                          Logout
+                            Logout
                         </NavLink>
                       </li>
                     </ul>
@@ -118,7 +125,7 @@ const Header = () => {
                 </>
               )}
               <li className="nav-item">
-                <Badge count={cart?.length} showZero>
+                <Badge count={cart?.length} showZero data-testid="badge">
                   <NavLink to="/cart" className="nav-link">
                     Cart
                   </NavLink>

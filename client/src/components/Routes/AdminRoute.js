@@ -8,16 +8,7 @@ import Loader from "../Loader";
 
 export default function AdminRoute() {
   const [state, setState] = useState("loading");
-  const [auth, setAuth] = useAuth();
-
-  const handleLogout = () => {
-    setAuth({
-      ...auth,
-      user: null,
-      token: "",
-    });
-    localStorage.removeItem("auth");
-  };
+  const [auth, setAuth, logout] = useAuth();
 
   useEffect(() => {
     const authCheck = async () => {
@@ -42,9 +33,9 @@ export default function AdminRoute() {
 
   useEffect(() => {
     if (state === "unauthorized") {
-      handleLogout();
+      logout();
     }
-  }, [state]);
+  }, [state, logout]);
 
   switch (state) {
     case "authorized":
