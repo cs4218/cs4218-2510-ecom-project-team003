@@ -10,7 +10,7 @@ import { getShortDescription } from "../utils/string";
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const [cart, setCart] = useCart();
+  const {addToCart} = useCart();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
 
@@ -77,11 +77,7 @@ const ProductDetails = () => {
             className="btn btn-secondary ms-1"
             data-testid="add-to-cart-btn"
             onClick={() => {
-              setCart([...cart, product]);
-              localStorage.setItem(
-                "cart",
-                JSON.stringify([...cart, product])
-              );
+              addToCart(product);
               toast.success("Item Added to cart");
             }}>
             ADD TO CART
@@ -127,11 +123,7 @@ const ProductDetails = () => {
                     className="btn btn-dark ms-1"
                     data-testid="add-related-to-cart-btn"
                     onClick={() => {
-                      setCart([...cart, p]);
-                      localStorage.setItem(
-                        "cart",
-                        JSON.stringify([...cart, p])
-                      );
+                      addToCart(p);
                       toast.success("Item Added to cart");
                     }}
                   >

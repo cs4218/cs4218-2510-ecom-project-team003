@@ -45,9 +45,9 @@ jest.mock('../context/auth', () => ({
   useAuth: jest.fn(() => [null, jest.fn()])
 }));
 
-const mockSetCart = jest.fn();
+const mockAddToCart = jest.fn();
 jest.mock('../context/cart', () => ({
-  useCart: jest.fn(() => [[], mockSetCart])
+  useCart: jest.fn(() => ({addToCart: mockAddToCart}))
 }));
 
 jest.mock('../context/search', () => ({
@@ -82,10 +82,6 @@ const renderCategoryProduct = (slug) => {
     </MemoryRouter>
   );
 };
-
-const mockProductCategoryApi = (products, category) => {
-  axios.get.mockResolvedValueOnce({ data: { products, category } });
-}
 
 describe('CategoryProduct Component', () => {
   beforeEach(() => {
@@ -165,8 +161,7 @@ describe('CategoryProduct Component', () => {
 
     fireEvent.click(await findByTestId('add-to-cart-button'));
     
-    expect(mockSetCart).toHaveBeenCalledWith([LAPTOP]);
-    expect(localStorage.setItem).toHaveBeenCalled();
+    expect(mockAddToCart).toHaveBeenCalledWith(LAPTOP);
     expect(toast.success).toHaveBeenCalledWith('Item added to cart');
   });
 

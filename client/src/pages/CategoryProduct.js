@@ -15,7 +15,7 @@ const formatResultCount = (count) => {
 const CategoryProduct = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const [cart, setCart] = useCart();
+  const {addToCart} = useCart();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
 
@@ -81,11 +81,7 @@ const CategoryProduct = () => {
                         className="btn btn-dark ms-1"
                         data-testid="add-to-cart-button"
                         onClick={() => {
-                          setCart([...cart, p]);
-                          localStorage.setItem(
-                            "cart",
-                            JSON.stringify([...cart, p])
-                          );
+                          addToCart(p);
                           toast.success("Item added to cart");
                         }}
                       >

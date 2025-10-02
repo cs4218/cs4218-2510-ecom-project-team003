@@ -94,9 +94,9 @@ jest.mock('../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()])
 }));
 
-const mockSetCart = jest.fn();
+const mockAddToCart = jest.fn();
 jest.mock('../context/cart', () => ({
-    useCart: jest.fn(() => [[], mockSetCart])
+    useCart: jest.fn(() => ({addToCart: mockAddToCart}))
 }));
 
 jest.mock('../context/search', () => ({
@@ -109,16 +109,7 @@ const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useNavigate: () => mockNavigate,
-}))
-
-Object.defineProperty(window, 'localStorage', {
-    value: {
-        setItem: jest.fn(),
-        getItem: jest.fn(),
-        removeItem: jest.fn(),
-    },
-    writable: true,
-});
+}));
 
 window.matchMedia = window.matchMedia || function () {
     return {
@@ -739,8 +730,7 @@ describe('HomePage', () => {
         const addToCart = await screen.findByRole('button', { name: /ADD TO CART/i });
         fireEvent.click(addToCart);
 
-        expect(mockSetCart).toHaveBeenCalledWith(expect.arrayContaining([LAPTOP]));
-        expect(localStorage.setItem).toHaveBeenCalledWith('cart', JSON.stringify([LAPTOP]));
+        expect(mockAddToCart).toHaveBeenCalledWith(LAPTOP);
         expect(toast.success).toHaveBeenCalledWith('Item Added to Cart');
     });
 
