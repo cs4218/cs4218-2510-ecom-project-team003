@@ -144,3 +144,27 @@ To begin unit testing with Jest in your project, follow these steps:
      ```bash
      npm run test
      ```
+## 6. Workload for Testing
+
+### Milestone 1: Unit Testing
+
+1. **Adam Ang Zi Jun**
+
+2. **Ethan Jed Tan Jia En**
+
+3. **Guo Yuhao**
+
+4. **Samuel Lim**
+
+5. **Yek Khoon Sun**
+    - Contact.js 
+    - Policy.js 
+    - Footer.js 
+    - Header.js 
+    - Layout.js 
+    - About.js 
+    - Pagenotfound.js 
+    - Homepage.js 
+    - useCategory.js 
+    - Categories.js 
+    - categoryController.js: categoryController, singleCategoryController
