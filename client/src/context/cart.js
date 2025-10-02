@@ -9,8 +9,14 @@ const CartProvider = ({ children }) => {
     if (existingCartItem) setCart(JSON.parse(existingCartItem));
   }, []);
 
+  const addToCart = (product) => {
+    const newCart = [...cart, product];
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
   return (
-    <CartContext.Provider value={[cart, setCart]}>
+    <CartContext.Provider value={{cart, setCart, addToCart}}>
       {children}
     </CartContext.Provider>
   );

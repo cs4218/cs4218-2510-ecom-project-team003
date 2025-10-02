@@ -14,7 +14,7 @@ jest.mock('../context/auth', () => ({
 
 let mockCart = [{ _id: '1', name: 'Product 1' }];
 jest.mock('../context/cart', () => ({
-    useCart: jest.fn(() => [mockCart, jest.fn()]),
+    useCart: jest.fn(() => ({cart: mockCart})),
 }));
 
 jest.mock("../context/search", () => ({

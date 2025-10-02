@@ -31,7 +31,7 @@ jest.mock('../../context/auth', () => ({
 }));
 
 jest.mock('../../context/cart', () => ({
-  useCart: jest.fn(() => [null, jest.fn()])
+    useCart: jest.fn(() => ({cart: []}))
 }));
 
 jest.mock('../../context/search', () => ({
