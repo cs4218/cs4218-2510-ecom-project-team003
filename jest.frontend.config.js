@@ -20,6 +20,7 @@ export default {
   transformIgnorePatterns: ["/node_modules/(?!(styleMock\\.js)$)"],
 
   // only run these tests
+
   testMatch: [
     "<rootDir>/client/src/components/**/*.test.js", 
     "<rootDir>/client/src/context/**/*.test.js", 
@@ -36,5 +37,6 @@ export default {
     "client/src/hooks/**/*.js",
   ],
   passWithNoTests: true,
+
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
 };
