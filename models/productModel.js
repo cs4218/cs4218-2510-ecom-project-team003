@@ -38,4 +38,21 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+productSchema.pre("save", async function(next) {
+  if (!this.isModified("name")) {
+    return next();
+  }
+
+  let baseSlug = this.name;
+  let slug = baseSlug;
+  let count = 1;
+
+  while (await this.constructor.findOne({slug})) {
+    slug = `${baseSlug}-${count++}`;
+  }
+
+  this.slug = slug;
+  next();
+});
+
 export default mongoose.model("Products", productSchema);

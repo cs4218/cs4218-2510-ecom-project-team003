@@ -26,7 +26,7 @@ const CreateCategory = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("somthing went wrong in input form");
+      toast.error(error.response.data.message || "something went wrong in input form");
     }
   };
 
@@ -143,7 +143,7 @@ const CreateCategory = () => {
             <Modal
               onCancel={() => setVisible(false)}
               footer={null}
-              visible={visible}
+              open={visible}
             >
               <CategoryForm
                 value={updatedName}

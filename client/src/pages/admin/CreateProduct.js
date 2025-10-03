@@ -15,7 +15,7 @@ const CreateProduct = () => {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [shipping, setShipping] = useState("");
+  const [_, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
 
   //get all category
@@ -27,7 +27,7 @@ const CreateProduct = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      toast.error( "Something went wrong in getting catgeory");
     }
   };
 
@@ -46,19 +46,19 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.post(
+      const { data } = await axios.post(
         "/api/v1/product/create-product",
         productData
       );
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
         toast.success("Product Created Successfully");
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data?.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong");
+      toast.error(error.response.data.error || "something went wrong");
     }
   };
 
@@ -73,10 +73,11 @@ const CreateProduct = () => {
             <h1>Create Product</h1>
             <div className="m-1 w-75">
               <Select
-                bordered={false}
+                variant={"borderless"}
                 placeholder="Select a category"
                 size="large"
                 showSearch
+                optionFilterProp="children"
                 className="form-select mb-3"
                 onChange={(value) => {
                   setCategory(value);
@@ -123,7 +124,6 @@ const CreateProduct = () => {
               </div>
               <div className="mb-3">
                 <textarea
-                  type="text"
                   value={description}
                   placeholder="write a description"
                   className="form-control"
@@ -151,7 +151,7 @@ const CreateProduct = () => {
               </div>
               <div className="mb-3">
                 <Select
-                  bordered={false}
+                  variant="borderless"
                   placeholder="Select Shipping "
                   size="large"
                   showSearch
