@@ -15,7 +15,7 @@ const CreateProduct = () => {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [_, setShipping] = useState("");
+  const [shipping, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
 
   //get all category
@@ -46,6 +46,11 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
+      if (shipping) {
+        // shipping is a string, so this only triggers when shipping is not undefined (selected by user)
+        // so even if it's "false" (which is "0"), we still want to append it
+        productData.append("shipping", shipping);
+      }
       const { data } = await axios.post(
         "/api/v1/product/create-product",
         productData

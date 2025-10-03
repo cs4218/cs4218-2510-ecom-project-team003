@@ -55,4 +55,25 @@ productSchema.pre("save", async function(next) {
   next();
 });
 
+productSchema.pre("findOneAndUpdate", async function(next) {
+    const update = this.getUpdate();
+
+    if (update.name) {
+        let baseSlug = update.name;
+        let slug = baseSlug;
+        let count = 1;
+
+        const Model = this.model;
+        while (await Model.findOne({ slug, _id: { $ne: this.getQuery()._id } })) { // $ne excludes this.
+            slug = `${baseSlug}-${count++}`;
+        }
+
+        update.slug = slug;
+        this.setUpdate(update);
+    }
+
+    next();
+});
+
+
 export default mongoose.model("Products", productSchema);
