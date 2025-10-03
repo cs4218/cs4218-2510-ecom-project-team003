@@ -157,7 +157,7 @@ To begin unit testing with Jest in your project, follow these steps:
 
 3. **Guo Yuhao**
 
-4. **Samuel Lim**
+4. **Lim Song Yang, Samuel**
    - AdminRoute.js
    - Profile.js
    - ProductDetails.js
