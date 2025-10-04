@@ -261,6 +261,7 @@ export const productFiltersController = async (req, res) => {
     const products = await productModel.find(args);
     res.status(200).send({
       success: true,
+      message: "Filtered products fetched",
       products,
     });
   } catch (error) {
@@ -279,6 +280,7 @@ export const productCountController = async (req, res) => {
     const total = await productModel.find({}).estimatedDocumentCount();
     res.status(200).send({
       success: true,
+      message: "Product count fetched",
       total,
     });
   } catch (error) {
@@ -312,6 +314,7 @@ export const productListController = async (req, res) => {
       .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
+      message: "Products list fetched",
       products,
     });
   } catch (error) {
@@ -374,6 +377,7 @@ export const relatedProductController = async (req, res) => {
       .populate("category");
     res.status(200).send({
       success: true,
+      message: "Related products fetched",
       products,
     });
   } catch (error) {
@@ -407,6 +411,7 @@ export const productCategoryController = async (req, res) => {
     const products = await productModel.find({ category }).populate("category");
     res.status(200).send({
       success: true,
+      message: "Category and products fetched",
       category,
       products,
     });

@@ -659,6 +659,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         products: [LAPTOP, SMARTPHONE],
       }));
     });
@@ -706,6 +707,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         total: 42,
       }));
     });
@@ -732,6 +734,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         products: [LAPTOP],
       }));
     });
@@ -744,6 +747,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         products: [LAPTOP],
       }));
     });
@@ -837,6 +841,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         products: [SMARTPHONE],
       }));
     });
@@ -886,6 +891,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
+        message: expect.any(String),
         category: LAPTOP.category,
         products: [LAPTOP, SMARTPHONE],
       }));
