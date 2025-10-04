@@ -16,7 +16,8 @@ const ProductDetails = () => {
 
   // initalp details
   useEffect(() => {
-    if (params?.slug) getProduct();
+    if (!params?.slug) return navigate('/pagenotfound');
+    getProduct();
   }, [params?.slug]);
   // getProduct
   const getProduct = async () => {
@@ -75,7 +76,6 @@ const ProductDetails = () => {
           <h6>Category : {product?.category?.name}</h6>
           <button
             className="btn btn-secondary ms-1"
-            data-testid="add-to-cart-btn"
             onClick={() => {
               addToCart(product);
               toast.success("Item Added to cart");
@@ -114,7 +114,6 @@ const ProductDetails = () => {
                 <div className="card-name-price">
                   <button
                     className="btn btn-info ms-1"
-                    data-testid="more-details-btn"
                     onClick={() => navigate(`/product/${p.slug}`)}
                   >
                     More Details

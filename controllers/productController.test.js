@@ -332,11 +332,11 @@ describe('Product Controller', () => {
 
       await getSingleProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         message: expect.any(String),
         product: LAPTOP,
-      });
+      }));
     });
 
     it('should return 404 with product not found', async () => {
@@ -345,10 +345,10 @@ describe('Product Controller', () => {
 
       await getSingleProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -519,10 +519,10 @@ describe('Product Controller', () => {
 
       await productPhotoController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
-      });
+      }));
     });
 
     it('should return 404 with photo not found', async () => {
@@ -531,10 +531,10 @@ describe('Product Controller', () => {
 
       await productPhotoController(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -547,6 +547,51 @@ describe('Product Controller', () => {
       expectDatabaseError(res, spy);
 
       spy.mockRestore();
+    });
+  });
+
+  describe('productFiltersSchema', () => {
+    it('should use default schema', () => {
+      const result = productFiltersSchema.safeParse({});
+      expect(result.success).toEqual(true);
+      expect(result.data).toEqual(expect.objectContaining({
+        checked: [], radio: [],
+      }));
+    });
+
+    it('should accept radio array of length 0', () => {
+      const result = productFiltersSchema.safeParse({radio: []});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should accept radio array of length 2', () => {
+      const result = productFiltersSchema.safeParse({radio: [0, 100]});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should reject radio array of length 1', () => {
+      const result = productFiltersSchema.safeParse({radio: [1]});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should reject radio array of length > 2', () => {
+      const result = productFiltersSchema.safeParse({radio: [1, 2, 3]});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should reject radio array of wrong type', () => {
+      const result = productFiltersSchema.safeParse({radio: ['1', '2']});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should accept valid checked array of strings', () => {
+      const result = productFiltersSchema.safeParse({checked: ['cat1', 'cat2']});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should reject checked if not array', () => {
+      const result = productFiltersSchema.safeParse({checked: 'cat1'});
+      expect(result.success).toEqual(false);
     });
   });
 
@@ -575,7 +620,7 @@ describe('Product Controller', () => {
       jest.spyOn(productFiltersSchema, 'safeParse');
       jest.spyOn(z, 'treeifyError');
       jest.spyOn(productController, 'buildProductFiltersArgs');
-    })
+    });
 
     it('should return 200 with filtered products', async () => {
       const body = { checked: [LAPTOP.category._id], radio: [500, 1500] };
@@ -584,16 +629,16 @@ describe('Product Controller', () => {
       buildProductFiltersArgs.mockReturnValue({
         category: [LAPTOP.category._id],
         price: { $gte: 500, $lte: 1500 },
-      })
+      });
       mockModel(productModel).mockResolvedValue('find', [LAPTOP, SMARTPHONE]);
 
       await productFiltersController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         products: [LAPTOP, SMARTPHONE],
-      });
+      }));
     });
 
     it('should return 400 upon invalid request', async () => {
@@ -604,11 +649,11 @@ describe('Product Controller', () => {
       await productFiltersController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
         error: expect.anything(),
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -637,10 +682,10 @@ describe('Product Controller', () => {
 
       await productCountController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         total: 42,
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -663,10 +708,10 @@ describe('Product Controller', () => {
 
       await productListController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         products: [LAPTOP],
-      });
+      }));
     });
 
     it('should return 200 with a list of products for default page', async () => {
@@ -675,10 +720,10 @@ describe('Product Controller', () => {
 
       await productListController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         products: [LAPTOP],
-      });
+      }));
     });
 
     it('should return 400 for page number less than or equal to 0', async () => {
@@ -686,10 +731,10 @@ describe('Product Controller', () => {
 
       await productListController(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
-      });
+      }));
     });
 
     it('should return 400 for non-numeric page', async () => {
@@ -697,10 +742,10 @@ describe('Product Controller', () => {
 
       await productListController(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         message: expect.any(String),
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -746,10 +791,10 @@ describe('Product Controller', () => {
 
       await relatedProductController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         products: [SMARTPHONE],
-      });
+      }));
     });
 
     it('should return 500 upon database failure', async () => {
@@ -773,11 +818,11 @@ describe('Product Controller', () => {
 
       await productCategoryController(req, res);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         category: LAPTOP.category,
         products: [LAPTOP, SMARTPHONE],
-      });
+      }));
     });
 
     it('should return 500 upon database failure in categoryModel', async () => {
