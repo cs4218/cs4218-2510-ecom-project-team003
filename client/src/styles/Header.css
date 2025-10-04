@@ -13,7 +13,7 @@
   }
   
   /* Navbar Links */
-  .navbar-nav .nav-link {
+  .navbar-nav .nav-link .ant-badge {
     color: #212529; /* Set text color */
     font-size: 1rem; /* Set font size */
     margin-right: 10px; /* Add right margin */
