@@ -96,6 +96,13 @@ export const getProductController = async (req, res) => {
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
+    if (!req.params.slug) {
+      return res.status(400).send({
+        success: false,
+        message: "slug is required",
+      });
+    }
+
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .select("-photo")
@@ -126,6 +133,13 @@ export const getSingleProductController = async (req, res) => {
 // get photo
 export const productPhotoController = async (req, res) => {
   try {
+    if (!req.params.pid) {
+      return res.status(400).send({
+        success: false,
+        message: "Product ID is required",
+      });
+    }
+
     const product = await productModel.findById(req.params.pid).select("photo");
 
     if (!product) {
@@ -247,6 +261,7 @@ export const productFiltersController = async (req, res) => {
     const products = await productModel.find(args);
     res.status(200).send({
       success: true,
+      message: "Filtered products fetched",
       products,
     });
   } catch (error) {
@@ -265,6 +280,7 @@ export const productCountController = async (req, res) => {
     const total = await productModel.find({}).estimatedDocumentCount();
     res.status(200).send({
       success: true,
+      message: "Product count fetched",
       total,
     });
   } catch (error) {
@@ -298,6 +314,7 @@ export const productListController = async (req, res) => {
       .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
+      message: "Products list fetched",
       products,
     });
   } catch (error) {
@@ -314,6 +331,12 @@ export const productListController = async (req, res) => {
 export const searchProductController = async (req, res) => {
   try {
     const { keyword } = req.params;
+    if (!keyword?.trim()) {
+      return res.status(400).send({
+        success: false,
+        message: "Keyword is required",
+      });
+    }
     const results = await productModel
       .find({
         $or: [
@@ -337,6 +360,13 @@ export const searchProductController = async (req, res) => {
 export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+    if (!pid || !cid) {
+      return res.status(400).send({
+        success: false,
+        message: "Product ID and Category ID are required",
+      });
+    }
+
     const products = await productModel
       .find({
         category: cid,
@@ -347,6 +377,7 @@ export const relatedProductController = async (req, res) => {
       .populate("category");
     res.status(200).send({
       success: true,
+      message: "Related products fetched",
       products,
     });
   } catch (error) {
@@ -362,10 +393,25 @@ export const relatedProductController = async (req, res) => {
 // get products by catgory
 export const productCategoryController = async (req, res) => {
   try {
+    if (!req.params.slug) {
+      return res.status(400).send({
+        success: false,
+        message: "slug is required",
+      });
+    }
+
     const category = await categoryModel.findOne({ slug: req.params.slug });
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
     const products = await productModel.find({ category }).populate("category");
     res.status(200).send({
       success: true,
+      message: "Category and products fetched",
       category,
       products,
     });
