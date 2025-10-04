@@ -162,7 +162,8 @@ To begin unit testing with Jest in your project, follow these steps:
    - Profile.js
    - ProductDetails.js
    - CategoryProduct.js
-   - productController.js: getProductController, getSingleProductController, productPhotoController, productFiltersController, productCountController, productListController, searchProductController, relatedProductController, productCategoryController
+   - productController.js: getProductController, getSingleProductController, productPhotoController, productFiltersSchema, buildProductFiltersArgs, productFiltersController, productCountController, productListController, searchProductController, relatedProductController, productCategoryController
+   - string.js
 
 5. **Yek Khoon Sun**
     - Contact.js 
