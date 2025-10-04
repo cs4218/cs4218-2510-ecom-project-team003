@@ -174,6 +174,7 @@ To begin unit testing with Jest in your project, follow these steps:
     - About.js 
     - Pagenotfound.js 
     - Homepage.js 
+    - Prices.js
     - useCategory.js 
     - Categories.js 
     - categoryController.js: categoryController, singleCategoryController
