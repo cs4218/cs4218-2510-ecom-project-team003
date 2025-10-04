@@ -550,6 +550,51 @@ describe('Product Controller', () => {
     });
   });
 
+  describe('productFiltersSchema', () => {
+    it('should use default schema', () => {
+      const result = productFiltersSchema.safeParse({});
+      expect(result.success).toEqual(true);
+      expect(result.data).toEqual(expect.objectContaining({
+        checked: [], radio: [],
+      }));
+    });
+
+    it('should accept radio array of length 0', () => {
+      const result = productFiltersSchema.safeParse({radio: []});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should accept radio array of length 2', () => {
+      const result = productFiltersSchema.safeParse({radio: [0, 100]});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should reject radio array of length 1', () => {
+      const result = productFiltersSchema.safeParse({radio: [1]});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should reject radio array of length > 2', () => {
+      const result = productFiltersSchema.safeParse({radio: [1, 2, 3]});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should reject radio array of wrong type', () => {
+      const result = productFiltersSchema.safeParse({radio: ['1', '2']});
+      expect(result.success).toEqual(false);
+    });
+
+    it('should accept valid checked array of strings', () => {
+      const result = productFiltersSchema.safeParse({checked: ['cat1', 'cat2']});
+      expect(result.success).toEqual(true);
+    });
+
+    it('should reject checked if not array', () => {
+      const result = productFiltersSchema.safeParse({checked: 'cat1'});
+      expect(result.success).toEqual(false);
+    });
+  });
+
   describe('buildProductFiltersArgs', () => {
     it('should return empty object when both are empty', () => {
       expect(buildProductFiltersArgs([], [])).toEqual({});
@@ -575,7 +620,7 @@ describe('Product Controller', () => {
       jest.spyOn(productFiltersSchema, 'safeParse');
       jest.spyOn(z, 'treeifyError');
       jest.spyOn(productController, 'buildProductFiltersArgs');
-    })
+    });
 
     it('should return 200 with filtered products', async () => {
       const body = { checked: [LAPTOP.category._id], radio: [500, 1500] };
@@ -584,7 +629,7 @@ describe('Product Controller', () => {
       buildProductFiltersArgs.mockReturnValue({
         category: [LAPTOP.category._id],
         price: { $gte: 500, $lte: 1500 },
-      })
+      });
       mockModel(productModel).mockResolvedValue('find', [LAPTOP, SMARTPHONE]);
 
       await productFiltersController(req, res);
