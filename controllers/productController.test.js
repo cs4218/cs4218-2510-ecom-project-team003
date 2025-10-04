@@ -339,6 +339,17 @@ describe('Product Controller', () => {
       }));
     });
 
+    it('should return 400 without product slug', async () => {
+      const [req, res] = mockRequestResponse({ params: {} });
+
+      await getSingleProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
+    });
+
     it('should return 404 with product not found', async () => {
       const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.slug } });
       mockModel(productModel).mockResolvedValue('populate', null);
@@ -511,6 +522,17 @@ describe('Product Controller', () => {
       expect(res.set).toHaveBeenCalledWith('Content-type', LAPTOP.photo.contentType);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(LAPTOP.photo.data);
+    });
+
+    it('should return 400 without product id', async () => {
+      const [req, res] = mockRequestResponse({ params: {} });
+
+      await productPhotoController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
     });
 
     it('should return 404 with product not found', async () => {
@@ -771,6 +793,28 @@ describe('Product Controller', () => {
       expect(res.json).toHaveBeenCalledWith([LAPTOP]);
     });
 
+    it('should return 400 without keyword', async () => {
+      const [req, res] = mockRequestResponse({ params: {} });
+
+      await searchProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
+    });
+
+    it('should return 400 with whitespace keyword', async () => {
+      const [req, res] = mockRequestResponse({ params: { keyword: '  ' } });
+
+      await searchProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
+    });
+
     it('should return 500 upon database failure', async () => {
       const [req, res] = mockRequestResponse({ params: { keyword: 'laptop' } });
       mockModel(productModel).mockDatabaseFailure('select');
@@ -794,6 +838,28 @@ describe('Product Controller', () => {
       expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         products: [SMARTPHONE],
+      }));
+    });
+
+    it('should return 400 without product id', async () => {
+      const [req, res] = mockRequestResponse({ params: { cid: LAPTOP.category._id } });
+
+      await relatedProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
+    });
+
+    it('should return 400 without category id', async () => {
+      const [req, res] = mockRequestResponse({ params: { pid: LAPTOP._id } });
+
+      await relatedProductController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
       }));
     });
 
@@ -822,6 +888,29 @@ describe('Product Controller', () => {
         success: true,
         category: LAPTOP.category,
         products: [LAPTOP, SMARTPHONE],
+      }));
+    });
+
+    it('should return 400 without category slug', async () => {
+      const [req, res] = mockRequestResponse({ params: {} });
+
+      await productCategoryController(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
+      }));
+    });
+
+    it('should return 404 with category not found', async () => {
+      const [req, res] = mockRequestResponse({ params: { slug: LAPTOP.category.slug } });
+      mockModel(categoryModel).mockResolvedValue('findOne', null);
+
+      await productCategoryController(req, res);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        message: expect.any(String),
       }));
     });
 
