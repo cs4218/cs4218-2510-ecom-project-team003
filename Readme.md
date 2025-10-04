@@ -144,3 +144,37 @@ To begin unit testing with Jest in your project, follow these steps:
      ```bash
      npm run test
      ```
+## 6. Link for the CI
+
+
+## 7. Workload for Testing
+
+### Milestone 1: Unit Testing
+
+1. **Adam Ang Zi Jun**
+
+2. **Ethan Jed Tan Jia En**
+
+3. **Guo Yuhao**
+
+4. **Lim Song Yang, Samuel**
+   - AdminRoute.js
+   - Profile.js
+   - ProductDetails.js
+   - CategoryProduct.js
+   - productController.js: getProductController, getSingleProductController, productPhotoController, productFiltersSchema, buildProductFiltersArgs, productFiltersController, productCountController, productListController, searchProductController, relatedProductController, productCategoryController
+   - string.js
+
+5. **Yek Khoon Sun**
+    - Contact.js 
+    - Policy.js 
+    - Footer.js 
+    - Header.js 
+    - Layout.js 
+    - About.js 
+    - Pagenotfound.js 
+    - Homepage.js 
+    - Prices.js
+    - useCategory.js 
+    - Categories.js 
+    - categoryController.js: categoryController, singleCategoryController
