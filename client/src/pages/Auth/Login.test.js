@@ -68,12 +68,12 @@ window.matchMedia = window.matchMedia || function() {
   };
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockLocation.state = null;
-});
-
 describe('Login Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockLocation.state = null;
+  });
+  
   describe('UI Rendering', () => {
     it('Renders Login Form', () => {
 
