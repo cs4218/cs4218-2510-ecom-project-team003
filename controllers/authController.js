@@ -240,13 +240,13 @@ export const getAllOrdersController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error WHile Geting Orders",
-      error,
+      error: error.message,
     });
   }
 };
 
 //order status
-export const orderStatusController = async (req, res) => {
+export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -260,8 +260,8 @@ export const orderStatusController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
-      error,
+      message: "Error While Updating Order",
+      error: error.message,
     });
   }
 };
