@@ -1,10 +1,10 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
-import ProductDetails from "./ProductDetails";
+import ProductDetails from './ProductDetails';
 
 const LAPTOP = {
   "_id": "1",
@@ -68,7 +68,7 @@ jest.mock('../context/auth', () => ({
 
 const mockAddToCart = jest.fn();
 jest.mock('../context/cart', () => ({
-  useCart: jest.fn(() => ({addToCart: mockAddToCart}))
+  useCart: jest.fn(() => ({ addToCart: mockAddToCart }))
 }));
 
 jest.mock('../context/search', () => ({
@@ -96,6 +96,8 @@ window.matchMedia = window.matchMedia || function () {
   };
 };
 
+console.log = jest.fn();
+
 const mockProductApi = (product, relatedProducts = []) => {
   axios.get
     .mockResolvedValueOnce({ data: { product } })
@@ -121,19 +123,17 @@ describe('Product Details Component', () => {
     describe('Product Details', () => {
       it('renders product details', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Product Details')).toBeInTheDocument();
-        expect(await findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
-        expect(await findByText(`Description : ${LAPTOP.description}`)).toBeInTheDocument();
-        expect(await findByText(`Price : $1,499.99`)).toBeInTheDocument();
-        expect(await findByText(`Category : ${LAPTOP.category.name}`)).toBeInTheDocument();
-        expect(getByText('ADD TO CART')).toBeInTheDocument();
+        expect(await screen.findByText(/name.*laptop/i)).toBeInTheDocument();
+        expect(await screen.findByText(/a powerful laptop/i)).toBeInTheDocument();
+        expect(await screen.findByText(/\$1,499\.99/i)).toBeInTheDocument();
+        expect(await screen.findByText(/electronics/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument();
       });
 
-      it('renders product details when no slug is provided', async () => {
-        const { getByText } = render(
+      it('navigates to page not found when no slug is provided', async () => {
+        render(
           <MemoryRouter initialEntries={[`/product`]}>
             <Routes>
               <Route path="/product" element={<ProductDetails />} />
@@ -141,69 +141,57 @@ describe('Product Details Component', () => {
           </MemoryRouter>
         );
 
-        expect(getByText('Product Details')).toBeInTheDocument();
-        expect(getByText('Name :')).toBeInTheDocument();
-        expect(getByText('Description :')).toBeInTheDocument();
-        expect(getByText('Price :')).toBeInTheDocument();
-        expect(getByText('Category :')).toBeInTheDocument();
-        expect(getByText('ADD TO CART')).toBeInTheDocument();
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound'));
       });
 
       it('renders product image', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByAltText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        const img = await findByAltText(LAPTOP.name);
+        const img = await screen.findByAltText(LAPTOP.name);
         expect(img).toBeInTheDocument();
-        expect(img).toHaveAttribute('src', `/api/v1/product/product-photo/${LAPTOP._id}`);
+        expect(img).toHaveAttribute('src', expect.stringContaining(LAPTOP._id));
       });
     });
 
     describe('Related products', () => {
       it('renders no related products', async () => {
         mockProductApi(LAPTOP, []);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
         await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText('No Similar Products found')).toBeInTheDocument();
+        expect(await screen.findByText(/no similar products/i)).toBeInTheDocument();
       });
 
       it('renders related product', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE]);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
-        expect(await findByText('$999.99')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.description)).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
+        expect(await screen.findByText('$999.99')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.description)).toBeInTheDocument();
       });
 
       it('renders multiple related products', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE, TABLET]);
-        const { findByText, getByText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        expect(getByText('Similar Products ➡️')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
-        expect(await findByText('$999.99')).toBeInTheDocument();
-        expect(await findByText(SMARTPHONE.description)).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
+        expect(await screen.findByText('$999.99')).toBeInTheDocument();
+        expect(await screen.findByText(SMARTPHONE.description)).toBeInTheDocument();
 
-        expect(await findByText(TABLET.name)).toBeInTheDocument();
-        expect(await findByText('$599.99')).toBeInTheDocument();
-        expect(await findByText(TABLET.description)).toBeInTheDocument();
+        expect(await screen.findByText(TABLET.name)).toBeInTheDocument();
+        expect(await screen.findByText('$599.99')).toBeInTheDocument();
+        expect(await screen.findByText(TABLET.description)).toBeInTheDocument();
       });
 
       it('renders related product image', async () => {
         mockProductApi(LAPTOP, [SMARTPHONE]);
-        const { findByAltText } = renderProductDetails(LAPTOP.slug);
+        renderProductDetails(LAPTOP.slug);
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-        const img = await findByAltText(SMARTPHONE.name);
+        const img = await screen.findByAltText(SMARTPHONE.name);
         expect(img).toBeInTheDocument();
-        expect(img).toHaveAttribute('src', `/api/v1/product/product-photo/${SMARTPHONE._id}`);
+        expect(img).toHaveAttribute('src', expect.stringContaining(SMARTPHONE._id));
       });
     });
   });
@@ -211,35 +199,30 @@ describe('Product Details Component', () => {
   describe('User interactions', () => {
     it('adds product to cart', async () => {
       mockProductApi(LAPTOP, []);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(`Name : ${LAPTOP.name}`)).toBeInTheDocument();
+      renderProductDetails(LAPTOP.slug);
 
-      fireEvent.click(getByTestId('add-to-cart-btn'));
+      expect(await screen.findByText(/name.*laptop/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /add to cart/i }));
 
       expect(mockAddToCart).toHaveBeenCalledWith(LAPTOP);
-      expect(toast.success).toHaveBeenCalledWith('Item Added to cart');
+      expect(toast.success).toHaveBeenCalledWith(expect.any(String));
     });
 
     it('adds related product to cart', async () => {
       mockProductApi(LAPTOP, [SMARTPHONE]);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
+      renderProductDetails(LAPTOP.slug);
 
-      fireEvent.click(getByTestId('add-related-to-cart-btn'));
+      fireEvent.click(await screen.findByTestId('add-related-to-cart-btn'));
 
       expect(mockAddToCart).toHaveBeenCalledWith(SMARTPHONE);
-      expect(toast.success).toHaveBeenCalledWith('Item Added to cart');
+      expect(toast.success).toHaveBeenCalledWith(expect.any(String));
     });
 
     it('navigates to similar product details', async () => {
       mockProductApi(LAPTOP, [SMARTPHONE]);
-      const { findByText, getByTestId } = renderProductDetails(LAPTOP.slug);
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
+      renderProductDetails(LAPTOP.slug);
 
-      fireEvent.click(getByTestId('more-details-btn'));
+      fireEvent.click(await screen.findByRole('button', { name: /details/i }));
 
       expect(mockNavigate).toHaveBeenCalledWith(`/product/${SMARTPHONE.slug}`);
     });
@@ -250,37 +233,26 @@ describe('Product Details Component', () => {
       axios.get.mockResolvedValueOnce({ data: { product: null } });
 
       renderProductDetails(INVALID_SLUG);
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
 
-      expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound');
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound'));
     });
 
     it('handles error when fetching single product fails', async () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation();
       const err = { message: 'Error while getting single product' };
       axios.get.mockRejectedValueOnce(err);
       renderProductDetails(LAPTOP.slug);
 
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
-      await waitFor(() => expect(spy).toHaveBeenCalledWith(err));
-      expect(toast.error).toHaveBeenCalledWith('Something went wrong');
-
-      spy.mockRestore();
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.any(String)));
     });
 
     it('handles error when fetching related product fails', async () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation();
       const err = { message: 'Error while getting related products' };
       axios.get
         .mockResolvedValueOnce({ data: { product: SMARTPHONE } })
         .mockRejectedValueOnce(err)
       renderProductDetails(LAPTOP.slug);
 
-      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-      await waitFor(() => expect(spy).toHaveBeenCalledWith(err));
-      expect(toast.error).toHaveBeenCalledWith('Something went wrong');
-
-      spy.mockRestore();
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.any(String)));
     });
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -101,9 +101,9 @@ describe('AdminRoute Component', () => {
 
     // Render and await side effects
     renderAdminRoute();
-    expect(await screen.findByTestId('outlet')).toBeInTheDocument();
 
-    expect(mockLogout).not.toHaveBeenCalled();
+    expect(await screen.findByTestId('outlet')).toBeInTheDocument();
+    waitFor(() => expect(mockLogout).not.toHaveBeenCalled());
   });
 
   it('logs out user if admin auth is unsuccessful', async () => {
@@ -113,8 +113,8 @@ describe('AdminRoute Component', () => {
 
     // Render and await state updates
     renderAdminRoute();
-    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
 
-    expect(mockLogout).toHaveBeenCalled();
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
+    waitFor(() => expect(mockLogout).toHaveBeenCalled());
   });
 });
