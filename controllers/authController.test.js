@@ -190,7 +190,7 @@ describe('Auth Controller', () => {
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.send).toHaveBeenCalledWith({
           success: false,
-          message: 'Error in Registeration',
+          message: 'Error in Registration',
           error: dbError
         });
       });
