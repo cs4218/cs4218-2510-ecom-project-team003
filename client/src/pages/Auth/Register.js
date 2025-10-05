@@ -83,13 +83,15 @@ const Register = () => {
               type="tel"
               value={phone}
               onChange={(e) => {
-                const value = e.target.value.replace(/[^\d\s\-\(\)\+]/g, '');
+                const value = e.target.value.replace(/\D/g, '')
                 setPhone(value)
               }}
               className="form-control"
               id="exampleInputPhone1"
               placeholder="Enter Your Phone"
               required
+              minLength={8}
+              maxLength={15}
             />
           </div>
           <div className="mb-3">
