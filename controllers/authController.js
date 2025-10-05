@@ -217,7 +217,7 @@ export const getOrdersController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error While Getting Orders",
-      error,
+      error: error.message,
     });
   }
 };

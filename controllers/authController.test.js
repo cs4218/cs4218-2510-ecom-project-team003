@@ -1,7 +1,7 @@
 import { getOrdersController } from "../controllers/authController.js";
 import orderModel from "../models/orderModel.js";
 import mockRequestResponse from '../testUtils/requests.js';
-import { expectDatabaseError } from "../testUtils/database.js";
+import { mockModel, expectDatabaseError } from "../testUtils/database.js";
 
 jest.mock("../models/orderModel.js");
 
