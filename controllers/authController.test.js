@@ -1,110 +1,44 @@
-import { registerController } from "../controllers/authController.js";
-import userModel from "../models/userModel.js";
-import { hashPassword } from "../helpers/authHelper.js";
+import { getOrdersController } from "../controllers/authController.js";
+import orderModel from "../models/orderModel.js";
+import mockRequestResponse from '../testUtils/requests.js';
+import { expectDatabaseError } from "../testUtils/database.js";
 
-jest.mock("../models/userModel.js");
-jest.mock("../helpers/authHelper.js");
+jest.mock("../models/orderModel.js");
 
-const mockRequestResponse = (body = {}) => {
-  const req = { body };
-  const res = {
-    status: jest.fn().mockReturnThis(),
-    send: jest.fn(),
-  };
-  return [req, res];
-};
+describe("getOrdersController", () => {
+  let req, res;
 
-describe("registerController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    [req, res] = mockRequestResponse();
+    req.user = { _id: "user123" }; // ensure user is present
   });
 
-  it("should return 400 if name is missing", async () => {
-    const [req, res] = mockRequestResponse({ email: "test@test.com" });
+  it("should return orders for the user", async () => {
+    const fakeOrders = [
+      { _id: "1", buyer: "user123", products: [{ name: "item1" }] },
+      { _id: "2", buyer: "user123", products: [{ name: "item2" }] },
+    ];
 
-    await registerController(req, res);
+    const populateBuyer = jest.fn().mockResolvedValue(fakeOrders);
+    const populateProducts = jest.fn().mockReturnValue({ populate: populateBuyer });
+    orderModel.find.mockReturnValue({ populate: populateProducts });
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Name is required" })
-    );
+    await getOrdersController(req, res);
+
+    expect(orderModel.find).toHaveBeenCalledWith({ buyer: "user123" });
+    expect(populateProducts).toHaveBeenCalledWith("products", "-photo");
+    expect(populateBuyer).toHaveBeenCalledWith("buyer", "name");
+    expect(res.json).toHaveBeenCalledWith(fakeOrders);
   });
 
-  it("should return 409 if user already exists", async () => {
-    userModel.findOne.mockResolvedValue({ email: "existing@test.com" });
-
-    const [req, res] = mockRequestResponse({
-      name: "User",
-      email: "existing@test.com",
-      password: "123456",
-      phone: "123",
-      address: "abc",
-      answer: "yes",
-    });
-
-    await registerController(req, res);
-
-    expect(userModel.findOne).toHaveBeenCalledWith({ email: "existing@test.com" });
-    expect(res.status).toHaveBeenCalledWith(409);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Already Register please login" })
-    );
-  });
-
-  it("should register a new user successfully", async () => {
-    userModel.findOne.mockResolvedValue(null);
-    hashPassword.mockResolvedValue("hashed123");
-    const mockSave = jest.fn().mockResolvedValue({ name: "User" });
-    userModel.mockImplementation(() => ({ save: mockSave }));
-
-    const [req, res] = mockRequestResponse({
-      name: "User",
-      email: "test@test.com",
-      password: "123456",
-      phone: "123",
-      address: "abc",
-      answer: "yes",
-    });
-
-    await registerController(req, res);
-
-    expect(hashPassword).toHaveBeenCalledWith("123456");
-    expect(mockSave).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: true,
-        message: "User Register Successfully",
-      })
-    );
-  });
-
-  it("should return 500 if there is a server error", async () => {
-    
-    // silences console
+  it("should handle errors and return 500", async () => {
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-    userModel.findOne.mockImplementation(() => {
-      throw new Error("DB error");
-    });
 
-    const [req, res] = mockRequestResponse({
-      name: "User",
-      email: "test@test.com",
-      password: "123456",
-      phone: "123",
-      address: "abc",
-      answer: "yes",
-    });
+    orderModel.find.mockImplementation(() => { throw new Error("DB failure"); });
 
-    await registerController(req, res);
+    await getOrdersController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: false,
-        message: "Error in Registeration",
-      })
-    );
-    logSpy.mockRestore(); // restore console
+    expectDatabaseError(res, logSpy);
   });
 });
