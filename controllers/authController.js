@@ -174,7 +174,11 @@ export const updateProfileController = async (req, res) => {
   try {
     const { name, email, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
-    //password
+
+    if (!req.user || !req.user._id) {
+      throw new Error("Missing User");
+    }
+
     if (password && password.length < 6) {
       return res.json({ error: "A password is required and has to be at least 6 characters long." });
     }
@@ -199,7 +203,7 @@ export const updateProfileController = async (req, res) => {
     res.status(400).send({
       success: false,
       message: "Error While Updating Profile",
-      error,
+      error: error.message,
     });
   }
 };

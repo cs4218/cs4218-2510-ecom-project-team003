@@ -6,9 +6,11 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import mockRequestResponse from '../testUtils/requests.js';
 import { expectDatabaseError } from "../testUtils/database.js";
+import { comparePassword, hashPassword } from "../helpers/authHelper.js";
 
 jest.mock("../models/orderModel.js");
 jest.mock("../models/userModel.js");
+jest.mock("../helpers/authHelper.js")
 
 describe('Auth Controller', () => {
 
@@ -94,6 +96,42 @@ describe('Auth Controller', () => {
         })
       );
     });
+    
+    it("should hash the password if provided and update successfully", async () => {
+      const fakeUser = { _id: "user123", password: "oldpass" };
+      const hashed = "hashedPass123";
+
+      userModel.findById.mockResolvedValue(fakeUser);
+      userModel.findByIdAndUpdate.mockResolvedValue({ ...fakeUser, password: hashed });
+      hashPassword.mockResolvedValue(hashed);
+
+      const [req, res] = mockRequestResponse({
+        body: { password: "newpassword" },
+        user: { _id: "user123" },
+      });
+
+      await updateProfileController(req, res);
+
+      expect(hashPassword).toHaveBeenCalledWith("newpassword");
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        "user123",
+        expect.objectContaining({ password: hashed }),
+        { new: true }
+      );
+    });
+
+    it("should return error if req.user is missing", async () => {
+      const [req, res] = mockRequestResponse({ body: { name: "New" }, user: undefined });
+      const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      await updateProfileController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false, message: "Error While Updating Profile", error: "Missing User" })
+      );
+      logSpy.mockRestore();
+    });
 
     it("should return an error if password is too short", async () => {
       const [req, res] = mockRequestResponse({
@@ -124,12 +162,16 @@ describe('Auth Controller', () => {
         expect.objectContaining({
           success: false,
           message: "Error While Updating Profile",
-          error: expect.any(Error),
+          error: expect.any(String),
         })
       );
 
       logSpy.mockRestore();
     });
+  });
+
+  describe("getAllOrdersController", () => {
+    
   });
 
 });
