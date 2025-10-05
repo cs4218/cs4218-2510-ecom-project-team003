@@ -22,7 +22,7 @@ describe("Spinner Component", () => {
   it("renders countdown and spinner", async () => {
     useLocation.mockReturnValue({ pathname: "/current" });
     render(<Spinner path="login" />);
-    expect(screen.getByText(/Redirecting you in 3 second/i)).toBeInTheDocument();
+    expect(screen.getByText(/Redirecting you in 3 seconds/i)).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
