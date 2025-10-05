@@ -20,7 +20,8 @@ const CategoryProduct = () => {
   const [category, setCategory] = useState([]);
 
   useEffect(() => {
-    if (params?.slug) getPrductsByCat();
+    if (!params?.slug) return navigate('/pagenotfound');
+    getPrductsByCat();
   }, [params?.slug]);
   const getPrductsByCat = async () => {
     try {
@@ -72,14 +73,12 @@ const CategoryProduct = () => {
                     <div className="card-name-price">
                       <button
                         className="btn btn-info ms-1"
-                        data-testid="more-details-button"
                         onClick={() => navigate(`/product/${p.slug}`)}
                       >
                         More Details
                       </button>
                       <button
                         className="btn btn-dark ms-1"
-                        data-testid="add-to-cart-button"
                         onClick={() => {
                           addToCart(p);
                           toast.success("Item added to cart");

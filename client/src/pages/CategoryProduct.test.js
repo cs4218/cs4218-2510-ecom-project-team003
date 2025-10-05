@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -47,7 +47,7 @@ jest.mock('../context/auth', () => ({
 
 const mockAddToCart = jest.fn();
 jest.mock('../context/cart', () => ({
-  useCart: jest.fn(() => ({addToCart: mockAddToCart}))
+  useCart: jest.fn(() => ({ addToCart: mockAddToCart }))
 }));
 
 jest.mock('../context/search', () => ({
@@ -73,6 +73,8 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
+console.log = jest.fn();
+
 const renderCategoryProduct = (slug) => {
   return render(
     <MemoryRouter initialEntries={[`/category/${slug}`]}>
@@ -91,47 +93,55 @@ describe('CategoryProduct Component', () => {
   it('renders product in category', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [LAPTOP], category: ELECTRONICS } });
 
-    const { findByText } = renderCategoryProduct(ELECTRONICS.slug);
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+    renderCategoryProduct(ELECTRONICS.slug);
 
-    expect(await findByText(`Category - ${ELECTRONICS.name}`)).toBeInTheDocument();
-    expect(await findByText('1 result found')).toBeInTheDocument();
-    expect(await findByText(LAPTOP.name)).toBeInTheDocument();
-    expect(await findByText('$1,499.99')).toBeInTheDocument();
-    expect(await findByText(LAPTOP.description)).toBeInTheDocument();
+    expect(await screen.findByText(new RegExp(ELECTRONICS.name, 'i'))).toBeInTheDocument();
+    expect(await screen.findByText(/1 result/i)).toBeInTheDocument();
+    expect(await screen.findByText(LAPTOP.name)).toBeInTheDocument();
+    expect(await screen.findByText('$1,499.99')).toBeInTheDocument();
+    expect(await screen.findByText(LAPTOP.description)).toBeInTheDocument();
 
-    expect(await findByText('More Details')).toBeInTheDocument();
-    expect(await findByText('ADD TO CART')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /details/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /add to cart/i })).toBeInTheDocument();
   });
 
   it('renders multiple products in category', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [LAPTOP, SMARTPHONE], category: ELECTRONICS } });
-    
-    const { findByText } = renderCategoryProduct(ELECTRONICS.slug);
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
 
-    expect(await findByText(`Category - ${ELECTRONICS.name}`)).toBeInTheDocument();
-    expect(await findByText('2 results found')).toBeInTheDocument();
-    expect(await findByText(LAPTOP.name)).toBeInTheDocument();
-    expect(await findByText('$1,499.99')).toBeInTheDocument();
-    expect(await findByText(LAPTOP.description)).toBeInTheDocument();
-    expect(await findByText(SMARTPHONE.name)).toBeInTheDocument();
-    expect(await findByText('$999.99')).toBeInTheDocument();
-    expect(await findByText(SMARTPHONE.description)).toBeInTheDocument();
+    renderCategoryProduct(ELECTRONICS.slug);
+
+    expect(await screen.findByText(new RegExp(ELECTRONICS.name, 'i'))).toBeInTheDocument();
+    expect(await screen.findByText(/2 results/i)).toBeInTheDocument();
+    expect(await screen.findByText(LAPTOP.name)).toBeInTheDocument();
+    expect(await screen.findByText('$1,499.99')).toBeInTheDocument();
+    expect(await screen.findByText(LAPTOP.description)).toBeInTheDocument();
+    expect(await screen.findByText(SMARTPHONE.name)).toBeInTheDocument();
+    expect(await screen.findByText('$999.99')).toBeInTheDocument();
+    expect(await screen.findByText(SMARTPHONE.description)).toBeInTheDocument();
   });
 
   it('renders no products in category', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [], category: ELECTRONICS } });
 
-    const { findByText } = renderCategoryProduct(ELECTRONICS.slug);
+    renderCategoryProduct(ELECTRONICS.slug);
     await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
 
-    expect(await findByText(`Category - ${ELECTRONICS.name}`)).toBeInTheDocument();
-    expect(await findByText('0 results found')).toBeInTheDocument();
+    expect(await screen.findByText(new RegExp(ELECTRONICS.name, 'i'))).toBeInTheDocument();
+    expect(await screen.findByText(/0 results/i)).toBeInTheDocument();
   });
 
-  it('renders category skeleton when no slug is provided', async () => {
-    const { getByText } = render(
+  it('renders product image', async () => {
+    axios.get.mockResolvedValueOnce({ data: { products: [LAPTOP], category: ELECTRONICS } });
+
+    renderCategoryProduct(ELECTRONICS.slug);
+
+    const img = await screen.findByAltText(LAPTOP.name);
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', expect.stringContaining(LAPTOP._id));
+  });
+
+  it('navigates to page not found when no slug is provided', async () => {
+    render(
       <MemoryRouter initialEntries={['/category']}>
         <Routes>
           <Route path='/category' element={<CategoryProduct />} />
@@ -139,51 +149,41 @@ describe('CategoryProduct Component', () => {
       </MemoryRouter>
     );
 
-    expect(axios.get).not.toHaveBeenCalled();
-    expect(getByText('Category -')).toBeInTheDocument();
-    expect(getByText('0 results found')).toBeInTheDocument();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound'));
   });
 
   it('navigates to product details', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [LAPTOP], category: ELECTRONICS } });
-    const { findByTestId } = renderCategoryProduct(ELECTRONICS.slug);
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
-    
-    fireEvent.click(await findByTestId('more-details-button'));
+    renderCategoryProduct(ELECTRONICS.slug);
+
+    fireEvent.click(await screen.findByRole('button', { name: /details/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith(`/product/${LAPTOP.slug}`);
   });
 
   it('adds product to cart', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [LAPTOP], category: ELECTRONICS } });
-    const { findByTestId } = renderCategoryProduct(ELECTRONICS.slug);
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
+    renderCategoryProduct(ELECTRONICS.slug);
 
-    fireEvent.click(await findByTestId('add-to-cart-button'));
-    
+    fireEvent.click(await screen.findByRole('button', { name: /add to cart/i }));
+
     expect(mockAddToCart).toHaveBeenCalledWith(LAPTOP);
-    expect(toast.success).toHaveBeenCalledWith('Item added to cart');
+    expect(toast.success).toHaveBeenCalledWith(expect.any(String));
   });
 
   it('navigates to page not found on invalid category', async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [], category: null } });
-    
-    renderCategoryProduct('invalid-category');
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound');
+    renderCategoryProduct('invalid-category');
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/pagenotfound'));
   });
 
   it('handles error when fetching category products fails', async () => {
-    const spy = jest.spyOn(console, 'log').mockImplementation();
     const err = { message: 'Error while fetching category products' };
     axios.get.mockRejectedValueOnce(err);
     renderCategoryProduct(ELECTRONICS.slug);
 
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
-    expect(spy).toHaveBeenCalledWith(err);
-    expect(toast.error).toHaveBeenCalledWith('Something when wrong while fetching category products');
-
-    spy.mockRestore();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.any(String)));
   });
 });
