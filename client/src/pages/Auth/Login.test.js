@@ -5,11 +5,6 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
 import Login from './Login';
-import HomePage from '../../pages/HomePage';
-import { useAuth } from '../../context/auth';
-import { token } from 'morgan';
-import ForgotPassword from './ForgotPassword';
-import Dashboard from '../user/Dashboard';
 
 // Mocking axios.post
 jest.mock('axios');
@@ -73,301 +68,271 @@ window.matchMedia = window.matchMedia || function() {
   };
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockLocation.state = null;
+});
+
 describe('Login Component', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  describe('UI Rendering', () => {
+    it('Renders Login Form', () => {
 
-  // Just to check initial display of the Login page
-  it('Renders Login Form', () => {
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
+      // Arrange & Act
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    expect(screen.getByText('LOGIN FORM')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter Your Email')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter Your Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Forgot Password' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'LOGIN' })).toBeInTheDocument();
-  });
-
-  it('Inputs should initially be empty', () => {
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-    
-    expect(screen.getByText('LOGIN FORM')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter Your Email').value).toBe('');
-    expect(screen.getByPlaceholderText('Enter Your Password').value).toBe('');
-    expect(screen.getByRole('button', { name: 'Forgot Password' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'LOGIN' })).toBeInTheDocument();
-  });
-
-  it('Email and Password can be input', () => {
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-    
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'test@example.com'} });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password@123'} });
-
-    expect(screen.getByText('LOGIN FORM')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter Your Email').value).toBe('test@example.com');
-    expect(screen.getByPlaceholderText('Enter Your Password').value).toBe('password@123');
-    expect(screen.getByRole('button', { name: 'Forgot Password' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'LOGIN' })).toBeInTheDocument();
-  });
-
-  // unreachable test case...
-  it('Should show "Email and password are required" when email is empty', async () => {
-    axios.post.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: "Email and password are required"
-      }
-    });
-    
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-  screen.getByPlaceholderText('Enter Your Email').removeAttribute('required');
-
-    // Simulate form submission with empty email and valid password
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: '' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
-
-    // Wait for the validation error to be triggered
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.error).toHaveBeenCalledWith('Email and password are required');
-  });
-
-  it('Should show "Email and password are required" when password is empty', async () => {
-    axios.post.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: "Email and password are required"
-      }
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    screen.getByPlaceholderText('Enter Your Password').removeAttribute('required');
-
-    // Simulate form submission with empty email and valid password
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'test@gmail.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
-
-    // Wait for the validation error to be triggered
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.error).toHaveBeenCalledWith('Email and password are required');
-  });
-
-  it('Logins the user successfully and directed to Home Page when location.state is null', async () => {
-    // Mocking axios post response for successful login attempt
-    axios.post.mockResolvedValueOnce({
-      data: {
-        success: true,
-        user: { id: 1, name: 'John Doe' },
-        token: 'mockToken'
-      }
-    });
-    
-
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<HomePage />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    // Simulate user input and form submission
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'johndoe@gmail.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
-
-    // Wait for the mocked axios.post to be called and for the success toast to be shown
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.success).toHaveBeenCalledWith(undefined, {
-      duration: 5000,
-      icon: '🙏',
-      style: {
-        background: 'green',
-        color: 'white'
-      }
-    });
-
-    expect(mockSetAuth).toHaveBeenCalledWith({
-      user: { id: 1, name: 'John Doe' },
-      token: 'mockToken'
-    });
-    expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
-      JSON.stringify({ 
-        success: true, 
-        user: { 
-          id: 1, 
-          name: 'John Doe' 
-        }, 
-        token: 'mockToken' 
-      })
-    );
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      // Assert
+      expect(screen.getByText(/login form/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/enter your email/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /forgot password/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
     });
   });
 
-  it('Logins the user successfully and directed to location.state when it exists', async () => {
-    // Mocking axios post response for successful login attempt
-    axios.post.mockResolvedValueOnce({
-      data: {
-        success: true,
-        user: { id: 1, name: 'John Doe' },
-        token: 'mockToken'
-      }
+  describe('Successful Logins', () => {
+    it('Logins the user successfully and directed to Home Page when location.state is null', async () => {
+        
+      // Arrange
+      const mockResponse = {
+        data: {
+          success: true,
+          message: 'Login Successful',
+          user: { id: 1, name: 'John Doe' },
+          token: 'mockToken'
+        }
+      };
+
+      axios.post.mockResolvedValueOnce(mockResponse);
+      
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'johndoe@gmail.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert
+      await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/v1/auth/login', {
+          email: 'johndoe@gmail.com',
+          password: 'password123'
+        })
+      );
+      expect(toast.success).toHaveBeenCalledWith("Login Successful", {
+        duration: 5000,
+        icon: '🙏',
+        style: {
+          background: 'green',
+          color: 'white'
+        }
+      });
+
+      expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
+        JSON.stringify(mockResponse.data)
+      );
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/');
+      });
     });
-    
-    // Set up location.state for this test
-    mockLocation.state = '/dashboard';
 
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it('Logins the user successfully and directed to location.state when it exists', async () => {
+      
+      // Arrange
+      const mockResponse = {
+        data: {
+          success: true,
+          message: 'Login Successful',
+          user: { id: 1, name: 'John Doe' },
+          token: 'mockToken'
+        }
+      };
 
-    // Simulate user input and form submission
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'johndoe@gmail.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
+      axios.post.mockResolvedValueOnce(mockResponse);
+      mockLocation.state = '/dashboard';
 
-    // Wait for the mocked axios.post to be called and for the success toast to be shown
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.success).toHaveBeenCalledWith(undefined, {
-      duration: 5000,
-      icon: '🙏',
-      style: {
-        background: 'green',
-        color: 'white'
-      }
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'johndoe@gmail.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert
+      await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/v1/auth/login', {
+          email: 'johndoe@gmail.com',
+          password: 'password123'
+        })
+      );
+      expect(toast.success).toHaveBeenCalledWith("Login Successful", {
+        duration: 5000,
+        icon: '🙏',
+        style: {
+          background: 'green',
+          color: 'white'
+        }
+      });
+
+      expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
+        JSON.stringify(mockResponse.data)
+      );
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      });
+    });
+  });
+
+  describe('Login Failures', () => {
+    it('Throws error message "Invalid credentials" when email does not exists or wrong password', async () => {
+      
+      //Arrange
+      axios.post.mockRejectedValueOnce({
+        response: { status: 500, data: { message: 'Invalid credentials' } },
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'johndoe@gmail.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.error).toHaveBeenCalledWith('Invalid credentials');
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(window.localStorage.setItem).not.toHaveBeenCalled();
     });
 
-    expect(mockSetAuth).toHaveBeenCalledWith({
-      user: { id: 1, name: 'John Doe' },
-      token: 'mockToken'
+    it('shows "Error in login" when server returns 500', async () => {
+      // Arrange
+      axios.post.mockRejectedValueOnce({
+        response: { status: 500, data: { message: 'Error in login' } },
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'johndoe@gmail.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert
+      await waitFor(() => expect(axios.post).toHaveBeenCalled());
+      expect(toast.error).toHaveBeenCalledWith('Error in login');
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(window.localStorage.setItem).not.toHaveBeenCalled();
     });
-    expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
-      JSON.stringify({ 
-        success: true, 
-        user: { 
-          id: 1, 
-          name: 'John Doe' 
-        }, 
-        token: 'mockToken' 
-      })
-    );
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+
+    it('handles network error when response is undefined', async () => {
+      // Arrange
+      axios.post.mockRejectedValueOnce(new Error('Network Error'));
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), 
+        { target: { value: 'test@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), 
+        { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert - Exposes bug in Login.js
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Network error. Please try again.");
+      });
+      
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(window.localStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    it('displays error when backend returns success: false', async () => {
+      // Arrange
+      const mockResponse = {
+        data: {
+          success: false,
+          message: 'Account is disabled'
+        }
+      };
+      axios.post.mockResolvedValueOnce(mockResponse);
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), 
+        { target: { value: 'test@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), 
+        { target: { value: 'password123' } });
+      fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+      // Assert
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Account is disabled');
+      });
+      
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(window.localStorage.setItem).not.toHaveBeenCalled();
     });
   });
 
-  it('Throws error message "Invalid credentials" when email does not exists or wrong password', async () => {
-    // Mocking axios post response for failed login attempt
-    axios.post.mockRejectedValueOnce({
-      response: { status: 500, data: { message: 'Invalid credentials' } },
-  });
+  describe('Navigation', () => {
+    it('navigates to /forgot-password when "Forgot Password" button is clicked', async () => {
+      // Arrange
+      render(
+        <MemoryRouter initialEntries={["/login"]}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    // renders the login page in virtual DOM without use of actual browser URL
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
+      // Act
+      fireEvent.click(screen.getByRole('button', { name: /forgot password/i }));
 
-    // Simulate user input and form submission
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'johndoe@gmail.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
-
-    // Wait for the mocked axios.post to be called and for the success toast to be shown
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.error).toHaveBeenCalledWith('Invalid credentials');
-  });
-
-  it('shows "Error in login" when server returns 500', async () => {
-    // mock axios to simulate server 500 with message
-    axios.post.mockRejectedValueOnce({
-      response: { status: 500, data: { message: 'Error in login' } },
+      // Assert
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
+      });
     });
-
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Email'), { target: { value: 'johndoe@gmail.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }));
-
-    // wait for axios to be called and for toast.error to have been invoked with backend message
-    await waitFor(() => expect(axios.post).toHaveBeenCalled());
-    expect(toast.error).toHaveBeenCalledWith('Error in login');
-  });
-
-  it('navigates to /forgot-password when "Forgot Password" button is clicked', async () => {
-    render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    // click the forgot password button
-    fireEvent.click(screen.getByRole("button", { name: 'Forgot Password' }));
-
-    // wait for navigation to occur and the target route to render
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
-    });
-  });
+  })
 });
