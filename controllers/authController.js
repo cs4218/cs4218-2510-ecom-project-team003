@@ -160,6 +160,7 @@ export const forgotPasswordController = async (req, res) => {
 };
 
 //test controller
+// note: this thing is completely unused
 export const testController = (req, res) => {
   try {
     res.send("Protected Routes");
@@ -169,14 +170,17 @@ export const testController = (req, res) => {
   }
 };
 
-//update prfole
 export const updateProfileController = async (req, res) => {
   try {
     const { name, email, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
-    //password
+
+    if (!req.user || !req.user._id) {
+      throw new Error("Missing User");
+    }
+
     if (password && password.length < 6) {
-      return res.json({ error: "Passsword is required and 6 character long" });
+      return res.json({ error: "A password is required and has to be at least 6 characters long." });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
@@ -191,15 +195,15 @@ export const updateProfileController = async (req, res) => {
     );
     res.status(200).send({
       success: true,
-      message: "Profile Updated SUccessfully",
+      message: "Profile Updated Successfully",
       updatedUser,
     });
   } catch (error) {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Update profile",
-      error,
+      message: "Error While Updating Profile",
+      error: error.message,
     });
   }
 };
@@ -216,11 +220,12 @@ export const getOrdersController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error While Getting Orders",
+      error: error.message,
     });
   }
 };
+
 //orders
 export const getAllOrdersController = async (req, res) => {
   try {
@@ -235,13 +240,13 @@ export const getAllOrdersController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error WHile Geting Orders",
-      error,
+      error: error.message,
     });
   }
 };
 
 //order status
-export const orderStatusController = async (req, res) => {
+export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -255,8 +260,8 @@ export const orderStatusController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
-      error,
+      message: "Error While Updating Order",
+      error: error.message,
     });
   }
 };
