@@ -3,9 +3,11 @@ import colors from "colors";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
-import authRoutes from './routes/authRoute.js'
+import authRoutes from './routes/authRoutes.js'
+import orderRoutes from './routes/orderRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import productRoutes from './routes/productRoutes.js'
+import paymentRoutes from './routes/paymentRoutes.js'
 import cors from "cors";
 
 // configure env
@@ -23,8 +25,10 @@ app.use(morgan('dev'));
 
 //routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/category", categoryRoutes);
 app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/payment", paymentRoutes);
 
 // rest api
 
