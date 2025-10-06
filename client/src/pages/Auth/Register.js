@@ -28,14 +28,14 @@ const Register = () => {
         answer,
       });
       if (res && res.data.success) {
-        toast.success("Register Successfully, please login");
+        toast.success(res.data.message);
         navigate("/login");
       } else {
         toast.error(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      const message = error?.response?.data?.message || "Network error. Please try again.";
+      toast.error(message);
     }
   };
 
@@ -80,13 +80,18 @@ const Register = () => {
           </div>
           <div className="mb-3">
             <input
-              type="text"
+              type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '')
+                setPhone(value)
+              }}
               className="form-control"
               id="exampleInputPhone1"
               placeholder="Enter Your Phone"
               required
+              minLength={8}
+              maxLength={15}
             />
           </div>
           <div className="mb-3">
@@ -102,7 +107,7 @@ const Register = () => {
           </div>
           <div className="mb-3">
             <input
-              type="Date"
+              type="date"
               value={DOB}
               onChange={(e) => setDOB(e.target.value)}
               className="form-control"

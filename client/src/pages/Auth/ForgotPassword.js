@@ -20,19 +20,14 @@ const ForgotPassword = () => {
         newPassword,
       });
       if (res?.data?.success) {
-        toast.success(res.data.message || "Password reset successful");
+        toast.success(res.data.message);
         navigate("/login");
       } 
       else {
-        toast.error(res?.data?.message || "Unable to reset password");
+        toast.error(res?.data?.message);
       }
     } catch (error) {
-      console.error("ForgotPassword error:", error);
-      const message =
-        error?.response?.data?.message ||
-        error?.response?.data ||
-        error?.message ||
-        "Something went wrong";
+      const message = error?.response?.data?.message || "Network error. Please try again.";
       toast.error(message);
     }
   };
