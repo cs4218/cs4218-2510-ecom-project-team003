@@ -652,7 +652,7 @@ describe('Product Controller', () => {
         category: [LAPTOP.category._id],
         price: { $gte: 500, $lte: 1500 },
       });
-      mockModel(productModel).mockResolvedValue('find', [LAPTOP, SMARTPHONE]);
+      mockModel(productModel).mockResolvedValue('select', [LAPTOP, SMARTPHONE]);
 
       await productFiltersController(req, res);
 
@@ -687,7 +687,7 @@ describe('Product Controller', () => {
         category: [LAPTOP.category._id],
         price: { $gte: 500, $lte: 1500 },
       });
-      mockModel(productModel).mockDatabaseFailure('find');
+      mockModel(productModel).mockDatabaseFailure('select');
       const spy = jest.spyOn(console, 'log').mockImplementation();
 
       await productFiltersController(req, res);

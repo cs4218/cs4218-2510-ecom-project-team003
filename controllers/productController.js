@@ -169,7 +169,9 @@ export const productPhotoController = async (req, res) => {
 //delete controller
 export const deleteProductController = async (req, res) => {
   try {
-    await productModel.findByIdAndDelete(req.params.pid).select("-photo");
+    await productModel
+      .findByIdAndDelete(req.params.pid)
+      .select("-photo");
     res.status(200).send({
       success: true,
       message: "Product Deleted successfully",
@@ -258,7 +260,9 @@ export const productFiltersController = async (req, res) => {
     }
     const { checked, radio } = result.data;
     const args = buildProductFiltersArgs(checked, radio);
-    const products = await productModel.find(args);
+    const products = await productModel
+      .find(args)
+      .select("-photo");
     res.status(200).send({
       success: true,
       message: "Filtered products fetched",
@@ -408,7 +412,10 @@ export const productCategoryController = async (req, res) => {
       });
     }
 
-    const products = await productModel.find({ category }).populate("category");
+    const products = await productModel
+      .find({ category })
+      .select("-photo")
+      .populate("category");
     res.status(200).send({
       success: true,
       message: "Category and products fetched",
