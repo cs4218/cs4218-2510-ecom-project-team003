@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 import {fireEvent, render, screen} from "@testing-library/react";
-import CreateProduct from "./createProduct";
+import CreateProduct from "./CreateProduct";
 import {MemoryRouter} from "react-router-dom";
 
 const CATEGORIES = [
