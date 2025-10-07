@@ -99,7 +99,7 @@ const Header = () => {
                         style={{ border: "none" }}
                     >
                       {auth?.user?.name}
-                    </a>
+                    </NavLink>
                     <ul className="dropdown-menu">
                       <li>
                         <NavLink
