@@ -61,7 +61,7 @@ const Header = () => {
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li>
+                    <li key={c._id || c.id || c.slug || c.name}>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}
@@ -89,7 +89,7 @@ const Header = () => {
               ) : (
                 <>
                   <li className="nav-item dropdown">
-                    <NavLink
+                    <a
                       className="nav-link dropdown-toggle"
                       href="#"
                       role="button"
@@ -97,7 +97,7 @@ const Header = () => {
                       style={{ border: "none" }}
                     >
                       {auth?.user?.name}
-                    </NavLink>
+                    </a>
                     <ul className="dropdown-menu">
                       <li>
                         <NavLink
