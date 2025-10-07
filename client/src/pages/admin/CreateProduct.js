@@ -87,6 +87,7 @@ const CreateProduct = () => {
                 onChange={(value) => {
                   setCategory(value);
                 }}
+                data-testid="category-dropdown"
               >
                 {categories?.map((c) => (
                   <Option key={c._id} value={c._id}>
@@ -164,6 +165,7 @@ const CreateProduct = () => {
                   onChange={(value) => {
                     setShipping(value);
                   }}
+                  data-testid="shipping-dropdown"
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>
