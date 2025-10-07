@@ -9,12 +9,17 @@ import categoryRoutes from './routes/categoryRoutes.js'
 import productRoutes from './routes/productRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
 import cors from "cors";
+import { createAndConnectTestDB } from "./config/testDb.js";
 
 // configure env
 dotenv.config();
 
 //database config
-connectDB();
+if (process.env.NODE_ENV === 'test-frontend-integration') {
+    createAndConnectTestDB();
+} else if (process.env.NODE_ENV !== 'test-backend-integration') {
+    connectDB();
+}
 
 const app = express();
 
@@ -32,12 +37,16 @@ app.use("/api/v1/payment", paymentRoutes);
 
 // rest api
 
-app.get('/', (req,res) => {
+app.get('/', (req, res) => {
     res.send("<h1>Welcome to ecommerce app</h1>");
 });
 
 const PORT = process.env.PORT || 6060;
 
-app.listen(PORT, () => {
-    console.log(`Server running on ${process.env.DEV_MODE} mode on ${PORT}`.bgCyan.white);
-});
+if (process.env.NODE_ENV !== 'test-backend-integration') {
+    app.listen(PORT, () => {
+        console.log(`Server running on ${process.env.DEV_MODE} mode on ${PORT}`.bgCyan.white);
+    });
+}
+
+export default app;

@@ -9,9 +9,10 @@
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
-    "test": "npm run test:backend && npm run test:frontend",
-    "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
-    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js"
+    "test": "npm run test:backend && npm run test:frontend && npm run test:backend-integration",
+    "test:frontend": "jest --config jest.frontend.config.js",
+    "test:backend": "jest --config jest.backend.config.js",
+    "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js"
   },
   "keywords": [],
   "author": "RP",
@@ -41,10 +42,12 @@
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
+    "cross-env": "^10.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "mongodb-memory-server": "^10.2.2",
-    "sonarqube-scanner": "^4.3.0"
+    "sonarqube-scanner": "^4.3.0",
+    "supertest": "^7.1.4"
   }
 }

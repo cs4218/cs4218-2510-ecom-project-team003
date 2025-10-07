@@ -1,21 +1,16 @@
 export default {
   // display name
-  displayName: "backend",
+  displayName: "backend-integration",
 
   // when testing backend
   testEnvironment: "node",
 
   // which test to run
   testMatch: [
-    "<rootDir>/controllers/*.test.js", 
-    "<rootDir>/helpers/*.test.js", 
-    "<rootDir>/middlewares/*.test.js",
-    "<rootDir>/models/*.test.js",
-  ],
-
-  testPathIgnorePatterns: [
-    "/node_modules/",
-    "\.integration\.test\.js",
+    "<rootDir>/controllers/*.integration.test.js", 
+    "<rootDir>/helpers/*.integration.test.js", 
+    "<rootDir>/middlewares/*.integration.test.js",
+    "<rootDir>/models/*.integration.test.js",
   ],
 
   // jest code coverage
