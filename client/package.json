@@ -10,16 +10,19 @@
     "antd": "^5.15.0",
     "axios": "^1.6.7",
     "braintree-web-drop-in-react": "^1.2.1",
-    "markbind-cli": "^5.5.2",
     "moment": "^2.30.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
     "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^6.22.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.4",
     "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "markbind-cli": "^5.5.2"
   },
   "scripts": {
     "start": "react-scripts start",
