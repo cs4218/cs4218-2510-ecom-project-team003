@@ -4,6 +4,7 @@ node_modules
 /blob-report/
 /playwright/.cache/
 /coverage
-/.scannerwork
+.scannerwork
+.vscode
 .env
 sonar-project.properties

@@ -45,8 +45,7 @@ const Login = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      let message = error?.response?.data?.message
+      let message = error?.response?.data?.message || "Network error. Please try again."
       toast.error(message);
     }
   };

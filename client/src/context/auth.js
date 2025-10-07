@@ -1,4 +1,4 @@
-import { useState, useContext, createContext, useEffect } from "react";
+import React, { useState, useContext, createContext, useEffect } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
@@ -10,22 +10,36 @@ const AuthProvider = ({ children }) => {
     });
 
     //default axios
-    axios.defaults.headers.common["Authorization"] = auth?.token;
+    useEffect(() => {
+        axios.defaults.headers.common["Authorization"] = auth?.token;
+    }, [auth?.token]); // Set axios authorization header when token changes
+
+    const logout = () => {
+        setAuth((prev) => ({
+            ...prev,
+            user: null,
+            token: "",
+        }));
+        localStorage.removeItem("auth");
+    };
 
     useEffect(() => {
        const data = localStorage.getItem("auth");
        if (data) {
-        const parseData = JSON.parse(data);
-        setAuth({
-            ...auth,
-            user: parseData.user,
-            token: parseData.token,
-        });
+            try {
+                const parseData = JSON.parse(data);
+                setAuth({
+                    user: parseData.user,
+                    token: parseData.token,
+                });
+            } catch (error) {
+                localStorage.removeItem("auth");
+            }
        }
        //eslint-disable-next-line
     }, []);
     return (
-        <AuthContext.Provider value={[auth, setAuth]}>
+        <AuthContext.Provider value={[auth, setAuth, logout]}>
             {children}
         </AuthContext.Provider>
     );
