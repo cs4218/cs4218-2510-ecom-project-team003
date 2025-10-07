@@ -2,6 +2,7 @@ import React from "react";
 import { useSearch } from "../../context/search";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
 const SearchInput = () => {
   const [values, setValues] = useSearch();
   const navigate = useNavigate();
@@ -10,12 +11,12 @@ const SearchInput = () => {
     e.preventDefault();
     try {
       const { data } = await axios.get(
-        `/api/v1/product/search/${values.keyword}`
+        `/api/v1/product/search/${values.keyword.trim()}`
       );
       setValues({ ...values, results: data });
       navigate("/search");
     } catch (error) {
-      console.log(error);
+      setValues({ ...values, results: [] });
     }
   };
   return (
@@ -26,7 +27,7 @@ const SearchInput = () => {
           type="search"
           placeholder="Search"
           aria-label="Search"
-          value={values.keyword}
+          value={values.keyword || ""}
           onChange={(e) => setValues({ ...values, keyword: e.target.value })}
         />
         <button className="btn btn-outline-success" type="submit">

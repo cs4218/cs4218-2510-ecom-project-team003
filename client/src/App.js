@@ -24,10 +24,12 @@ import CategoryProduct from "./pages/CategoryProduct";
 import CartPage from "./pages/CartPage";
 import AdminOrders from "./pages/admin/AdminOrders";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <>
+      <Toaster />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/product/:slug" element={<ProductDetails />} />

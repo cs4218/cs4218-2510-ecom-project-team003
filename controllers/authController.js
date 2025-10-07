@@ -54,10 +54,9 @@ export const registerController = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error in Registeration",
+      message: "Error in Registration",
       error,
     });
   }
@@ -69,8 +68,6 @@ export const loginController = async (req, res) => {
     const { email, password } = req.body;
     //validations
     // return statuses 400 for missing fields, 401 for invalid credentials, 200 for success, 500 for server errors.
-    // this case is handled by frontend since the fields are required in the form itself.
-    // question is should i keep it as status 200 or change to 400?
     if (!email || !password) {
       return res.status(200).send({
         success: false,
@@ -111,7 +108,6 @@ export const loginController = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error in login",
@@ -126,10 +122,10 @@ export const forgotPasswordController = async (req, res) => {
   try {
     const { email, answer, newPassword } = req.body;
     if (!email) {
-      res.status(400).send({ message: "Emai is required" });
+      res.status(400).send({ message: "Email is required" });
     }
     if (!answer) {
-      res.status(400).send({ message: "answer is required" });
+      res.status(400).send({ message: "Answer is required" });
     }
     if (!newPassword) {
       res.status(400).send({ message: "New Password is required" });
@@ -138,7 +134,7 @@ export const forgotPasswordController = async (req, res) => {
     const user = await userModel.findOne({ email, answer });
     //validation
     if (!user) {
-      return res.status(404).send({
+      return res.status(401).send({
         success: false,
         message: "Wrong Email Or Answer",
       });
@@ -150,7 +146,6 @@ export const forgotPasswordController = async (req, res) => {
       message: "Password Reset Successfully",
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Something went wrong",
@@ -160,6 +155,7 @@ export const forgotPasswordController = async (req, res) => {
 };
 
 //test controller
+// note: this thing is completely unused
 export const testController = (req, res) => {
   try {
     res.send("Protected Routes");
@@ -169,14 +165,17 @@ export const testController = (req, res) => {
   }
 };
 
-//update prfole
 export const updateProfileController = async (req, res) => {
   try {
     const { name, email, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
-    //password
+
+    if (!req.user || !req.user._id) {
+      throw new Error("Missing User");
+    }
+
     if (password && password.length < 6) {
-      return res.json({ error: "Passsword is required and 6 character long" });
+      return res.json({ error: "A password is required and has to be at least 6 characters long." });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
@@ -191,15 +190,15 @@ export const updateProfileController = async (req, res) => {
     );
     res.status(200).send({
       success: true,
-      message: "Profile Updated SUccessfully",
+      message: "Profile Updated Successfully",
       updatedUser,
     });
   } catch (error) {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Update profile",
-      error,
+      message: "Error While Updating Profile",
+      error: error.message,
     });
   }
 };
@@ -216,11 +215,12 @@ export const getOrdersController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error While Getting Orders",
+      error: error.message,
     });
   }
 };
+
 //orders
 export const getAllOrdersController = async (req, res) => {
   try {
@@ -235,13 +235,13 @@ export const getAllOrdersController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error While Getting Orders",
-      error,
+      error: error.message,
     });
   }
 };
 
 //order status
-export const orderStatusController = async (req, res) => {
+export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -255,8 +255,8 @@ export const orderStatusController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
-      error,
+      message: "Error While Updating Order",
+      error: error.message,
     });
   }
 };
