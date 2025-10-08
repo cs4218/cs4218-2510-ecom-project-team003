@@ -84,7 +84,7 @@ describe("CartPage Component", () => {
 
     await act( async () => render(<CartPage />));
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/payment/braintree/token");
     });
     
   });
@@ -98,16 +98,16 @@ describe("CartPage Component", () => {
 
     await act( async () => render(<CartPage />));
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/payment/braintree/token");
     });
-    // await waitFor(() => expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token"));
+    // await waitFor(() => expect(axios.get).toHaveBeenCalledWith("/api/v1/payment/braintree/token"));
 
     const button = await screen.findByText("Make Payment");
     await waitFor(() => expect(button).not.toBeDisabled());
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith("/api/v1/product/braintree/payment", {
+      expect(axios.post).toHaveBeenCalledWith("/api/v1/payment/braintree/payment", {
         nonce: "fake-nonce",
         cart: fakeCart,
       });
