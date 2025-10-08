@@ -33,6 +33,9 @@ const ProductDetails = () => {
       setProduct(data?.product);
       getSimilarProduct(data?.product._id, data?.product.category._id);
     } catch (error) {
+      if (error.response?.status == 404) {
+        return navigate('/pagenotfound');
+      }
       console.log(error);
       toast.error("Something went wrong");
     }
@@ -51,7 +54,7 @@ const ProductDetails = () => {
   };
   return (
     <Layout>
-      <div className="row container product-details">
+      <div className="row container product-details" data-testid="product-details">
         <div className="col-md-6">
           <img
             src={`/api/v1/product/product-photo/${product._id}`}
