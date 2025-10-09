@@ -13,7 +13,7 @@
     "test": "npm run test:backend && npm run test:frontend && npm run test:backend-integration && npm run test:frontend-integration",
     "test:frontend": "jest --config jest.frontend.config.js",
     "test:backend": "jest --config jest.backend.config.js",
-    "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js",
+    "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js --runInBand",
     "jest:frontend-integration": "jest --config jest.frontend-integration.config.js --runInBand",
     "test:frontend-integration": "start-server-and-test start:frontend-integration 6060 jest:frontend-integration"
   },
