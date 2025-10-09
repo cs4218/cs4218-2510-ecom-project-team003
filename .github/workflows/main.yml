@@ -12,6 +12,11 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
 
+    env:
+      BRAINTREE_MERCHANT_ID: ${{ secrets.BRAINTREE_MERCHANT_ID }}
+      BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
+      BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
+
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
