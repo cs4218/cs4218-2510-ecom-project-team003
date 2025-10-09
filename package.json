@@ -5,14 +5,17 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:frontend-integration": "cross-env NODE_ENV=test-frontend-integration npm start",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
-    "test": "npm run test:backend && npm run test:frontend && npm run test:backend-integration",
+    "test": "npm run test:backend && npm run test:frontend && npm run test:backend-integration && npm run test:frontend-integration",
     "test:frontend": "jest --config jest.frontend.config.js",
     "test:backend": "jest --config jest.backend.config.js",
-    "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js"
+    "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js --runInBand",
+    "jest:frontend-integration": "jest --config jest.frontend-integration.config.js --runInBand",
+    "test:frontend-integration": "start-server-and-test start:frontend-integration 6060 jest:frontend-integration"
   },
   "keywords": [],
   "author": "RP",
@@ -48,6 +51,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "mongodb-memory-server": "^10.2.2",
     "sonarqube-scanner": "^4.3.0",
-    "supertest": "^7.1.4"
+    "supertest": "^7.1.4",
+    "start-server-and-test": "^2.1.2"
   }
 }
