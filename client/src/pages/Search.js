@@ -1,8 +1,15 @@
 import React from "react";
+import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { useSearch } from "../context/search";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/cart";
+import { getShortDescription } from "../utils/string";
+
 const Search = () => {
   const [values] = useSearch();
+  const navigate = useNavigate();
+  const {addToCart} = useCart();
 
   // Safe access to results
   const results = values?.results || [];
@@ -29,11 +36,27 @@ const Search = () => {
                 <div className="card-body">
                   <h5 className="card-title">{p.name}</h5>
                   <p className="card-text">
-                    {p.description ? `${p.description.substring(0, 30)}...` : "No description"}
+                    {getShortDescription(p.description)}
                   </p>
-                  <p className="card-text"> $ {p.price}</p>
-                  <button className="btn btn-primary ms-1">More Details</button>
-                  <button className="btn btn-secondary ms-1">ADD TO CART</button>
+                  <p className="card-text">
+                    {p.price.toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                    })}
+                  </p>
+                  <button
+                    className="btn btn-primary ms-1"
+                    onClick={() => navigate(`/product/${p.slug}`)}>
+                    More Details
+                  </button>
+                  <button
+                    className="btn btn-secondary ms-1"
+                    onClick={() => {
+                      addToCart(p);
+                      toast.success("Item added to cart");
+                    }}>
+                    ADD TO CART
+                  </button>
                 </div>
               </div>
             ))}

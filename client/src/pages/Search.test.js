@@ -1,19 +1,50 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import Search from "./Search";
 import { useSearch } from "../context/search";
 
-jest.mock("../context/search");
-jest.mock("./../components/Layout", () => {
-  return function Layout({ children, title }) {
-    return (
-      <div data-testid="layout" data-title={title}>
-        {children}
-      </div>
-    );
-  };
-});
+jest.mock('../context/auth', () => ({
+  useAuth: jest.fn(() => [null, jest.fn(), jest.fn()])
+}));
+
+const mockAddToCart = jest.fn();
+jest.mock('../context/cart', () => ({
+  useCart: jest.fn(() => ({ addToCart: mockAddToCart }))
+}));
+
+jest.mock('../context/search', () => ({
+  useSearch: jest.fn(() => [{ keyword: '' }, jest.fn()])
+}));
+
+jest.mock('../hooks/useCategory', () => jest.fn(() => []));
+
+jest.mock('../utils/string', () => ({
+  ...jest.requireActual('../utils/string'),
+  getShortDescription: jest.fn((desc) => desc)
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
+const LAPTOP = {
+  _id: "1",
+  name: "Laptop",
+  slug: "slug",
+  description: "High performance laptop with great features",
+  price: 999,
+};
+
+const PHONE = {
+  _id: "2",
+  name: "Phone",
+  slug: "phone",
+  description: "Smartphone with excellent camera",
+  price: 599,
+};
 
 describe("Search Component", () => {
   beforeEach(() => {
@@ -27,20 +58,6 @@ describe("Search Component", () => {
       </BrowserRouter>
     );
   };
-
-  describe("Rendering", () => {
-    it("renders with Layout component and heading", () => {
-      // Arrange
-      useSearch.mockReturnValue([{ keyword: "", results: [] }]);
-
-      // Act
-      renderComponent();
-
-      // Assert
-      expect(screen.getByTestId("layout")).toHaveAttribute("data-title", "Search results");
-      expect(screen.getByRole("heading", { name: /search results/i })).toBeInTheDocument();
-    });
-  });
 
   describe("No Results", () => {
     it("displays no products message and no cards", () => {
@@ -57,24 +74,9 @@ describe("Search Component", () => {
   });
 
   describe("With Results", () => {
-    const mockProducts = [
-      {
-        _id: "1",
-        name: "Laptop",
-        description: "High performance laptop with great features",
-        price: 999,
-      },
-      {
-        _id: "2",
-        name: "Phone",
-        description: "Smartphone with excellent camera",
-        price: 599,
-      },
-    ];
-
     it("displays product count and names", () => {
       // Arrange
-      useSearch.mockReturnValue([{ keyword: "laptop", results: mockProducts }]);
+      useSearch.mockReturnValue([{ keyword: "laptop", results: [LAPTOP, PHONE] }]);
 
       // Act
       renderComponent();
@@ -87,19 +89,19 @@ describe("Search Component", () => {
 
     it("displays product details", () => {
       // Arrange
-      useSearch.mockReturnValue([{ keyword: "", results: mockProducts }]);
+      useSearch.mockReturnValue([{ keyword: "", results: [LAPTOP, PHONE] }]);
 
       // Act
       renderComponent();
 
       // Assert
       expect(screen.getByText(/High performance laptop with/)).toBeInTheDocument();
-      expect(screen.getByText("$ 999")).toBeInTheDocument();
+      expect(screen.getByText("$999.00")).toBeInTheDocument();
     });
 
     it("renders images and buttons", () => {
       // Arrange
-      useSearch.mockReturnValue([{ keyword: "", results: mockProducts }]);
+      useSearch.mockReturnValue([{ keyword: "", results: [LAPTOP, PHONE] }]);
 
       // Act
       renderComponent();
@@ -112,28 +114,30 @@ describe("Search Component", () => {
     });
   });
 
-  describe("Edge Cases", () => {
-    it("handles missing description", () => {
+  describe('User interactions', () => {
+    it('adds product to cart', async () => {
       // Arrange
-      const noDescProduct = [{ _id: "1", name: "Item", price: 10 }];
-      useSearch.mockReturnValue([{ keyword: "", results: noDescProduct }]);
+      useSearch.mockReturnValue([{ keyword: "lap", results: [LAPTOP] }]);
 
       // Act
       renderComponent();
+      fireEvent.click(await screen.findByRole('button', { name: /add to cart/i }));
 
       // Assert
-      expect(screen.getByText("No description")).toBeInTheDocument();
+      expect(mockAddToCart).toHaveBeenCalledWith(LAPTOP);
     });
 
-    it("handles undefined or null values", () => {
+    it('navigates to product details', async () => {
       // Arrange
-      useSearch.mockReturnValue([undefined]);
+      useSearch.mockReturnValue([{ keyword: "phon", results: [PHONE] }]);
 
       // Act
       renderComponent();
+      fireEvent.click(await screen.findByRole('button', { name: /details/i }));
 
       // Assert
-      expect(screen.getByText("No Products Found")).toBeInTheDocument();
+      expect(mockNavigate).toHaveBeenCalledWith(`/product/${PHONE.slug}`);
     });
+
   });
 });

@@ -85,18 +85,15 @@ describe("SearchInput", () => {
       });
     });
 
-    it("allows empty keyword search", async () => {
+    it("does not allow empty keyword search", async () => {
       // Arrange
-      axios.get.mockResolvedValue({ data: [] });
       renderComponent();
       
       // Act
       fireEvent.submit(screen.getByRole("search"));
       
       // Assert
-      await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith("/api/v1/product/search/");
-      });
+      expect(axios.get).not.toHaveBeenCalled();
     });
   });
 

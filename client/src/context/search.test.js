@@ -24,7 +24,7 @@ describe("SearchContext", () => {
       // Assert
       expect(typeof result.current[1]).toBe("function");
     });
-  });
+  }); 
 
   describe("State Updates", () => {
     it("updates keyword", () => {
