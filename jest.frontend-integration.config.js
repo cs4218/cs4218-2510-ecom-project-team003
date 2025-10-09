@@ -21,18 +21,9 @@ export default {
 
   // only run these tests
   testMatch: [
-    "<rootDir>/client/src/components/**/*.test.js", 
-    "<rootDir>/client/src/context/**/*.test.js", 
-    "<rootDir>/client/src/pages/**/*.test.js", 
-    "<rootDir>/client/src/hooks/**/*.test.js",
-    "<rootDir>/client/src/utils/**/*.test.js",
+    "<rootDir>/client/src/**/*.integration.test.js", 
   ],
-
-  testPathIgnorePatterns: [
-    "/node_modules/",
-    "\.integration\.test\.js",
-  ],
-
+  
   // jest code coverage
   collectCoverage: true,
   collectCoverageFrom: [
@@ -44,5 +35,5 @@ export default {
   ],
   coveragePathIgnorePatterns: ["/node_modules/", "\.test\.js"],
   passWithNoTests: true,
-  setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
+  setupFilesAfterEnv: ["<rootDir>/client/src/setupFrontendIntegrationTests.js"],
 };

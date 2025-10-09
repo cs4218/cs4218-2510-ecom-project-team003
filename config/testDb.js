@@ -13,7 +13,6 @@ const createAndConnectTestDB = async () => {
         mongoServer = await MongoMemoryServer.create({instance: {port: MONGO_TEST_PORT}});
         const uri = mongoServer.getUri();
         const conn = await mongoose.connect(uri, {dbName: MONGO_DB_NAME});
-        console.log(uri);
         console.log(`Connected To Test Mongodb Database ${conn.connection.host}`.bgMagenta.white);
     } catch (error) {
         console.log(`Error in Test Mongodb ${error}`.bgRed.white);
@@ -24,10 +23,9 @@ const connectTestDB = async () => {
     try {
         const uri = `${MONGO_BASE_URL}:${MONGO_TEST_PORT}`;
         const conn = await mongoose.connect(uri, {dbName: MONGO_DB_NAME});
-        console.log(uri);
         console.log(`Connected To Test Mongodb Database ${conn.connection.host}`);
     } catch (error) {
-        console.log(`Error in Test Mongodb ${error}`);
+        console.log(`Error in Test Mongodb ${error}`.bgRed.white);
     }
 };
 

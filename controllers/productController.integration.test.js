@@ -81,7 +81,7 @@ describe('Product Controller', () => {
   describe('GET /api/v1/product/get-product', () => {
     it('should return 200 with a list of products in decreasing creation', async () => {
       await categoryModel.insertMany([ELECTRONICS, BOOK]);
-      [LAPTOP, SMARTPHONE, TEXTBOOK].forEach(async p => await (new productModel(p).save()));
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
 
       const res = await request(app).get('/api/v1/product/get-product');
 
