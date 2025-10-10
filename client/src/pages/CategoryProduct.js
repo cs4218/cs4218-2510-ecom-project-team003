@@ -37,6 +37,9 @@ const CategoryProduct = () => {
       setProducts(data?.products);
       setCategory(data?.category);
     } catch (error) {
+      if (error.response?.status == 404) {
+        return navigate('/pagenotfound');
+      }
       console.log(error);
       toast.error("Something when wrong while fetching category products");
     }
@@ -44,7 +47,7 @@ const CategoryProduct = () => {
 
   return (
     <Layout>
-      <div className="container mt-3 category">
+      <div className="container mt-3 category" data-testid="category-product">
         <h4 className="text-center">Category - {category?.name}</h4>
         <h6 className="text-center">{formatResultCount(products?.length)}</h6>
         <div className="row">
