@@ -5,7 +5,7 @@
 import '@testing-library/jest-dom';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:6060';
+axios.defaults.baseURL = 'http://localhost:6061';
 
 window.matchMedia = window.matchMedia || function () {
   return {
