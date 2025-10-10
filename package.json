@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start:frontend-integration": "cross-env NODE_ENV=test-frontend-integration npm start",
+    "start:frontend-integration": "cross-env NODE_ENV=test-frontend-integration PORT=6061 npm start",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
@@ -15,7 +15,7 @@
     "test:backend": "jest --config jest.backend.config.js",
     "test:backend-integration": "cross-env NODE_ENV=test-backend-integration jest --config jest.backend-integration.config.js --runInBand",
     "jest:frontend-integration": "jest --config jest.frontend-integration.config.js --runInBand",
-    "test:frontend-integration": "start-server-and-test start:frontend-integration 6060 jest:frontend-integration"
+    "test:frontend-integration": "start-server-and-test start:frontend-integration 6061 jest:frontend-integration"
   },
   "keywords": [],
   "author": "RP",
