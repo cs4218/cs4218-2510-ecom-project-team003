@@ -37,6 +37,7 @@ describe('Product Details Component', () => {
   });
 
   afterEach(async () => {
+    localStorage.clear();
     await resetDatabase();
   });
 
@@ -44,7 +45,7 @@ describe('Product Details Component', () => {
     await seedCategories([ELECTRONICS]);
     await seedProducts([LAPTOP]);
 
-    await renderProductDetails(LAPTOP.slug);
+    renderProductDetails(LAPTOP.slug);
 
     const productDetails = screen.getByTestId('product-details');
     expect(await within(productDetails).findByText(/name.*laptop/i)).toBeInTheDocument();
@@ -60,7 +61,7 @@ describe('Product Details Component', () => {
 
     renderProductDetails(LAPTOP.slug);
 
-    waitFor(async () => expect(await screen.findByText(/name.*laptop/i)).toBeInTheDocument());
+    await waitFor(async () => expect(await screen.findByText(/name.*laptop/i)).toBeInTheDocument());
     expect(await screen.findByText(/no similar products/i)).toBeInTheDocument();
   });
 
@@ -105,7 +106,7 @@ describe('Product Details Component', () => {
 
     expect(await screen.findByText(/item added to cart/i)).toBeInTheDocument();
     const badge = screen.getByTestId('badge');
-    waitFor(async () => expect(await within(badge).findByTitle('1')));
+    expect(await within(badge).findByTitle('1')).toBeInTheDocument();
   });
 
   it('adds related product to cart', async () => {
@@ -116,6 +117,6 @@ describe('Product Details Component', () => {
     fireEvent.click(await screen.findByTestId('add-related-to-cart-btn'));
 
     const badge = screen.getByTestId('badge');
-    waitFor(async () => expect(await within(badge).findByTitle('1')));
+    expect(await within(badge).findByTitle('1')).toBeInTheDocument();
   });
 });
