@@ -23,6 +23,8 @@ import {
 import { Toaster } from "react-hot-toast";
 import { ADMIN, ELECTRONICS, BOOKS } from "../../../tests/helpers/testData";
 
+console.log = jest.fn();
+
 beforeEach(async () => {
     const INITIAL_CATEGORIES = [ELECTRONICS, BOOKS]
     await seedCategories(INITIAL_CATEGORIES);
@@ -45,10 +47,11 @@ beforeEach(async () => {
 afterEach(async () => {
     localStorage.clear();
     await resetDatabase();
+    console.log.mockClear();
 });
 
 describe("CreateCategory Component", () => {
-    const renderComponent = () => {
+    const renderCreateCategory = () => {
         render(
             <AuthProvider>
                 <SearchProvider>
@@ -64,21 +67,24 @@ describe("CreateCategory Component", () => {
     };
 
     it("Renders fetched categories in the categories component", async () => {
-        renderComponent();
+        renderCreateCategory();
 
         const categoryTable = screen.getByTestId("category-table");
         const firstCategory = await within(categoryTable).findByText("Electronics");
-        expect(firstCategory).toBeInTheDocument();
         const secondCategory = await within(categoryTable).findByText("Books");
-        expect(secondCategory).toBeInTheDocument();
 
         const tbody = categoryTable.querySelector("tbody");
         const rows = tbody.querySelectorAll("tr");
+
+        expect(firstCategory).toBeInTheDocument();
+        expect(secondCategory).toBeInTheDocument();
         expect(rows.length).toBe(2);
     });
 
-    it("Does not add a duplicate category and table remains unchanged", async () => {
-        renderComponent();
+    it("Do not add a duplicate category and table remains unchanged", async () => {
+        renderCreateCategory();
+
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
         const categoryTable = await screen.findByTestId("category-table");
 
@@ -99,55 +105,54 @@ describe("CreateCategory Component", () => {
             const rows = tbody.querySelectorAll("tr");
             expect(rows.length).toBe(2);
         });
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        logSpy.mockRestore();
     });
 
-    it("Creates new category upon successful submission", async () => {
-        renderComponent();
+    it("Creates new category upon submission", async () => {
+        renderCreateCategory();
 
         const createCategoryForm = await screen.getByTestId("create-category-form");
         const input = within(createCategoryForm).getByPlaceholderText("Enter new category");
         const submitButton = within(createCategoryForm).getByText("Submit");
 
-        fireEvent.change(input, { target: { value: "New Category" } });
+        fireEvent.change(input, { target: { value: "Furniture" } });
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText("New Category")).toBeInTheDocument();
+            expect(screen.getByText("Furniture")).toBeInTheDocument();
         });
     });
 
     it("Updates a category successfully", async () => {
-        renderComponent();
+        renderCreateCategory();
 
-        // ensure the target category exists in this test
-        const createForm1 = await screen.findByTestId("create-category-form");
-          fireEvent.change(
-                within(createForm1).getByPlaceholderText("Enter new category"),
-               { target: { value: "New Category" } }
-             );
-         fireEvent.click(within(createForm1).getByText("Submit"));
-          await screen.findByText("New Category");
+        const createUpdateCategoryForm = await screen.findByTestId("create-category-form");
+        fireEvent.change(within(createUpdateCategoryForm).getByPlaceholderText("Enter new category"), { target: { value: "Furniture" } });
+        fireEvent.click(within(createUpdateCategoryForm).getByText("Submit"));
+        await screen.findByText("Furniture");
 
         const categoryTable = await screen.findByTestId("category-table");
 
-        const row = within(categoryTable).getByText("New Category").closest("tr");
+        const row = within(categoryTable).getByText("Furniture").closest("tr");
         const editButton = within(row).getByText("Edit");
         fireEvent.click(editButton);
 
         const modal = await screen.findByRole("dialog");
-        const updateInput = await within(modal).findByDisplayValue("New Category");
+        const updateInput = await within(modal).findByDisplayValue("Furniture");
         const updateSubmitButton = within(modal).getByText("Submit");
 
-        fireEvent.change(updateInput, { target: { value: "Updated New Category" } });
+        fireEvent.change(updateInput, { target: { value: "Updated Furniture" } });
         fireEvent.click(updateSubmitButton);
 
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Updated New Category")).toBeInTheDocument();
+            expect(within(categoryTable).getByText("Updated Furniture")).toBeInTheDocument();
         });
     });
 
-    it("Handles empty string successfully when updating a category", async () => {
-        renderComponent();
+    it("Updates a category and handles empty string", async () => {
+        renderCreateCategory();
 
         const categoryTable = await screen.findByTestId("category-table");
         await waitFor(() => {
@@ -162,7 +167,7 @@ describe("CreateCategory Component", () => {
         const updateInput = await within(modal).findByDisplayValue("Books");
         const updateSubmitButton = within(modal).getByText("Submit");
 
-        fireEvent.change(updateInput, { target: { value: "   " } });
+        fireEvent.change(updateInput, { target: { value: " " } });
         fireEvent.click(updateSubmitButton);
 
         await waitFor(() => {
@@ -170,8 +175,8 @@ describe("CreateCategory Component", () => {
         });
     });
 
-    it("Handles updating a category name using an existing category name", async () => {
-        renderComponent();
+    it("Updates a category and handles duplicate category name", async () => {
+        renderCreateCategory();
 
         const categoryTable = await screen.findByTestId("category-table");
         await waitFor(() => {
@@ -195,24 +200,21 @@ describe("CreateCategory Component", () => {
     });
 
     it("Deletes a category successfully", async () => {
-        renderComponent();
+        renderCreateCategory();
 
         const createForm2 = await screen.findByTestId("create-category-form");
-          fireEvent.change(
-                within(createForm2).getByPlaceholderText("Enter new category"),
-               { target: { value: "Updated New Category" } }
-             );
-          fireEvent.click(within(createForm2).getByText("Submit"));
-          await screen.findByText("Updated New Category");
+        fireEvent.change(within(createForm2).getByPlaceholderText("Enter new category"), { target: { value: "Updated Furniture" } });
+        fireEvent.click(within(createForm2).getByText("Submit"));
+        await screen.findByText("Updated Furniture");
 
-             const categoryTable = await screen.findByTestId("category-table");
+        const categoryTable = await screen.findByTestId("category-table");
 
-        const targetRow = within(categoryTable).getByText("Updated New Category").closest("tr");
+        const targetRow = within(categoryTable).getByText("Updated Furniture").closest("tr");
         const deleteButton = within(targetRow).getByText("Delete");
         fireEvent.click(deleteButton);
 
         await waitFor(() => {
-            expect(within(categoryTable).queryByText("Updated New Category")).toBeNull();
+            expect(within(categoryTable).queryByText("Updated Furniture")).toBeNull();
         });
     });
 });
