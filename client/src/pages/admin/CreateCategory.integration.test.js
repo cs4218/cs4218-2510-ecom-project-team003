@@ -1,4 +1,4 @@
-import { expect, jest } from "@jest/globals";
+import { expect } from "@jest/globals";
 import React from "react";
 import {
     render,
@@ -15,58 +15,31 @@ import "@testing-library/jest-dom";
 import { AuthProvider } from "../../context/auth";
 import { SearchProvider } from "../../context/search";
 import { CartProvider } from "../../context/cart";
-
 import {
     resetDatabase,
     seedUsers,
     seedCategories,
 } from "../../../tests/helpers/seedApi";
-
-jest.mock("react-hot-toast");
-
-const ADMIN_ID = "66db427fdb0119d9234b27aa";
-const adminCredentials = {
-    email: "test@example.com",
-    password: "password123",
-};
-
-const INITIAL_CATEGORIES = [
-    { name: "Electronic", slug: "electronic" },
-    { name: "Book", slug: "book" },
-];
-
-async function setupAuthAndData() {
-    await resetDatabase();
-
-    const hashed = await bcrypt.hash(adminCredentials.password, 10);
-    await seedUsers([
-        {
-            _id: ADMIN_ID,
-            name: "Test Admin",
-            email: adminCredentials.email,
-            password: hashed,
-            role: 1,
-            phone: "1234567890",
-            address: "123 Test Street",
-            answer: "cat",
-        },
-    ]);
-
-    await seedCategories(INITIAL_CATEGORIES);
-
-    const { data } = await axios.post("/api/v1/auth/login", adminCredentials);
-    const token = data.token;
-
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-    localStorage.setItem(
-        "auth",
-        JSON.stringify({ token, user: { _id: ADMIN_ID, email: adminCredentials.email, role: 1 } })
-    );
-}
+import { Toaster } from "react-hot-toast";
+import { ADMIN, ELECTRONICS, BOOKS } from "../../../tests/helpers/testData";
 
 beforeEach(async () => {
-    await setupAuthAndData();
+    const INITIAL_CATEGORIES = [ELECTRONICS, BOOKS]
+    await seedCategories(INITIAL_CATEGORIES);
+
+    const hashed = await bcrypt.hash(ADMIN.password, 10);
+    await seedUsers([
+        { _id: ADMIN.id, ...ADMIN, password: hashed }
+    ]);
+
+    const ADMIN_CREDENTIALS = {
+        email: ADMIN.email,
+        password: ADMIN.password,
+    };
+    const response = await axios.post("/api/v1/auth/login", ADMIN_CREDENTIALS);
+    localStorage.setItem("auth", JSON.stringify(response.data));
+    const token = response.data.token;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 });
 
 afterEach(async () => {
@@ -81,6 +54,7 @@ describe("CreateCategory Component", () => {
                 <SearchProvider>
                     <CartProvider>
                         <MemoryRouter>
+                            <Toaster />
                             <CreateCategory />
                         </MemoryRouter>
                     </CartProvider>
@@ -93,9 +67,9 @@ describe("CreateCategory Component", () => {
         renderComponent();
 
         const categoryTable = screen.getByTestId("category-table");
-        const firstCategory = await within(categoryTable).findByText("Electronic");
+        const firstCategory = await within(categoryTable).findByText("Electronics");
         expect(firstCategory).toBeInTheDocument();
-        const secondCategory = await within(categoryTable).findByText("Book");
+        const secondCategory = await within(categoryTable).findByText("Books");
         expect(secondCategory).toBeInTheDocument();
 
         const tbody = categoryTable.querySelector("tbody");
@@ -117,7 +91,7 @@ describe("CreateCategory Component", () => {
         const input = within(createCategoryForm).getByPlaceholderText("Enter new category");
         const submitButton = within(createCategoryForm).getByText("Submit");
 
-        fireEvent.change(input, { target: { value: "Electronic" } });
+        fireEvent.change(input, { target: { value: "Electronics" } });
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -177,22 +151,22 @@ describe("CreateCategory Component", () => {
 
         const categoryTable = await screen.findByTestId("category-table");
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Book")).toBeInTheDocument();
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
         });
 
-        const bookRow = within(categoryTable).getByText("Book").closest("tr");
+        const bookRow = within(categoryTable).getByText("Books").closest("tr");
         const editButton = within(bookRow).getByText("Edit");
         fireEvent.click(editButton);
 
         const modal = await screen.findByRole("dialog");
-        const updateInput = await within(modal).findByDisplayValue("Book");
+        const updateInput = await within(modal).findByDisplayValue("Books");
         const updateSubmitButton = within(modal).getByText("Submit");
 
         fireEvent.change(updateInput, { target: { value: "   " } });
         fireEvent.click(updateSubmitButton);
 
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Book")).toBeInTheDocument();
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
         });
     });
 
@@ -201,22 +175,22 @@ describe("CreateCategory Component", () => {
 
         const categoryTable = await screen.findByTestId("category-table");
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Book")).toBeInTheDocument();
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
         });
 
-        const bookRow = within(categoryTable).getByText("Book").closest("tr");
+        const bookRow = within(categoryTable).getByText("Books").closest("tr");
         const editButton = within(bookRow).getByText("Edit");
         fireEvent.click(editButton);
 
         const modal = await screen.findByRole("dialog");
-        const updateInput = await within(modal).findByDisplayValue("Book");
+        const updateInput = await within(modal).findByDisplayValue("Books");
         const updateSubmitButton = within(modal).getByText("Submit");
 
-        fireEvent.change(updateInput, { target: { value: "Electronic" } });
+        fireEvent.change(updateInput, { target: { value: "Electronics" } });
         fireEvent.click(updateSubmitButton);
 
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Book")).toBeInTheDocument(); // unchanged
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
         });
     });
 

@@ -1,3 +1,14 @@
+export const ADMIN = {
+    id: "66db427fdb0119d9234b27aa",
+    name: "Test Admin",
+    email: "testAdmin@example.com",
+    password: "password123",
+    role: 1,
+    phone: "1234567890",
+    address: "123 Test Street",
+    answer: "Test",
+}
+
 export const ELECTRONICS = {
   _id: '68e3f943282387623f0a0736',
   name: 'Electronics',
