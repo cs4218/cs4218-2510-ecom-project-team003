@@ -217,4 +217,65 @@ describe("CreateCategory Component", () => {
             expect(within(categoryTable).queryByText("Updated Furniture")).toBeNull();
         });
     });
+
+    it("Renders create-category and unsuccessful", async () => {
+        renderCreateCategory();
+
+        const logSpy = jest.spyOn(axios, "post").mockResolvedValueOnce({ data: { success: false, message: "Category Already Exists" } });
+
+        const form = await screen.findByTestId("create-category-form");
+        fireEvent.change(within(form).getByPlaceholderText("Enter new category"), { target: { value: "Shirts" } });
+        fireEvent.click(within(form).getByText("Submit"));
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        logSpy.mockRestore();
+    });
+
+    it("Renders get-category and unsuccessful", async () => {
+        const logSpy = jest.spyOn(axios, "get").mockRejectedValueOnce(new Error(""));
+
+        renderCreateCategory();
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        logSpy.mockRestore();
+    });
+
+    it("Renders update-category and unsuccessful", async () => {
+        renderCreateCategory();
+
+        const table = await screen.findByTestId("category-table");
+        const cell = await within(table).findByText("Books");
+        const row = cell.closest("tr");
+        fireEvent.click(within(row).getByText("Edit"));
+
+        const logSpy = jest.spyOn(axios, "put").mockRejectedValueOnce(new Error(""));
+
+        const modal = await screen.findByRole("dialog");
+        const input = await within(modal).findByDisplayValue("Books");
+        fireEvent.change(input, { target: { value: "Updated Books" } });
+        fireEvent.click(within(modal).getByText("Submit"));
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        logSpy.mockRestore();
+    });
+
+    it("Renders delete-category and unsuccessful", async () => {
+        renderCreateCategory();
+
+        const createForm = await screen.findByTestId("create-category-form");
+        fireEvent.change(within(createForm).getByPlaceholderText("Enter new category"), { target: { value: "Temporary Category" } });
+        fireEvent.click(within(createForm).getByText("Submit"));
+        await screen.findByText("Temporary Category");
+
+        const logSpy = jest.spyOn(axios, "delete").mockRejectedValueOnce(new Error(""));
+
+        const table = await screen.findByTestId("category-table");
+        const tempRow = within(table).getByText("Temporary Category").closest("tr");
+        fireEvent.click(within(tempRow).getByText("Delete"));
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        expect(within(table).getByText("Temporary Category")).toBeInTheDocument();
+        logSpy.mockRestore();
+    });
 });
