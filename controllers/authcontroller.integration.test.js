@@ -26,6 +26,19 @@ const ADMIN_USER = {
 };
 
 describe('Auth Controller', () => {
+  beforeAll(async () => {
+    await createAndConnectTestDB();
+    await clearTestDB();
+  });
+
+  afterEach(async () => {
+    await clearTestDB();
+  });
+
+  afterAll(async () => {
+    await closeTestDB();
+  });
+
   describe('POST /api/v1/auth/register', () => {
     it('should register a new user successfully with status 200', async () => {
       const res = await request(app)
