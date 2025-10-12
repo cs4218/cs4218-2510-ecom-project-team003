@@ -13,9 +13,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      BRAINTREE_MERCHANT_ID: ${{ secrets.BRAINTREE_MERCHANT_ID }}
-      BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
-      BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
+        BRAINTREE_MERCHANT_ID: "fake_merchant"
+        BRAINTREE_PUBLIC_KEY: "fake_public"
+        BRAINTREE_PRIVATE_KEY: "fake_private"
 
     strategy:
       matrix:
