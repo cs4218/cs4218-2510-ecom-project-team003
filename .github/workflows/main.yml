@@ -12,11 +12,6 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
 
-    env:
-      BRAINTREE_MERCHANT_ID: ${{ secrets.BRAINTREE_MERCHANT_ID }}
-      BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
-      BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -24,17 +19,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
+      - name: Create .env file
+        run: |
+          echo "BRAINTREE_MERCHANT_ID=hmrc3kfrt2xrvtvp" >> .env
+          echo "BRAINTREE_PUBLIC_KEY=d3rnqcjwn7zk4fpt" >> .env
+          echo "BRAINTREE_PRIVATE_KEY=767ed9ddd903781349d4c2af441f8eaa" >> .env
       
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: '24'
-
-      - name: Create .env file
-        run: |
-          echo "BRAINTREE_MERCHANT_ID=${{ secrets.BRAINTREE_MERCHANT_ID }}" >> .env
-          echo "BRAINTREE_PUBLIC_KEY=${{ secrets.BRAINTREE_PUBLIC_KEY }}" >> .env
-          echo "BRAINTREE_PRIVATE_KEY=${{ secrets.BRAINTREE_PRIVATE_KEY }}" >> .env
       
       - name: Install dependencies
         run: npm install
