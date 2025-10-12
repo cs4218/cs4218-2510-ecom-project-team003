@@ -128,26 +128,24 @@ describe("CreateCategory Component", () => {
     it("Updates a category successfully", async () => {
         renderCreateCategory();
 
-        const createUpdateCategoryForm = await screen.findByTestId("create-category-form");
-        fireEvent.change(within(createUpdateCategoryForm).getByPlaceholderText("Enter new category"), { target: { value: "Furniture" } });
-        fireEvent.click(within(createUpdateCategoryForm).getByText("Submit"));
-        await screen.findByText("Furniture");
-
         const categoryTable = await screen.findByTestId("category-table");
+        await waitFor(() => {
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
+        });
 
-        const row = within(categoryTable).getByText("Furniture").closest("tr");
-        const editButton = within(row).getByText("Edit");
+        const bookRow = within(categoryTable).getByText("Books").closest("tr");
+        const editButton = within(bookRow).getByText("Edit");
         fireEvent.click(editButton);
 
         const modal = await screen.findByRole("dialog");
-        const updateInput = await within(modal).findByDisplayValue("Furniture");
+        const updateInput = await within(modal).findByDisplayValue("Books");
         const updateSubmitButton = within(modal).getByText("Submit");
 
-        fireEvent.change(updateInput, { target: { value: "Updated Furniture" } });
+        fireEvent.change(updateInput, { target: { value: "Updated Books" } });
         fireEvent.click(updateSubmitButton);
 
         await waitFor(() => {
-            expect(within(categoryTable).getByText("Updated Furniture")).toBeInTheDocument();
+            expect(within(categoryTable).getByText("Updated Books")).toBeInTheDocument();
         });
     });
 
