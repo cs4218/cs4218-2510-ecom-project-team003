@@ -46,17 +46,13 @@ test('Renders category buttons with correct labels and links', async () => {
     const container = await screen.findByTestId('categories');
     const links = await within(container).findAllByRole('link');
 
-    const labels = links.map(a => a.textContent).sort();
-    const hrefs = links.map(a => a.getAttribute('href').toLowerCase()).sort();
+    expect(links).toHaveLength(2);
 
+    const labels = links.map(a => a.textContent.trim());
+    const hrefs  = links.map(a => a.getAttribute('href'));
 
-    await waitFor(() => {
-        expect(links).toHaveLength(2);
-    });
-    expect(labels).toEqual([BOOKS.name, ELECTRONICS.name].sort());
-    expect(hrefs).toEqual(
-        [`/category/${BOOKS.slug.toLowerCase()}`, `/category/${ELECTRONICS.slug.toLowerCase()}`].sort()
-    );
+    expect(labels).toEqual(expect.arrayContaining([ELECTRONICS.name, BOOKS.name]));
+    expect(hrefs).toEqual(expect.arrayContaining([`/category/${ELECTRONICS.slug}`, `/category/${BOOKS.slug}`]));
 });
 
 test('Renders no category buttons when there are no categories', async () => {

@@ -20,16 +20,11 @@ export const BOOKS = {
     name: "Books",
     slug: "books",
 };
+
 export const CLOTHING = {
     _id: "68e3f943282387623f0a0738",
     name: "Clothing",
     slug: "clothing",
-};
-
-export const BOOKS = {
-    _id: '66db427fdb0119d9234b27f1',
-    name: 'Books',
-    slug: 'books',
 };
 
 export const LAPTOP = {
