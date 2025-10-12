@@ -48,8 +48,8 @@ beforeEach(async () => {
         CAMPUS_HOODIE,
         LEATHER_JACKET,
     ];
-    const INITIAL_CATEGORIES = [ELECTRONICS, BOOKS, CLOTHING];
-    await seedCategories(INITIAL_CATEGORIES);
+    const CATEGORIES = [ELECTRONICS, BOOKS, CLOTHING];
+    await seedCategories(CATEGORIES);
     await seedProducts(PRODUCTS);
 });
 
@@ -143,11 +143,11 @@ describe("HomePage Component", () => {
         });
     });
 
-    it("Combines category (Books) and price ($60–$79) to show only 'Singapore Contract Law'", async () => {
+    it("Combines category and price to show only matching products", async () => {
         renderHomePage();
 
-        const booksCb = await screen.findByRole("checkbox", { name: "Books" });
-        fireEvent.click(booksCb);
+        const booksCheckBox = await screen.findByRole("checkbox", { name: "Books" });
+        fireEvent.click(booksCheckBox);
 
         const priceRadio = await screen.getByLabelText("$60 to 79");
         fireEvent.click(priceRadio);
@@ -184,7 +184,7 @@ describe("HomePage Component", () => {
         expect(screen.getByText("Campus Hoodie")).toBeInTheDocument();
     });
 
-    it('Displays all products, Clicks "More Details" and Navigates to product page', async () => {
+    it('Displays all products, Clicks "More Details" on one and Navigates to product page', async () => {
         renderHomePage();
 
         const laptopHeading = await screen.findByRole("heading", { name: "Laptop" });
