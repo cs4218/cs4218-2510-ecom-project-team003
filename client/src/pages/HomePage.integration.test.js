@@ -110,6 +110,10 @@ describe("HomePage Component", () => {
     it("Filters by category and Shows only matching products", async () => {
         renderHomePage();
 
+        await screen.findAllByRole("heading", {
+            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+        });
+
         const books = await screen.findByRole("checkbox", { name: "Books" });
         fireEvent.click(books);
 
@@ -128,6 +132,10 @@ describe("HomePage Component", () => {
     it("Filters by price and Shows only matching products", async () => {
         renderHomePage();
 
+        await screen.findAllByRole("heading", {
+            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+        });
+
         const priceRadio = screen.getByLabelText("$60 to 79");
         fireEvent.click(priceRadio);
 
@@ -145,6 +153,10 @@ describe("HomePage Component", () => {
 
     it("Combines category and price to show only matching products", async () => {
         renderHomePage();
+
+        await screen.findAllByRole("heading", {
+            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+        });
 
         const booksCheckBox = await screen.findByRole("checkbox", { name: "Books" });
         fireEvent.click(booksCheckBox);
