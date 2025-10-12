@@ -228,4 +228,131 @@ describe('Auth Controller', () => {
       });
     });
   });
+
+  describe('POST /api/v1/auth/login', () => {
+    beforeEach(async () => {
+      // Create a user for login tests
+      const hashedPassword = await hashPassword(VALID_USER.password);
+      await userModel.create({
+        ...VALID_USER,
+        password: hashedPassword
+      });
+    });
+
+    describe('Successful Login', () => {
+      it('should login successfully with valid credentials', async () => {
+
+        // Act
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({
+            email: VALID_USER.email,
+            password: VALID_USER.password
+          });
+
+        // Arrange
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(expect.objectContaining({
+          success: true,
+          message: 'Login successfully',
+          user: expect.objectContaining({
+            _id: expect.any(String),
+            name: VALID_USER.name,
+            email: VALID_USER.email,
+            phone: VALID_USER.phone,
+            address: VALID_USER.address,
+            role: 0
+          }),
+          token: expect.any(String)
+        }));
+
+        // Verify token is valid
+        const decoded = JWT.verify(res.body.token, process.env.JWT_SECRET);
+        expect(decoded._id).toBeTruthy();
+      });
+    });
+
+    describe('Missing Fields', () => {
+      it('should return 200 with error when email is missing', async () => {
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({
+            password: VALID_USER.password
+          });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Email and password are required'
+        });
+      });
+
+      it('should return 200 with error when password is missing', async () => {
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({
+            email: VALID_USER.email
+          });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Email and password are required'
+        });
+      });
+    });
+
+    describe('Invalid Email or Password', () => {
+      it('should return 401 with invalid email', async () => {
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({
+            email: 'nonexistent@example.com',
+            password: VALID_USER.password
+          });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      });
+
+      it('should return 401 with invalid password', async () => {
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({
+            email: VALID_USER.email,
+            password: 'wrongpassword'
+          });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      });
+    });
+
+    describe('Server Error', () => {
+      it('should return 500 if a server error occurs', async () => {
+        // Arrange
+        jest.spyOn(userModel, 'findOne').mockImplementationOnce(() => {
+          throw new Error('DB error');
+        });
+
+        // Act
+        const res = await request(app)
+          .post('/api/v1/auth/login')
+          .send({ email: 'some@example.com', password: '123456' });
+
+        // Assert
+        expect(res.status).toBe(500);
+        expect(res.body).toEqual(expect.objectContaining({
+          success: false,
+          message: 'Error in login',
+        }));
+      });
+    });
+  });
 });
