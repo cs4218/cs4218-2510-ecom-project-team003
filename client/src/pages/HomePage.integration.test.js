@@ -179,6 +179,11 @@ describe("HomePage Component", () => {
     it("Displays all products, Add one to cart, Go to Cart via Header and See the product", async () => {
         renderHomePage();
 
+        await screen.findByRole("heading", { name: "Laptop" });
+        const loadMore = screen.queryByRole("button", { name: /Load More Products!/i });
+        if (loadMore) {
+            fireEvent.click(loadMore);
+        }
         const hoodieHeading = await screen.findByRole("heading", { name: "Campus Hoodie" });
         const hoodieCard = hoodieHeading.closest(".card");
         expect(hoodieCard).toBeTruthy();
@@ -200,6 +205,10 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         const laptopHeading = await screen.findByRole("heading", { name: "Laptop" });
+        const loadMore = screen.queryByRole("button", { name: /Load More Products!/i });
+        if (loadMore) {
+            fireEvent.click(loadMore);
+        }
         const laptopCard = laptopHeading.closest(".card");
         expect(laptopCard).toBeTruthy();
 
