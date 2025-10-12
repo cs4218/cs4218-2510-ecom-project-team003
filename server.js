@@ -27,9 +27,7 @@ const app = express();
 //middlewares
 app.use(cors());
 app.use(express.json());
-// if (process.env.NODE_ENV !== 'test-frontend-integration') {
-//     app.use(morgan('dev'));
-// }
+app.use(morgan('dev'));
 
 //routes
 app.use("/api/v1/auth", authRoutes);
