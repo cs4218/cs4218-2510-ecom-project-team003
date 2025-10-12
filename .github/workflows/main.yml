@@ -29,6 +29,12 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24'
+
+      - name: Create .env file
+        run: |
+          echo "BRAINTREE_MERCHANT_ID=${{ secrets.BRAINTREE_MERCHANT_ID }}" >> .env
+          echo "BRAINTREE_PUBLIC_KEY=${{ secrets.BRAINTREE_PUBLIC_KEY }}" >> .env
+          echo "BRAINTREE_PRIVATE_KEY=${{ secrets.BRAINTREE_PRIVATE_KEY }}" >> .env
       
       - name: Install dependencies
         run: npm install
