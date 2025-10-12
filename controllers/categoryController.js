@@ -4,7 +4,10 @@ export const createCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {
-      return res.status(401).send({ message: "Name is required" });
+        return res.status(401).send({ message: "Name is required" });
+    }
+    if (name.trim().length === 0){
+        return res.status(401).send({ message: "Name cannot contain only whitespace" });
     }
     const existingCategory = await categoryModel.findOne({ name: name });
     if (existingCategory) {
@@ -37,6 +40,25 @@ export const updateCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
     const { id } = req.params;
+      if (!name) {
+          return res.status(400).send({
+              success: false,
+              message: "Category name cannot be empty",
+          });
+      }
+      if (name.trim().length === 0){
+          return res.status(400).send({
+              success: false,
+              message: "Category name cannot contain only whitespace",
+          });
+      }
+      const existingCategory = await categoryModel.findOne({ name });
+      if (existingCategory) {
+          return res.status(200).send({
+              success: false,
+              message: "Category Already Exists",
+          });
+      }
     const category = await categoryModel.findByIdAndUpdate(
       id,
       { name, slug: slugify(name) },
