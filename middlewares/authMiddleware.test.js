@@ -25,10 +25,10 @@ describe('Auth Middleware', () => {
   describe('requireSignIn', () => {
     it('verifies token and calls next on valid token', async () => {
       // Arrange
-      const mockToken = 'Bearer validToken123';
+      const mockToken = 'validToken123';
       const mockDecoded = { _id: 'user123', email: 'test@example.com' };
       
-      req.headers.authorization = mockToken;
+      req.headers.authorization = `Bearer ${mockToken}`;
       JWT.verify.mockReturnValue(mockDecoded);
 
       // Act
@@ -43,7 +43,8 @@ describe('Auth Middleware', () => {
 
     it('returns 401 when token is invalid', async () => {
       // Arrange
-      req.headers.authorization = 'invalidToken';
+      const invalidToken = 'invalidToken';
+      req.headers.authorization = `Bearer ${invalidToken}`;
       JWT.verify.mockImplementation(() => {
         throw new Error('Invalid token');
       });

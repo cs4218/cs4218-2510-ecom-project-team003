@@ -1,7 +1,6 @@
 import request from 'supertest';
 import app from '../server.js';
 import userModel from '../models/userModel.js';
-import orderModel from '../models/orderModel.js';
 import { createAndConnectTestDB, clearTestDB, closeTestDB } from '../config/testDb.js';
 import { comparePassword ,hashPassword } from '../helpers/authHelper.js';
 import JWT from 'jsonwebtoken';
@@ -351,6 +350,500 @@ describe('Auth Controller', () => {
         expect(res.body).toEqual(expect.objectContaining({
           success: false,
           message: 'Error in login',
+        }));
+      });
+    });
+  });
+
+  describe('POST /api/v1/auth/forgot-password', () => {
+    beforeEach(async () => {
+      const hashedPassword = await hashPassword(VALID_USER.password);
+      await userModel.create({
+        ...VALID_USER,
+        password: hashedPassword
+      });
+    });
+
+    describe('Successful Reset', () => {
+      it('should reset password successfully with valid data', async () => {
+        // Arrange
+        const newPassword = 'newpassword123';
+
+        // Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: VALID_USER.email,
+            answer: VALID_USER.answer,
+            newPassword: newPassword
+          });
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          success: true,
+          message: 'Password Reset Successfully'
+        });
+
+        // Verify password was actually updated in database
+        const user = await userModel.findOne({ email: VALID_USER.email });
+        const isNewPasswordValid = await comparePassword(newPassword, user.password);
+        expect(isNewPasswordValid).toBe(true);
+
+        // Verify old password no longer works
+        const isOldPasswordValid = await comparePassword(VALID_USER.password, user.password);
+        expect(isOldPasswordValid).toBe(false);
+      });
+    });
+
+    describe('Missing Fields', () => {
+      it('should return 400 when email is missing', async () => {
+        // Arrange & Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            answer: VALID_USER.answer,
+            newPassword: 'newpass'
+          });
+        
+        // Assert
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Email is required'
+        });
+      });
+
+      it('should return 400 when answer is missing', async () => {
+        // Arrange & Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: VALID_USER.email,
+            newPassword: 'newpass'
+          });
+
+        // Assert
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Answer is required'
+        });
+      });
+
+      it('should return 400 when newPassword is missing', async () => {
+        // Arrange & Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: VALID_USER.email,
+            answer: VALID_USER.answer
+          });
+
+        // Assert
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'New Password is required'
+        });
+      });
+    });
+
+    describe('Invalid Credentials', () => {
+      it('should return 401 with wrong email', async () => {
+        // Arrange & Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: 'wrong@example.com',
+            answer: VALID_USER.answer,
+            newPassword: 'newpass'
+          });
+        
+        // Assert
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Wrong Email Or Answer'
+        });
+      });
+
+      it('should return 401 with wrong answer', async () => {
+        // Arrange & Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: VALID_USER.email,
+            answer: 'WrongAnswer',
+            newPassword: 'newpass'
+          });
+
+        // Assert
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Wrong Email Or Answer'
+        });
+      });
+    });
+    
+    describe('Server Error', () => {
+      it('should return 500 if a network error occurs during password reset', async () => {
+        // Arrange
+        jest.spyOn(userModel, 'findOne').mockRejectedValueOnce(new Error('Network error'));
+
+        // Act
+        const res = await request(app)
+          .post('/api/v1/auth/forgot-password')
+          .send({
+            email: 'user@example.com',
+            answer: 'My favorite color',
+            newPassword: 'newpassword123',
+          });
+
+        // Assert
+        expect(res.status).toBe(500);
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe('Something went wrong');
+        expect(res.body.error).toBeDefined();
+      });    
+    });
+  });
+
+  describe('PUT /api/v1/auth/profile', () => {
+    let authToken;
+    let userId;
+
+    beforeEach(async () => {
+      // Create a user for profile update tests
+      const hashedPassword = await hashPassword(VALID_USER.password);
+      const user = await userModel.create({
+        ...VALID_USER,
+        password: hashedPassword
+      });
+      userId = user._id.toString();
+
+      // Generate token for authenticated requests
+      authToken = JWT.sign({ _id: userId }, process.env.JWT_SECRET, {
+        expiresIn: '7d'
+      });
+    });
+
+    describe('Successful Profile Update', () => {
+      it('should update profile successfully with all fields', async () => {
+        // Arrange
+        const updateData = {
+          name: 'Updated Name',
+          password: 'newpassword123',
+          phone: '99999999',
+          address: '999 New Address'
+        };
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(updateData);
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(expect.objectContaining({
+          success: true,
+          message: 'Profile Updated Successfully',
+          updatedUser: expect.objectContaining({
+            name: updateData.name,
+            phone: updateData.phone,
+            address: updateData.address
+          })
+        }));
+
+        // Verify updates in database
+        const user = await userModel.findById(userId);
+        expect(user.name).toBe(updateData.name);
+        expect(user.phone).toBe(updateData.phone);
+        expect(user.address).toBe(updateData.address);
+        
+        // Verify password was updated
+        const isPasswordValid = await comparePassword(updateData.password, user.password);
+        expect(isPasswordValid).toBe(true);
+      });
+
+      it('should update only name when other fields not provided', async () => {
+        // Arrange
+        const updateData = {
+          name: 'Updated Name',
+        };
+
+        const originalUser = await userModel.findById(userId);
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(updateData);
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+
+        const updatedUser = await userModel.findById(userId);
+        expect(updatedUser.name).toBe('Updated Name');
+        expect(updatedUser.phone).toBe(originalUser.phone);
+        expect(updatedUser.address).toBe(originalUser.address);
+      });
+
+      it('should update only phone when other fields not provided', async () => {
+        // Arrange
+        const originalUser = await userModel.findById(userId);
+        const newPhone = '88888888';
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ phone: newPhone });
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.updatedUser.phone).toBe(newPhone);
+
+        const updatedUser = await userModel.findById(userId);
+        expect(updatedUser.phone).toBe(newPhone);
+        expect(updatedUser.name).toBe(originalUser.name);
+        expect(updatedUser.address).toBe(originalUser.address);
+        expect(updatedUser.password).toBe(originalUser.password);
+      });
+
+      it('should update only address when other fields not provided', async () => {
+        // Arrange
+        const originalUser = await userModel.findById(userId);
+        const newAddress = '999 New Street, New City';
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ address: newAddress });
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.updatedUser.address).toBe(newAddress);
+
+        const updatedUser = await userModel.findById(userId);
+        expect(updatedUser.address).toBe(newAddress);
+        expect(updatedUser.name).toBe(originalUser.name);
+        expect(updatedUser.phone).toBe(originalUser.phone);
+        expect(updatedUser.password).toBe(originalUser.password);
+      });
+
+      it('should update only password when other fields not provided', async () => {
+        // Arrange
+        const newPassword = 'newpass123';
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ password: newPassword });
+
+        // Assert
+        expect(res.status).toBe(200);
+        
+        const updatedUser = await userModel.findById(userId);
+        const isNewPasswordValid = await comparePassword(newPassword, updatedUser.password);
+        expect(isNewPasswordValid).toBe(true);
+      });
+
+      it('should update profile without changing password when password not provided', async () => {
+        // Arrange
+        const originalUser = await userModel.findById(userId);
+        const originalPasswordHash = originalUser.password;
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ name: 'Updated Name', phone: '88888888' });
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+
+        const updatedUser = await userModel.findById(userId);
+        expect(updatedUser.password).toBe(originalPasswordHash);
+      });
+
+      it('should not update email even if provided', async () => {
+        // Arrange
+        const originalUser = await userModel.findById(userId);
+        const originalEmail = originalUser.email;
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ 
+            email: 'newemail@example.com',
+            name: 'Updated Name'
+          });
+
+        // Assert
+        expect(res.status).toBe(200);
+        
+        const updatedUser = await userModel.findById(userId);
+        // Email should NOT change
+        expect(updatedUser.email).toBe(originalEmail);
+        expect(updatedUser.email).not.toBe('newemail@example.com');
+        // But name should change
+        expect(updatedUser.name).toBe('Updated Name');
+      });
+
+      it('should update multiple fields except email even though it is provided', async () => {
+        // Arrange
+        const originalUser = await userModel.findById(userId);
+        const updateData = {
+          name: 'New Name',
+          phone: '77777777',
+          address: '777 New Address',
+          email: 'shouldnotchange@example.com' // This should be ignored
+        };
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(updateData);
+
+        // Assert
+        expect(res.status).toBe(200);
+
+        const updatedUser = await userModel.findById(userId);
+        expect(updatedUser.name).toBe(updateData.name);
+        expect(updatedUser.phone).toBe(updateData.phone);
+        expect(updatedUser.address).toBe(updateData.address);
+        // Email should NOT change
+        expect(updatedUser.email).toBe(originalUser.email);
+        expect(updatedUser.email).not.toBe('shouldnotchange@example.com');
+      });
+    });
+
+    describe('Authentication Errors', () => {
+      it('should return 401 when authorization header is missing', async () => {
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .send({ name: 'Test' });
+
+        // Assert
+        expect(res.status).toBe(401);
+      });
+
+      it('should return 401 when token is invalid', async () => {
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', 'Bearer invalid-token')
+          .send({ name: 'Test' });
+
+        // Assert
+        expect(res.status).toBe(401);
+      });
+
+      it('should return 401 when user not found in database', async () => {
+        // Arrange
+        const mongoose = require('mongoose');
+        const fakeUserId = new mongoose.Types.ObjectId();
+        const fakeToken = JWT.sign({ _id: fakeUserId }, process.env.JWT_SECRET, {
+          expiresIn: '7d'
+        });
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${fakeToken}`)
+          .send({ name: 'Test' });
+
+        // Assert
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'User not found, please authenticate'
+        });
+      });
+    });
+
+    describe('Validation Errors', () => {
+      it('should return 401 when password is too short', async () => {
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            password: '12345' // Only 5 characters, needs at least 6
+          });
+
+        // Assert
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({
+          success: false,
+          message: 'Password is required and must be at least 6 characters long.'
+        });
+
+        // Verify password was NOT updated
+        const user = await userModel.findById(userId);
+        const isOldPasswordStill = await comparePassword(VALID_USER.password, user.password);
+        expect(isOldPasswordStill).toBe(true);
+      });
+
+      it('should return 401 when password is exactly 6 characters', async () => {
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            password: '123456' // Exactly 6 characters, but code checks < 7
+          });
+
+        // Assert
+        expect(res.status).toBe(401);
+        expect(res.body.success).toBe(false);
+      });
+
+      it('should accept password with 7 or more characters', async () => {
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({
+            password: '1234567' // Exactly 7 characters
+          });
+
+        // Assert
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+      });
+    });
+
+    describe('Server Error', () => {
+      it('should return 500 if a server error occurs', async () => {
+        // Arrange
+        jest.spyOn(userModel, 'findById').mockImplementationOnce(() => {
+          throw new Error('DB error');
+        });
+
+        // Act
+        const res = await request(app)
+          .put('/api/v1/auth/profile')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ name: 'Test' });
+
+        // Assert
+        expect(res.status).toBe(500);
+        expect(res.body).toEqual(expect.objectContaining({
+          success: false,
+          message: 'Error While Updating Profile',
         }));
       });
     });

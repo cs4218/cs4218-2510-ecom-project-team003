@@ -29,7 +29,7 @@ const Profile = () => {
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
-        email,
+        // email,
         password,
         phone,
         address,

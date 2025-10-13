@@ -11,7 +11,11 @@ const AuthProvider = ({ children }) => {
 
     //default axios
     useEffect(() => {
-        axios.defaults.headers.common["Authorization"] = auth?.token;
+        if (auth?.token) {
+            axios.defaults.headers.common["Authorization"] = `Bearer ${auth?.token}`;
+        } else {
+            delete axios.defaults.headers.common["Authorization"];
+        }
     }, [auth?.token]); // Set axios authorization header when token changes
 
     const logout = () => {
@@ -21,6 +25,7 @@ const AuthProvider = ({ children }) => {
             token: "",
         }));
         localStorage.removeItem("auth");
+        delete axios.defaults.headers.common["Authorization"];
     };
 
     useEffect(() => {

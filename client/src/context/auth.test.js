@@ -49,6 +49,21 @@ describe('AuthContext', () => {
       expect(auth.token).toBe('');
     });
 
+    it('does not set authorization header when token is empty', () => {
+      // Arrange
+      localStorageMock.getItem.mockReturnValue(null);
+
+      // Act
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      });
+
+      // Assert
+      const [auth] = result.current;
+      expect(auth.token).toBe('');
+      expect(axios.defaults.headers.common['Authorization']).toBeUndefined();
+    });
+
     it('loads user and token from localStorage on mount', () => {
       // Arrange
       const mockAuthData = {
@@ -67,6 +82,25 @@ describe('AuthContext', () => {
       expect(localStorageMock.getItem).toHaveBeenCalledWith('auth');
       expect(auth.user).toEqual(mockAuthData.user);
       expect(auth.token).toBe('mockToken123');
+    });
+
+    it('sets axios authorization header when loading token from localStorage', () => {
+      // Arrange
+      const mockAuthData = {
+        user: { id: '123', name: 'John Doe', email: 'john@example.com' },
+        token: 'mockToken123'
+      };
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockAuthData));
+
+      // Act
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      });
+
+      // Assert
+      const [auth] = result.current;
+      expect(auth.token).toBe('mockToken123');
+      expect(axios.defaults.headers.common['Authorization']).toBe('Bearer mockToken123');
     });
 
     it('handles corrupted localStorage data gracefully', () => {
@@ -124,12 +158,40 @@ describe('AuthContext', () => {
         const [, setAuth] = result.current;
         setAuth({
           user: { id: '456', name: 'Jane' },
-          token: 'Bearer newToken123'
+          token: 'newToken123'
         });
       });
 
       // Assert
       expect(axios.defaults.headers.common['Authorization']).toBe('Bearer newToken123');
+    });
+
+    it('removes authorization header when token is set to empty string', () => {
+      // Arrange
+      const mockAuthData = {
+        user: { id: '123', name: 'John' },
+        token: 'mockToken'
+      };
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockAuthData));
+      
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      });
+
+      // Verify header is set initially
+      expect(axios.defaults.headers.common['Authorization']).toBe('Bearer mockToken');
+
+      // Act - set token to empty
+      act(() => {
+        const [, setAuth] = result.current;
+        setAuth({
+          user: null,
+          token: ''
+        });
+      });
+
+      // Assert - header should be removed
+      expect(axios.defaults.headers.common['Authorization']).toBeUndefined();
     });
   });
 
@@ -199,7 +261,7 @@ describe('AuthContext', () => {
       });
 
       // Assert
-      expect(axios.defaults.headers.common['Authorization']).toBe('');
+      expect(axios.defaults.headers.common['Authorization']).toBeUndefined();
     });
   });
 });
