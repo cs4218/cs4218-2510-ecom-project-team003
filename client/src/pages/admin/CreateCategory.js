@@ -11,6 +11,7 @@ const CreateCategory = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
+
   //handle Form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +27,7 @@ const CreateCategory = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message || "something went wrong in input form");
+      toast.error(error.response.data.message || "Something went wrong in input form");
     }
   };
 
@@ -36,10 +37,12 @@ const CreateCategory = () => {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data.success) {
         setCategories(data.category);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      toast.error("Something went wrong in getting category");
     }
   };
 
@@ -65,9 +68,15 @@ const CreateCategory = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+        console.log(error);
+        if (error.response?.status) {
+            toast.error(error.response.data.message);
+        } else {
+            toast.error("Something went wrong in updating category");
+        }
     }
   };
+
   //delete category
   const handleDelete = async (pId) => {
     try {
@@ -75,14 +84,14 @@ const CreateCategory = () => {
         `/api/v1/category/delete-category/${pId}`
       );
       if (data.success) {
-        toast.success(`category is deleted`);
+        toast.success(`Category is deleted`);
 
         getAllCategory();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+      toast.error("Something went wrong");
     }
   };
   return (
@@ -94,7 +103,7 @@ const CreateCategory = () => {
           </div>
           <div className="col-md-9">
             <h1>Manage Category</h1>
-            <div className="p-3 w-50">
+            <div className="p-3 w-50" data-testid="create-category-form">
               <CategoryForm
                 handleSubmit={handleSubmit}
                 value={name}
@@ -102,7 +111,7 @@ const CreateCategory = () => {
               />
             </div>
             <div className="w-75">
-              <table className="table">
+              <table className="table" data-testid="category-table">
                 <thead>
                   <tr>
                     <th scope="col">Name</th>
@@ -111,9 +120,8 @@ const CreateCategory = () => {
                 </thead>
                 <tbody>
                   {categories?.map((c) => (
-                    <>
-                      <tr>
-                        <td key={c._id}>{c.name}</td>
+                      <tr key={c._id}>
+                        <td>{c.name}</td>
                         <td>
                           <button
                             className="btn btn-primary ms-2"
@@ -135,7 +143,6 @@ const CreateCategory = () => {
                           </button>
                         </td>
                       </tr>
-                    </>
                   ))}
                 </tbody>
               </table>
@@ -149,6 +156,7 @@ const CreateCategory = () => {
                 value={updatedName}
                 setValue={setUpdatedName}
                 handleSubmit={handleUpdate}
+                data-testid="update-category-form"
               />
             </Modal>
           </div>

@@ -142,7 +142,7 @@ describe("Category Controllers", () => {
                 message: "New Category Created",
                 category: { ...newCategory, slug: "newcategory" },
             });
-        })
+        });
 
         it("Rejects repeated category and returns 409", async () => {
             const newCategory = { name: "Category1" };
@@ -161,7 +161,7 @@ describe("Category Controllers", () => {
 
         it("Returns 500 when handling error", async () => {
             const error = new Error("Some Error");
-            req.body = {name: "NewCategory"};
+            req.body = { name: "NewCategory" };
             categoryModel.findOne = jest.fn().mockRejectedValue(error);
 
             await createCategoryController(req, res);
@@ -178,33 +178,37 @@ describe("Category Controllers", () => {
 
     describe("Category Controllers Update operations", () => {
         it("Updates existing category in DB", async () => {
-           req.body = {name: "UpdatedCategory"};
-           req.params.id = "12345";
-           categoryModel.findByIdAndUpdate = jest.fn();
+            req.body = { name: "UpdatedCategory" };
+            req.params.id = "12345";
 
-           await updateCategoryController(req, res);
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
+            categoryModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
 
-           expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
-               "12345",
-               { name: "UpdatedCategory", slug: "UpdatedCategory" },
-               { new: true }
-           );
+            await updateCategoryController(req, res);
+
+            expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                "12345",
+                { name: "UpdatedCategory", slug: "UpdatedCategory" },
+                { new: true }
+            );
         });
 
         it("Returns 200 when update is successful", async () => {
-          req.body = {name: "UpdatedCategory"};
-          req.params.id = "12345";
-          categoryModel.findByIdAndUpdate = jest.fn();
+            req.body = { name: "UpdatedCategory" };
+            req.params.id = "12345";
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
+            categoryModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
 
-          await updateCategoryController(req, res);
+            await updateCategoryController(req, res);
 
-          expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.status).toHaveBeenCalledWith(200);
         });
 
         it("Expects DB to return updated category", async () => {
             const updatedCategory = { name: "UpdatedCategory", slug: "updatedcategory" };
-            req.body = {name: "UpdatedCategory"};
+            req.body = { name: "UpdatedCategory" };
             req.params.id = "12345";
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
             categoryModel.findByIdAndUpdate = jest.fn().mockResolvedValue(updatedCategory);
 
             await updateCategoryController(req, res);
@@ -218,8 +222,9 @@ describe("Category Controllers", () => {
 
         it("Returns 500 when handling error", async () => {
             const error = new Error("Some Error");
-            req.body = {name: "UpdatedCategory"};
+            req.body = { name: "UpdatedCategory" };
             req.params.id = "12345";
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
             categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
 
             await updateCategoryController(req, res);
@@ -230,8 +235,9 @@ describe("Category Controllers", () => {
 
         it("Sends error message when handling error", async () => {
             const error = new Error("Some Error");
-            req.body = {name: "UpdatedCategory"};
+            req.body = { name: "UpdatedCategory" };
             req.params.id = "12345";
+            categoryModel.findOne = jest.fn().mockResolvedValue(null);
             categoryModel.findByIdAndUpdate = jest.fn().mockRejectedValue(error);
 
             await updateCategoryController(req, res);
@@ -257,7 +263,7 @@ describe("Category Controllers", () => {
             categoryModel.findByIdAndDelete = jest.fn().mockResolvedValue({});
             await deleteCategoryController(req, res);
             expect(res.status).toHaveBeenCalledWith(200);
-        })
+        });
 
         it("Returns success message when deletion is successful", async () => {
             req.params.id = "12345";
@@ -267,7 +273,7 @@ describe("Category Controllers", () => {
                 success: true,
                 message: expect.stringMatching(/deleted|success|successful/i),
             }));
-        })
+        });
 
         it("Returns 404 when id is not found", async () => {
             req.params.id = "12345";
@@ -282,11 +288,11 @@ describe("Category Controllers", () => {
             await deleteCategoryController(req, res);
             expect(res.send).toHaveBeenCalledWith(expect.objectContaining(
                 {
-                success: false,
-                message: expect.stringContaining("not found"),
+                    success: false,
+                    message: expect.stringContaining("not found"),
                 }
             ));
-        })
+        });
 
         it("Returns 500 when handling other errors", async () => {
             const error = new Error("Some Error");
@@ -307,7 +313,6 @@ describe("Category Controllers", () => {
                 message: expect.stringMatching(/error/i),
                 error,
             }));
-        })
-    })
+        });
+    });
 });
-
