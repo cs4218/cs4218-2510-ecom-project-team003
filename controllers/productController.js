@@ -227,7 +227,7 @@ export const updateProductController = async (req, res) => {
 export const buildProductFiltersArgs = (checked, radio) => {
   let args = {};
   if (checked.length > 0) {
-    args.category = { $in: checked };
+    args.category = checked;
   }
   if (radio.length === 2) {
     args.price = { $gte: radio[0], $lte: radio[1] };

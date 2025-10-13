@@ -5,6 +5,7 @@ import {
     waitFor,
     screen,
     within,
+    waitForElementToBeRemoved,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
@@ -154,26 +155,27 @@ describe("HomePage Component", () => {
     it("Combines category and price to show only matching products", async () => {
         renderHomePage();
 
-        await screen.findAllByRole("heading", {
-            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
-        });
+        await screen.findByRole("heading", { name: "Laptop" });
 
-        const booksCheckBox = await screen.findByRole("checkbox", { name: "Books" });
-        fireEvent.click(booksCheckBox);
+        fireEvent.click(await screen.findByRole("checkbox", { name: "Books" }));
 
-        const priceRadio = await screen.getByLabelText("$60 to 79");
-        fireEvent.click(priceRadio);
-
-        expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
-
+        await screen.findByRole("heading", { name: "Study Guide" });
+        await screen.findByRole("heading", { name: "Singapore Contract Law" });
         await waitFor(() => {
-            expect(screen.queryByRole("heading", { name: "Study Guide" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Laptop" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Smartphone" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Tablet" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Campus Hoodie" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Leather Jacket" })).not.toBeInTheDocument();
         });
+
+        fireEvent.click(screen.getByLabelText("$60 to 79"));
+
+        await waitForElementToBeRemoved(() =>
+            screen.getByRole("heading", { name: "Study Guide" })
+        );
+
+        expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
     });
 
     it("Displays all products, Add one to cart, Go to Cart via Header and See the product", async () => {
