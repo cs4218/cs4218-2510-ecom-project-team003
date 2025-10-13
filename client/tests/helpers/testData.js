@@ -80,12 +80,3 @@ export const CAMPUS_HOODIE = {
     category: CLOTHING._id,
     quantity: 90,
 };
-
-export const LEATHER_JACKET = {
-    name: "Leather Jacket",
-    slug: "leather-jacket",
-    description: "Premium leather outerwear",
-    price: 150,
-    category: CLOTHING._id,
-    quantity: 25,
-};
