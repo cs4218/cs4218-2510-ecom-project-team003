@@ -38,7 +38,6 @@ console.log = jest.fn();
 beforeEach(async () => {
     await resetDatabase();
 
-    // Seed only 5 products (removed SMARTPHONE and LEATHER_JACKET)
     const PRODUCTS = [
         LAPTOP,
         TABLET,
