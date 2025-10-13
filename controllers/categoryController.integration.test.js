@@ -49,10 +49,9 @@ describe('Category Controller', () => {
 
     beforeEach(async () => {
         const CATEGORIES = [ELECTRONIC, BOOK];
-        const USERS = [ADMIN_USER];
 
         await categoryModel.insertMany(CATEGORIES);
-        await userModel.insertMany(USERS);
+        await userModel.insertOne(ADMIN_USER);
     })
 
     afterEach(async () => {
@@ -92,15 +91,23 @@ describe('Category Controller', () => {
         });
 
         it('Should return 401 when name is missing', async () => {
-            const missingCategory = { name: "", slug: "" };
-
             const res = await request(app)
                 .post('/api/v1/category/create-category')
-                .send({ name: missingCategory.name })
+                .send({ name: "" })
                 .set('Authorization', token);
 
             expect(res.status).toBe(401);
             expect(res.body.message).toBe('Name is required');
+        });
+
+        it('Should return 401 when name has only whitespace', async () => {
+            const res = await request(app)
+                .post('/api/v1/category/create-category')
+                .send({ name: "   " })
+                .set('Authorization', token);
+
+            expect(res.status).toBe(401);
+            expect(res.body.message).toBe('Name cannot contain only whitespace');
         });
 
         it('Should return 500 on internal error', async () => {
@@ -199,6 +206,39 @@ describe('Category Controller', () => {
             expect(res.body.message).toBe('Category Updated Successfully');
             expect(res.body.category).toHaveProperty("name", newName);
             expect(res.body.category).toHaveProperty("slug", slugify(newName).toLowerCase());
+        });
+
+        it('Should return 400 when name is missing', async () => {
+            const res = await request(app)
+                .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
+                .send({ name: "" })
+                .set('Authorization', token);
+
+            expect(res.status).toBe(400);
+            expect(res.body.success).toBe(false);
+            expect(res.body.message).toBe('Category name cannot be empty');
+        });
+
+        it('Should return 400 when name has only whitespace', async () => {
+            const res = await request(app)
+                .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
+                .send({ name: "   " })
+                .set('Authorization', token);
+
+            expect(res.status).toBe(400);
+            expect(res.body.success).toBe(false);
+            expect(res.body.message).toBe('Category name cannot contain only whitespace');
+        });
+
+        it('Should return 200 with success is false when updating using an existing category name', async () => {
+            const res = await request(app)
+                .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
+                .send({ name: BOOK.name })
+                .set('Authorization', token);
+
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(false);
+            expect(res.body.message).toBe('Category Already Exists');
         });
 
         it('Should return 500 for invalid ID', async () => {
