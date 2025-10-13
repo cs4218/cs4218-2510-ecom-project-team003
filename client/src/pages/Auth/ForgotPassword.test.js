@@ -109,7 +109,7 @@ describe('ForgotPassword Component - Unit Tests', () => {
 
   describe('Rendering', () => {
     
-    it('should render all form elements correctly', () => {
+    it('should render all form elements correctly', async () => {
       // Arrange & Act
       renderWithProviders();
       
@@ -124,7 +124,7 @@ describe('ForgotPassword Component - Unit Tests', () => {
 
   describe('User Interactions', () => {
     
-    it('should update all form fields when user types', () => {
+    it('should update all form fields when user types', async () => {
       // Arrange
       renderWithProviders();
       const { emailInput, answerInput, passwordInput } = getFormElements();
@@ -163,7 +163,7 @@ describe('ForgotPassword Component - Unit Tests', () => {
       });
     });
 
-    it('should not submit form when required fields are empty', () => {
+    it('should not submit form when required fields are empty', async () => {
       // Arrange
       renderWithProviders();
       const { submitButton } = getFormElements();
