@@ -56,7 +56,7 @@ export const ADMIN = {
   role: 1,
 };
 
-export const ORDER_TWO_ITEMS = {
+export const ORDER_TWO_ITEMS_PROCESSING = {
   _id: 'a1b2c3d4e5f6789012345680',
   products: [LAPTOP._id, SMARTPHONE._id],
   status: 'Processing',
