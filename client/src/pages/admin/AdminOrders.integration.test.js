@@ -1,13 +1,12 @@
 import React from "react";
 import {render, screen, within} from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import AdminOrders from "./AdminOrders";
 import { AuthProvider } from "../../context/auth";
 import { SearchProvider } from "../../context/search";
 import { CartProvider } from "../../context/cart";
-import { useAuth } from "../../context/auth";
 
 // optional helpers if needed for seeding mock API data
 import { seedOrders, resetDatabase, seedCategories, seedProducts, seedUsers } from "../../../tests/helpers/seedApi";
@@ -15,7 +14,6 @@ import { ELECTRONICS, LAPTOP, SMARTPHONE, TABLET, USER, ADMIN, ORDER_TWO_ITEMS_P
 
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import axios from "axios";
 dotenv.config({"path": ".env"});
 
 const admin_token = jwt.sign(
@@ -30,7 +28,7 @@ const user_token = jwt.sign(
     { expiresIn: "1h" }
 );
 
-export const renderAdminOrders = (authValue) => {
+export const renderAdminOrders = () => {
     return render(
         <AuthProvider>
             <SearchProvider>
@@ -62,6 +60,7 @@ describe("Admin Orders API integration and Data fetching",  () => {
         localStorage.clear();
     })
 
+    // Security tests
 
     it ("Does not render orders for non-admin user", async () => {
         // expected failure in console logs, but logs are not relevant to test
@@ -101,6 +100,8 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
     });
 
+    // UI tests:
+
     it ("Renders No orders when none exist", async () => {
         // no seeding of orders
         await seedUsers([USER, ADMIN]);
@@ -111,6 +112,8 @@ describe("Admin Orders API integration and Data fetching",  () => {
         const orderItems = screen.queryAllByTestId("order-item");
         expect(orderItems.length).toBe(0);
     });
+
+    // Data Integrity tests:
 
     it ("Renders Initial order status", async () => {
         await seedUsers([USER, ADMIN]);
@@ -123,7 +126,7 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
 
         const firstOrder = orderItems[0];
-        expect(await within(firstOrder).findByText(/Processing/i)).toBeInTheDocument();
+        expect(await within(firstOrder).findByText(ORDER_TWO_ITEMS_PROCESSING.status)).toBeInTheDocument();
     });
 
     it ("Renders buyer name", async () => {
@@ -137,7 +140,7 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
 
         const firstOrder = orderItems[0];
-        expect(await within(firstOrder).findByText(/John Doe/i)).toBeInTheDocument();
+        expect(await within(firstOrder).findByText(USER.name)).toBeInTheDocument();
     });
 
     it ("Renders order date", async () => {
@@ -167,7 +170,9 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
 
         const firstOrder = orderItems[0];
-        expect(await within(firstOrder).findByText(/Success/i)).toBeInTheDocument();
+        expect(await within(firstOrder).findByText(
+            ORDER_TWO_ITEMS_PROCESSING.payment.success ? /success/i : /fail/i
+        )).toBeInTheDocument();
     });
 
     it ("Renders product quantity", async () => {
@@ -196,23 +201,58 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
 
         const firstProduct = orderItems[0];
-        const laptops = await within(firstProduct).findAllByText(/Laptop/i);
+        const laptops = await within(firstProduct).findAllByText(LAPTOP.description);
         expect(laptops.length).toBeGreaterThan(0);
 
         const secondProduct = orderItems[1];
-        const smartphones = await within(secondProduct).findAllByText(/Smartphone/i);
+        const smartphones = await within(secondProduct).findAllByText(SMARTPHONE.description);
         expect(smartphones.length).toBeGreaterThan(0);
     });
 
-    // it ("A product card has description", async () => {
-    //     const laptop_desc = LAPTOP.description.substring(0, 30);
-    //     const smartphone_desc = SMARTPHONE.description.substring(0, 30);
-    // });
+    it ("A product card has description", async () => {
+        const laptop_desc = LAPTOP.description.substring(0, 30);
+        const smartphone_desc = SMARTPHONE.description.substring(0, 30);
 
-    // it ("A product card has price", async () => {});
-    //
-    // it ("Changing order status updates order", async () => {
-    // });
-    //
-    // it ("Shows failure toast on order status update failure", async () => {});
+        await seedUsers([USER, ADMIN]);
+        await seedCategories([ELECTRONICS]);
+        await seedProducts([LAPTOP, SMARTPHONE]);
+        await seedOrders([ORDER_TWO_ITEMS_PROCESSING]);
+
+        renderAdminOrders();
+        const orderItems = await screen.findAllByTestId("order-item");
+        expect(orderItems.length).toBeGreaterThan(0); // expect something
+
+        const firstProduct = orderItems[0];
+        const laptops = await within(firstProduct).findAllByText(laptop_desc);
+        expect(laptops.length).toBeGreaterThan(0);
+
+        const secondProduct = orderItems[1];
+        const smartphones = await within(secondProduct).findAllByText(smartphone_desc);
+        expect(smartphones.length).toBeGreaterThan(0);
+
+    });
+
+    it ("A product card has price", async () => {
+        const laptop_price = LAPTOP.price;
+        const smartphone_price = SMARTPHONE.price;
+
+        await seedUsers([USER, ADMIN]);
+        await seedCategories([ELECTRONICS]);
+        await seedProducts([LAPTOP, SMARTPHONE]);
+        await seedOrders([ORDER_TWO_ITEMS_PROCESSING]);
+
+        renderAdminOrders();
+        const orderItems = await screen.findAllByTestId("order-item");
+        expect(orderItems.length).toBeGreaterThan(0); // expect something
+
+        const firstProduct = orderItems[0];
+        const laptops = await within(firstProduct).findAllByText(laptop_price);
+        expect(laptops.length).toBeGreaterThan(0);
+
+        const secondProduct = orderItems[1];
+        const smartphones = await within(secondProduct).findAllByText(smartphone_price);
+        expect(smartphones.length).toBeGreaterThan(0);
+
+    });
+
 });
