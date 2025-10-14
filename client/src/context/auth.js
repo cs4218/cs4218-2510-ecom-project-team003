@@ -9,10 +9,31 @@ const AuthProvider = ({ children }) => {
         token: "",
     });
 
-    //default axios
+    const didMount = React.useRef(false);
+
     useEffect(() => {
-        axios.defaults.headers.common["Authorization"] = auth?.token;
-    }, [auth?.token]); // Set axios authorization header when token changes
+        try {
+            if (auth?.token) {
+                axios.defaults.headers.common["Authorization"] = auth.token;
+            } else if (!didMount.current) {
+                // fallback only during initial mount
+                const storedAuth = localStorage.getItem("auth");
+                if (!storedAuth) return;
+                const parsed = JSON.parse(storedAuth);
+                if (parsed?.token) {
+                    axios.defaults.headers.common["Authorization"] = parsed.token;
+                }
+            } else {
+                // on logout or loss of auth, clear header
+                axios.defaults.headers.common["Authorization"] = "";
+            }
+        } catch (error) {
+            localStorage.removeItem("auth");
+            setAuth({ user: null, token: "" });
+        }
+        didMount.current = true;
+    }, [auth?.token]);
+
 
     const logout = () => {
         setAuth((prev) => ({
