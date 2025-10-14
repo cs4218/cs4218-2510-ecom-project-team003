@@ -17,6 +17,7 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      min: [0.01, "Price must be positive"],
     },
     category: {
       type: mongoose.ObjectId,
@@ -26,6 +27,7 @@ const productSchema = new mongoose.Schema(
     quantity: {
       type: Number,
       required: true,
+      min: [0, "Quantity must be non-negative"],
     },
     photo: {
       data: Buffer,
@@ -38,7 +40,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.pre("save", async function(next) {
+productSchema.pre("save", async function (next) {
   if (!this.isModified("name")) {
     return next();
   }
@@ -47,7 +49,7 @@ productSchema.pre("save", async function(next) {
   let slug = baseSlug;
   let count = 1;
 
-  while (await this.constructor.findOne({slug})) {
+  while (await this.constructor.findOne({ slug })) {
     slug = `${baseSlug}-${count++}`;
   }
 
@@ -55,24 +57,24 @@ productSchema.pre("save", async function(next) {
   next();
 });
 
-productSchema.pre("findOneAndUpdate", async function(next) {
-    const update = this.getUpdate();
+productSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate();
 
-    if (update.name) {
-        let baseSlug = update.name;
-        let slug = baseSlug;
-        let count = 1;
+  if (update.name) {
+    let baseSlug = update.name;
+    let slug = baseSlug;
+    let count = 1;
 
-        const Model = this.model;
-        while (await Model.findOne({ slug, _id: { $ne: this.getQuery()._id } })) { // $ne excludes this.
-            slug = `${baseSlug}-${count++}`;
-        }
-
-        update.slug = slug;
-        this.setUpdate(update);
+    const Model = this.model;
+    while (await Model.findOne({ slug, _id: { $ne: this.getQuery()._id } })) { // $ne excludes this.
+      slug = `${baseSlug}-${count++}`;
     }
 
-    next();
+    update.slug = slug;
+    this.setUpdate(update);
+  }
+
+  next();
 });
 
 
