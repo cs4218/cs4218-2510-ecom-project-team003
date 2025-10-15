@@ -85,7 +85,7 @@ const UpdateProduct = () => {
       }
     } catch (error) {
       if (error.response?.status === 400) {
-        return toast.error(error.response.data.message);
+        return toast.error(error.response.data.error);
       }
       console.log(error);
       toast.error("Something went wrong");
