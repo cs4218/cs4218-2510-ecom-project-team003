@@ -40,42 +40,29 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.pre("save", async function (next) {
-  if (!this.isModified("name")) {
-    return next();
-  }
-
-  let baseSlug = this.name;
-  let slug = baseSlug;
+productSchema.statics.generateUniqueSlug = async function (slug, excludeId) {
+  const query = { slug, _id: { $ne: excludeId } };
   let count = 1;
 
-  while (await this.constructor.findOne({ slug })) {
-    slug = `${baseSlug}-${count++}`;
+  while (await this.findOne(query)) {
+    query.slug = `${slug}-${count++}`;
   }
+  return query.slug;
+}
 
-  this.slug = slug;
+productSchema.pre("save", async function (next) {
+  this.slug = await this.constructor.generateUniqueSlug(this.slug, this._id);
   next();
 });
 
 productSchema.pre("findOneAndUpdate", async function (next) {
   const update = this.getUpdate();
+  const slug = update.slug;
+  if (!slug) return next();
 
-  if (update.name) {
-    let baseSlug = update.name;
-    let slug = baseSlug;
-    let count = 1;
-
-    const Model = this.model;
-    while (await Model.findOne({ slug, _id: { $ne: this.getQuery()._id } })) { // $ne excludes this.
-      slug = `${baseSlug}-${count++}`;
-    }
-
-    update.slug = slug;
-    this.setUpdate(update);
-  }
-
+  update.slug = await this.model.generateUniqueSlug(slug, this.getQuery()._id);
+  this.setUpdate(update);
   next();
 });
-
 
 export default mongoose.model("Products", productSchema);

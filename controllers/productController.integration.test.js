@@ -229,7 +229,7 @@ describe('Product Controller', () => {
         ...LAPTOP,
         _id: (new mongoose.Types.ObjectId()).toString(),
         name: `Laptop ${i + 1}`,
-        slug: `laptop${i + 1}`,
+        slug: `laptop-${i + 1}`,
         createdAt: new Date(2024, 0, 30 - i),
       }));
       await categoryModel.insertMany([ELECTRONICS]);
@@ -244,7 +244,7 @@ describe('Product Controller', () => {
       expect(products).toHaveLength(6);
 
       const slugs = products.map(p => p.slug);
-      const expectedSlugs = Array.from({ length: 6 }, (_, i) => `laptop${i + 1}`);
+      const expectedSlugs = Array.from({ length: 6 }, (_, i) => `laptop-${i + 1}`);
       expect(slugs).toEqual(expectedSlugs);
 
       products.forEach(p => expect(p).not.toHaveProperty('photo'));
@@ -258,7 +258,7 @@ describe('Product Controller', () => {
       expect(products).toHaveLength(4);
 
       const slugs = products.map(p => p.slug);
-      const expectedSlugs = Array.from({ length: 4 }, (_, i) => `laptop${i + 7}`);
+      const expectedSlugs = Array.from({ length: 4 }, (_, i) => `laptop-${i + 7}`);
       expect(slugs).toEqual(expectedSlugs);
 
       products.forEach(p => expect(p).not.toHaveProperty('photo'));

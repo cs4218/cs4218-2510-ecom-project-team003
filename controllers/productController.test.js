@@ -154,7 +154,7 @@ describe('Product Controller', () => {
     beforeEach(() => {
       fs.readFileSync.mockReturnValue('fakeimagedata');
     })
-    it("should return 500 if name is missing", async () => {
+    it("should return 400 if name is missing", async () => {
       const no_name = {
         ...LAPTOP_CREATE,
         fields: { ...LAPTOP_CREATE.fields }, // ensure nested copy
@@ -163,11 +163,11 @@ describe('Product Controller', () => {
       const [_, res] = mockRequestResponse(no_name);
       await createProductController(no_name, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "Name is Required" });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Name is required" });
     });
 
-    it("should return 500 if description is missing", async () => {
+    it("should return 400 if description is missing", async () => {
       const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
       mockProductModel({
         populate: jest.fn().mockResolvedValueOnce(LAPTOP),
@@ -182,11 +182,11 @@ describe('Product Controller', () => {
 
       await createProductController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "Description is Required" });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Description is required" });
     });
 
-    it("should return 500 if price is missing", async () => {
+    it("should return 400 if price is missing", async () => {
       const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
 
       req.fields = { name: "name", description: "desc", category: "cat", quantity: 1};
@@ -199,11 +199,25 @@ describe('Product Controller', () => {
 
       await createProductController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "Price is Required" });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Price is required" });
     });
 
-    it("should return 500 if category is missing", async () => {
+    it("should return 400 if price is zero", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+      });
+      req.fields = { name: "name", description: "desc", price: -1, category: "cat", quantity: 1};
+      req.files = { photo: jest.fn() };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Price must be positive" });
+    });
+
+    it("should return 400 if category is missing", async () => {
       const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
       mockProductModel({
         populate: jest.fn().mockResolvedValueOnce(LAPTOP),
@@ -213,11 +227,11 @@ describe('Product Controller', () => {
 
       await createProductController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "Category is Required" });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Category is required" });
     });
 
-    it("should return 500 if quantity is missing", async () => {
+    it("should return 400 if quantity is missing", async () => {
       const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
       mockProductModel({
         populate: jest.fn().mockResolvedValueOnce(LAPTOP),
@@ -227,8 +241,22 @@ describe('Product Controller', () => {
 
       await createProductController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({ error: "Quantity is Required" });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Quantity is required" });
+    });
+
+    it("should return 400 if quantity is negative", async () => {
+      const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
+      mockProductModel({
+        populate: jest.fn().mockResolvedValueOnce(LAPTOP),
+      });
+      req.fields = { name: "name", description: "desc", price: 10, category: "cat", quantity: -1};
+      req.files = { photo: jest.fn() };
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({ message: "Quantity must be non-negative" });
     });
 
     it("should save product and return 201 on success", async () => {
@@ -256,7 +284,7 @@ describe('Product Controller', () => {
       );
     });
 
-    it("should return 500 if photo is too big", async () => {
+    it("should return 400 if photo is too big", async () => {
       const [req, res] = mockRequestResponse({ slug: LAPTOP.slug });
       req.fields = { name: "Book", description: "Nice", price: 100, category: "cat", quantity: 2 };
       req.files = {
@@ -267,10 +295,10 @@ describe('Product Controller', () => {
         }
       };
       await createProductController(req, res);
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(400);
       expect(res.send).toHaveBeenCalledWith(
           expect.objectContaining({
-            error: expect.stringMatching(/too big|(?=.*less than)(?=.*1mb)/i),
+            message: expect.stringMatching(/too big|(?=.*less than)(?=.*1mb)/i),
           })
       );
     });
