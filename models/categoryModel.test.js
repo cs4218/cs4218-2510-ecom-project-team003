@@ -15,7 +15,7 @@ describe("Category Model", () => {
     it("Should successfully lowercase slug automatically", async () => {
         const category = new categoryModel({ name: "Books", slug: "BoOkSAndMORE" });
         await category.validate();
-        expect(category.slug).toBe("books-and-more");
+        expect(category.slug).toBe("booksandmore");
     });
 
     it("Should pass successfully when slug is missing", async () => {
