@@ -7,24 +7,24 @@ const VALID_CATEGORY = {
 };
 
 describe("Category Model", () => {
-    it("Should pass when name and slug are provided", async () => {
+    it("Should pass successfully when name and slug are provided", async () => {
         const category = new categoryModel({ ...VALID_CATEGORY });
         await expect(category.validate()).resolves.toBeUndefined();
     });
 
-    it("Should lowercase slug automatically", async () => {
-        const category = new categoryModel({ name: "Books", slug: "BoOkS-And-MORE" });
+    it("Should successfully lowercase slug automatically", async () => {
+        const category = new categoryModel({ name: "Books", slug: "BoOkSAndMORE" });
         await category.validate();
         expect(category.slug).toBe("books-and-more");
     });
 
-    it("Should pass when slug is missing", async () => {
+    it("Should pass successfully when slug is missing", async () => {
         const category = new categoryModel({ name: "Clothing" });
         await expect(category.validate()).resolves.toBeUndefined();
     });
 
-    it("should fail if name is missing", async () => {
-        const category = new categoryModel({ slug: "misc" });
+    it("Should fail if name is missing", async () => {
+        const category = new categoryModel({ slug: "noName" });
         await expect(category.validate()).rejects.toThrow(mongoose.Error.ValidationError);
     });
 });
