@@ -131,7 +131,7 @@ describe("HomePage Component", () => {
             name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
 
-        const priceRadio = screen.getByLabelText("$60 to 79");
+        const priceRadio = screen.getByLabelText("$60 to 79.99");
         fireEvent.click(priceRadio);
 
         expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe("HomePage Component", () => {
         await screen.findByRole("heading", { name: "Study Guide" });
         await screen.findByRole("heading", { name: "Singapore Contract Law" });
 
-        fireEvent.click(screen.getByLabelText("$60 to 79"));
+        fireEvent.click(screen.getByLabelText("$60 to 79.99"));
 
         await waitForElementToBeRemoved(() =>
             screen.getByRole("heading", { name: "Study Guide" })
