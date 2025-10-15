@@ -164,7 +164,7 @@ describe('Product Controller', () => {
       await createProductController(no_name, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Name is required" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Name is required" });
     });
 
     it("should return 400 if description is missing", async () => {
@@ -183,7 +183,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Description is required" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Description is required" });
     });
 
     it("should return 400 if price is missing", async () => {
@@ -200,7 +200,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Price is required" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Price is required" });
     });
 
     it("should return 400 if price is zero", async () => {
@@ -214,7 +214,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Price must be positive" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Price must be positive" });
     });
 
     it("should return 400 if category is missing", async () => {
@@ -228,7 +228,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Category is required" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Category is required" });
     });
 
     it("should return 400 if quantity is missing", async () => {
@@ -242,7 +242,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Quantity is required" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Quantity is required" });
     });
 
     it("should return 400 if quantity is negative", async () => {
@@ -256,7 +256,7 @@ describe('Product Controller', () => {
       await createProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Quantity must be non-negative" });
+      expect(res.send).toHaveBeenCalledWith({ message: "Quantity must be non-negative" });
     });
 
     it("should save product and return 201 on success", async () => {
@@ -298,7 +298,7 @@ describe('Product Controller', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.send).toHaveBeenCalledWith(
           expect.objectContaining({
-            error: expect.stringMatching(/too big|(?=.*less than)(?=.*1mb)/i),
+            message: expect.stringMatching(/too big|(?=.*less than)(?=.*1mb)/i),
           })
       );
     });

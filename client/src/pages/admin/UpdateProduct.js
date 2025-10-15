@@ -84,8 +84,8 @@ const UpdateProduct = () => {
         navigate("/dashboard/admin/products");
       }
     } catch (error) {
-      if (error.response?.status === 400) {
-        return toast.error(error.response.data.error);
+      if ([400, 500].includes(error.response?.status)) {
+        return toast.error(error.response.data.message);
       }
       console.log(error);
       toast.error("Something went wrong");

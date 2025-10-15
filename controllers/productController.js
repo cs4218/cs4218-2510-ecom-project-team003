@@ -21,23 +21,23 @@ export const createProductController = async (req, res) => {
     // Validation
     switch (true) {
       case !name:
-        return res.status(400).send({ error: "Name is required" });
+        return res.status(400).send({ message: "Name is required" });
       case !description:
-        return res.status(400).send({ error: "Description is required" });
+        return res.status(400).send({ message: "Description is required" });
       case !price:
-        return res.status(400).send({ error: "Price is required" });
+        return res.status(400).send({ message: "Price is required" });
       case price <= 0:
-        return res.status(400).send({ error: "Price must be positive" });
+        return res.status(400).send({ message: "Price must be positive" });
       case !category:
-        return res.status(400).send({ error: "Category is required" });
+        return res.status(400).send({ message: "Category is required" });
       case !quantity:
-        return res.status(400).send({ error: "Quantity is required" });
+        return res.status(400).send({ message: "Quantity is required" });
       case quantity < 0:
-        return res.status(400).send({ error: "Quantity must be non-negative" });
+        return res.status(400).send({ message: "Quantity must be non-negative" });
       case photo && photo.size > 1000000:
         return res
           .status(400)
-          .send({ error: "photo is required and should be less than 1mb" });
+          .send({ message: "photo is required and should be less than 1mb" });
     }
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
@@ -186,23 +186,23 @@ export const updateProductController = async (req, res) => {
     // Validation
     switch (true) {
       case !name:
-        return res.status(400).send({ error: "Name is required" });
+        return res.status(400).send({ message: "Name is required" });
       case !description:
-        return res.status(400).send({ error: "Description is required" });
+        return res.status(400).send({ message: "Description is required" });
       case !price:
-        return res.status(400).send({ error: "Price is required" });
+        return res.status(400).send({ message: "Price is required" });
       case price <= 0:
-        return res.status(400).send({ error: "Price must be positive" });
+        return res.status(400).send({ message: "Price must be positive" });
       case !category:
-        return res.status(400).send({ error: "Category is required" });
+        return res.status(400).send({ message: "Category is required" });
       case !quantity:
-        return res.status(400).send({ error: "Quantity is required" });
+        return res.status(400).send({ message: "Quantity is required" });
       case quantity < 0:
-        return res.status(400).send({ error: "Quantity must be non-negative" });
+        return res.status(400).send({ message: "Quantity must be non-negative" });
       case photo && photo.size > 1000000:
         return res
           .status(400)
-          .send({ error: "photo is required and should be less than 1mb" });
+          .send({ message: "photo is required and should be less than 1mb" });
     }
 
     const products = await productModel.findByIdAndUpdate(
