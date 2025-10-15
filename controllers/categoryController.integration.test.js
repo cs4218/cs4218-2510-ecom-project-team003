@@ -90,23 +90,23 @@ describe('Category Controller', () => {
             expect(res.body.message).toBe('Category Already Exists');
         });
 
-        it('Should return 401 when name is missing', async () => {
+        it('Should return 400 when name is missing', async () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: "" })
                 .set('Authorization', token);
 
-            expect(res.status).toBe(401);
+            expect(res.status).toBe(400);
             expect(res.body.message).toBe('Name is required');
         });
 
-        it('Should return 401 when name has only whitespace', async () => {
+        it('Should return 400 when name has only whitespace', async () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: "   " })
                 .set('Authorization', token);
 
-            expect(res.status).toBe(401);
+            expect(res.status).toBe(400);
             expect(res.body.message).toBe('Name cannot contain only whitespace');
         });
 

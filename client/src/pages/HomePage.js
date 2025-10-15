@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
@@ -20,6 +20,7 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const isFiltering = checked.length > 0 || radio.length > 0;
+  const latestFilterReq = useRef(0);
 
   //get all cat
   const getAllCategory = async () => {
@@ -101,12 +102,15 @@ const HomePage = () => {
 
   //get filtered product
   const filterProduct = async () => {
+    const reqId = ++latestFilterReq.current;
     try {
       const { data } = await axios.post("/api/v1/product/product-filters", {
         checked,
         radio,
       });
-      setProducts(data?.products);
+      if (reqId === latestFilterReq.current) {
+         setProducts(data?.products);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -153,6 +157,7 @@ const HomePage = () => {
               onClick={() => {
                   setChecked([]);
                   setRadio([]);
+                  latestFilterReq.current++;
                   getAllProducts(1);
               }}
             >

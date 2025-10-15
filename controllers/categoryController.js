@@ -4,10 +4,10 @@ export const createCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {
-        return res.status(401).send({ message: "Name is required" });
+        return res.status(400).send({ message: "Name is required" });
     }
     if (name.trim().length === 0){
-        return res.status(401).send({ message: "Name cannot contain only whitespace" });
+        return res.status(400).send({ message: "Name cannot contain only whitespace" });
     }
     const existingCategory = await categoryModel.findOne({ name: name });
     if (existingCategory) {
