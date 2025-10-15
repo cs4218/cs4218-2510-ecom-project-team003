@@ -34,11 +34,9 @@ const Login = () => {
             },
           });
         setAuth({
-            ...auth,
             user: res.data.user,
             token: res.data.token,
         });
-        localStorage.setItem("auth", JSON.stringify(res.data));
         navigate(location.state || "/");
       } 
       else {

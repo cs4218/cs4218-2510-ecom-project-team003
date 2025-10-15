@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/auth";
 import { Outlet } from "react-router-dom";
+import toast from "react-hot-toast";
 import axios from 'axios';
 import Spinner from "../Spinner";
 
@@ -25,5 +26,8 @@ export default function AdminRoute() {
     if (auth?.token) authCheck();
   }, [auth?.token]);
 
-  return ok ? <Outlet /> : <Spinner onTimeout={() => logout()} />;
+  return ok ? <Outlet /> : <Spinner onTimeout={() => {
+    logout();
+    toast.success("You have been logged out", { duration: 5000 });
+  }} />;
 }
