@@ -53,7 +53,7 @@ const ProductDetails = () => {
     }
   };
   return (
-    <Layout>
+    <Layout title="Product Details">
       <div className="row container product-details" data-testid="product-details">
         <div className="col-md-6">
           <img
