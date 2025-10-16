@@ -12,7 +12,10 @@ const AuthProvider = ({ children }) => {
   const setAuth = (value) => {
     _setAuth(value);
 
-    axios.defaults.headers.common["Authorization"] = value?.token;
+    if (value?.token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${value.token}`;
+    }
+    
     localStorage.setItem("auth", JSON.stringify(value));
   }
 
@@ -34,7 +37,9 @@ const AuthProvider = ({ children }) => {
       } catch (error) {
         localStorage.removeItem("auth");
         delete axios.defaults.headers.common["Authorization"];
-    };
+      }
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={[auth, setAuth, logout]}>
