@@ -43,7 +43,7 @@ export const PRODUCTS = [{
   name: "Gaming Laptop",
   slug: "gaming-laptop",
   description: "A high-performance gaming laptop with advanced graphics",
-  price: 1499.99,
+  price: 1999.99,
   category: new mongoose.Types.ObjectId("66db427fdb0119d9234b27ed"),
   quantity: 20,
   photo: {

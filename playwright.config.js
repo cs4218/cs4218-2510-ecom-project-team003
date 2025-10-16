@@ -41,6 +41,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev:ui',
     url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
   },
 });
 
