@@ -19,7 +19,6 @@ export default function PrivateRoute(){
                     setOk(false);
                 }
             } catch (error) {
-                console.log("Error in authCheck:", error);  // Debugging line
                 setOk(false);
             }
         };
