@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { addToCart, expectCartCount, expectToast, getProductCard, goToCart, goToProductDetails, performSearch } from './utils';
+import { addToCartFromCard, expectCartCount, expectToastCount, getProductCard, goToCart, goToProductDetails, performSearch } from './utils';
 
 test('Search Page Flow', async ({ page }) => {
   // Go to home
@@ -40,8 +40,8 @@ test('Search Page Flow', async ({ page }) => {
 
   // Add product to cart
   await expect(await getProductCard(page, /powerful/i)).toBeVisible();
-  await addToCart(page, /powerful/i);
-  await expectToast(page, /added to cart/i);
+  await addToCartFromCard(page, /powerful/i);
+  await expectToastCount(page, /added to cart/i, 1);
   await expectCartCount(page, 1);
 
   // Verify cart contents

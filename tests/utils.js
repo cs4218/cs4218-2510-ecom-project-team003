@@ -20,18 +20,23 @@ export async function goToProductDetails(page, productText) {
   await productCard.getByRole('button', { name: /details/i }).click();
 }
 
-export async function addToCart(page, productText) {
+export async function addToCartFromCard(page, productText) {
   const productCard = await getProductCard(page, productText);
   await productCard.getByRole('button', { name: /add to cart/i }).click();
+}
+
+export async function addToCartFromDetails(page) {
+  const details = page.locator('.product-details-info');
+  await details.getByRole('button', { name: /add to cart/i }).click();
 }
 
 export async function goToCart(page) {
   await page.getByRole('link', { name: /cart/i }).click();
 }
 
-export async function expectToast(page, message) {
-  const toast = page.getByRole('status');
-  await expect(toast).toHaveText(message);
+export async function expectToastCount(page, message, count) {
+  const toasts = page.getByRole('status').filter({ hasText: message });
+  await expect(toasts).toHaveCount(count);
 }
 
 export async function expectCartCount(page, count) {
