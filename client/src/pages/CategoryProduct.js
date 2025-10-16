@@ -46,7 +46,7 @@ const CategoryProduct = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Category Products">
       <div className="container mt-3 category" data-testid="category-product">
         <h4 className="text-center">Category - {category?.name}</h4>
         <h6 className="text-center">{formatResultCount(products?.length)}</h6>
