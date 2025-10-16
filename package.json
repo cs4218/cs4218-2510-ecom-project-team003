@@ -6,9 +6,11 @@
   "scripts": {
     "start": "node server.js",
     "start:frontend-integration": "cross-env NODE_ENV=test-frontend-integration PORT=6061 npm start",
+    "start:ui": "cross-env NODE_ENV=test-ui npm start",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev:ui": "concurrently \"npm run start:ui\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
     "test": "npm run test:backend && npm run test:frontend && npm run test:backend-integration && npm run test:frontend-integration",
     "test:frontend": "jest --config jest.frontend.config.js",
@@ -42,7 +44,7 @@
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-react": "^7.24.1",
-    "@playwright/test": "^1.44.0",
+    "@playwright/test": "^1.56.0",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
     "cross-env": "^10.1.0",
@@ -51,7 +53,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "mongodb-memory-server": "^10.2.2",
     "sonarqube-scanner": "^4.3.0",
-    "supertest": "^7.1.4",
-    "start-server-and-test": "^2.1.2"
+    "start-server-and-test": "^2.1.2",
+    "supertest": "^7.1.4"
   }
 }
