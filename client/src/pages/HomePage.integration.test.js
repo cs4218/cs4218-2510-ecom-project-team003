@@ -5,7 +5,6 @@ import {
     waitFor,
     screen,
     within,
-    waitForElementToBeRemoved,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
@@ -131,7 +130,7 @@ describe("HomePage Component", () => {
             name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
 
-        const priceRadio = screen.getByLabelText("$60 to 79");
+        const priceRadio = screen.getByLabelText("$60 to 79.99");
         fireEvent.click(priceRadio);
 
         expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
@@ -155,16 +154,15 @@ describe("HomePage Component", () => {
         await screen.findByRole("heading", { name: "Study Guide" });
         await screen.findByRole("heading", { name: "Singapore Contract Law" });
 
-        fireEvent.click(screen.getByLabelText("$60 to 79"));
-
-        await waitForElementToBeRemoved(() =>
-            screen.getByRole("heading", { name: "Study Guide" })
-        );
+        fireEvent.click(screen.getByLabelText("$60 to 79.99"));
 
         expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
 
-        ["Laptop", "Tablet", "Campus Hoodie", "Study Guide"].forEach((n) => {
-            expect(screen.queryByRole("heading", { name: n })).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByRole("heading", { name: "Study Guide" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("heading", { name: "Laptop" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("heading", { name: "Tablet" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("heading", { name: "Campus Hoodie" })).not.toBeInTheDocument();
         });
     });
 

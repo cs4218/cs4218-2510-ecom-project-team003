@@ -26,8 +26,9 @@ const UPDATED_PASSWORD = 'Password123!';
 jest.mock('axios');
 jest.mock('react-hot-toast');
 
+mockSetAuth = jest.fn();
 jest.mock('../../context/auth', () => ({
-  useAuth: jest.fn(() => [{ user: USER }, jest.fn()])
+  useAuth: jest.fn(() => [{ user: USER }, mockSetAuth])
 }));
 
 jest.mock('../../context/cart', () => ({
@@ -113,12 +114,12 @@ describe('Profile Component', () => {
     fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });
     fireEvent.click(await screen.findByRole('button', { name: /update/i }));
 
-    await waitFor(() => expect(localStorage.setItem).toHaveBeenCalled());
-    const savedAuth = JSON.parse(localStorage.setItem.mock.calls[0][1]);
-    expect(savedAuth.user).toMatchObject({
-      name: UPDATED_USER.name,
-      email: UPDATED_USER.email,
-    });
+    await waitFor(() => expect(mockSetAuth).toHaveBeenCalledWith(expect.objectContaining({
+      user: expect.objectContaining({
+        name: UPDATED_USER.name,
+        email: UPDATED_USER.email,
+      })
+    })));
     expect(toast.success).toHaveBeenCalledWith(expect.any(String));
   });
 

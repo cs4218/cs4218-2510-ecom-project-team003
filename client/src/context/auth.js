@@ -4,53 +4,45 @@ import axios from "axios";
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-    const [auth, setAuth] = useState({
-        user: null,
-        token: "",
-    });
+  const [auth, _setAuth] = useState({
+    user: null,
+    token: "",
+  });
 
-    //default axios
-    useEffect(() => {
-        if (auth?.token) {
-            axios.defaults.headers.common["Authorization"] = `Bearer ${auth?.token}`;
-        } else {
-            delete axios.defaults.headers.common["Authorization"];
-        }
-    }, [auth?.token]); // Set axios authorization header when token changes
+  const setAuth = (value) => {
+    _setAuth(value);
 
-    const logout = () => {
-        setAuth((prev) => ({
-            ...prev,
-            user: null,
-            token: "",
-        }));
+    axios.defaults.headers.common["Authorization"] = value?.token;
+    localStorage.setItem("auth", JSON.stringify(value));
+  }
+
+  const logout = () => {
+    _setAuth({ user: null, token: "" });
+    delete axios.defaults.headers.common["Authorization"];
+    localStorage.removeItem("auth");
+  };
+
+  useEffect(() => {
+    const data = localStorage.getItem("auth");
+    if (data) {
+      try {
+        const parseData = JSON.parse(data);
+        setAuth({
+          user: parseData.user,
+          token: parseData.token,
+        });
+      } catch (error) {
         localStorage.removeItem("auth");
         delete axios.defaults.headers.common["Authorization"];
     };
 
-    useEffect(() => {
-       const data = localStorage.getItem("auth");
-       if (data) {
-            try {
-                const parseData = JSON.parse(data);
-                setAuth({
-                    user: parseData.user,
-                    token: parseData.token,
-                });
-            } catch (error) {
-                localStorage.removeItem("auth");
-            }
-       }
-       //eslint-disable-next-line
-    }, []);
-    return (
-        <AuthContext.Provider value={[auth, setAuth, logout]}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={[auth, setAuth, logout]}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// custom hook
 const useAuth = () => useContext(AuthContext);
 
-export {useAuth, AuthProvider};
+export { useAuth, AuthProvider };

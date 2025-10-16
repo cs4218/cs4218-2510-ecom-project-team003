@@ -79,12 +79,12 @@ jest.mock('axios');
 
 jest.mock('../components/Prices', () => ({
     Prices: [
-        { _id: 0, name: "$0 to 19", array: [0, 19] },
-        { _id: 1, name: "$20 to 39", array: [20, 39] },
-        { _id: 2, name: "$40 to 59", array: [40, 59] },
-        { _id: 3, name: "$60 to 79", array: [60, 79] },
-        { _id: 4, name: "$80 to 99", array: [80, 99] },
-        { _id: 5, name: "$100 or more", array: [100, 9999] },
+        { _id: 0, name: "$0 to 19.99",  array: [0, 19.99] },
+        { _id: 1, name: "$20 to 39.99", array: [20, 39.99] },
+        { _id: 2, name: "$40 to 59.99", array: [40, 59.99] },
+        { _id: 3, name: "$60 to 79.99", array: [60, 79.99] },
+        { _id: 4, name: "$80 to 99.99", array: [80, 99.99] },
+        { _id: 5, name: "$100 or more", array: [100, Number.MAX_SAFE_INTEGER] },
     ],
 }));
 
@@ -350,7 +350,7 @@ describe('HomePage', () => {
             return Promise.reject(new Error("Not Found!"));
         });
 
-        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59);
+        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59.99);
 
         axios.post.mockResolvedValueOnce({
             data: { success: true, products: [NOVEL] },
@@ -404,7 +404,7 @@ describe('HomePage', () => {
                 data: { success: true, products: [CONTRACT] },
             });
 
-        const sixtyToSeventyNine = Prices.find(p => p.array[0] === 60 && p.array[1] === 79);
+        const sixtyToSeventyNine = Prices.find(p => p.array[0] === 60 && p.array[1] === 79.99);
 
         renderHomePage();
 
@@ -466,7 +466,7 @@ describe('HomePage', () => {
                 data: { success: true, products: [NOVEL] },
             });
 
-        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59);
+        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59.99);
 
         renderHomePage();
 
@@ -649,7 +649,7 @@ describe('HomePage', () => {
             return Promise.reject(new Error("Not Found!"));
         });
 
-        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59);
+        const fortyToFiftyNine = Prices.find(p => p.array[0] === 40 && p.array[1] === 59.99);
 
         axios.post
             .mockResolvedValueOnce({ data: { success: true, products: [NOVEL] } })

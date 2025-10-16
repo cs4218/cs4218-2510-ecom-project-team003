@@ -138,9 +138,10 @@ describe('Login Component', () => {
         }
       });
 
-      expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
-        JSON.stringify(mockResponse.data)
-      );
+      expect(mockSetAuth).toHaveBeenCalledWith({
+        user: mockResponse.data.user,
+        token: mockResponse.data.token,
+      });
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/');
       });
@@ -189,9 +190,10 @@ describe('Login Component', () => {
         }
       });
 
-      expect(window.localStorage.setItem).toHaveBeenCalledWith('auth', 
-        JSON.stringify(mockResponse.data)
-      );
+      expect(mockSetAuth).toHaveBeenCalledWith({
+        user: mockResponse.data.user,
+        token: mockResponse.data.token,
+      });
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
       });

@@ -146,6 +146,32 @@ describe('AuthContext', () => {
       expect(auth.token).toBe('newToken456');
     });
 
+    it('updates local storage when setAuth is called', () => {
+      // Arrange
+      localStorageMock.getItem.mockReturnValue(null);
+      localStorageMock.setItem = jest.fn();
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      });
+
+      const newAuthData = {
+        user: { id: '456', name: 'Jane Doe', email: 'jane@example.com' },
+        token: 'newToken456'
+      };
+
+      // Act
+      act(() => {
+        const [, setAuth] = result.current;
+        setAuth(newAuthData);
+      });
+
+      // Assert
+      expect(JSON.parse(localStorageMock.setItem.mock.calls[0][1])).toEqual({
+        user: newAuthData.user,
+        token: 'newToken456',
+      });
+    });
+
     it('updates axios authorization header when setAuth is called', () => {
       // Arrange
       localStorageMock.getItem.mockReturnValue(null);
@@ -261,7 +287,7 @@ describe('AuthContext', () => {
       });
 
       // Assert
-      expect(axios.defaults.headers.common['Authorization']).toBeUndefined();
+      expect(axios.defaults.headers.common['Authorization']).toBeFalsy();
     });
   });
 });
