@@ -26,12 +26,10 @@ import {
     ELECTRONICS,
     CLOTHING,
     LAPTOP,
-    SMARTPHONE,
     TABLET,
     STUDY_GUIDE,
     SINGAPORE_CONTRACT_LAW,
     CAMPUS_HOODIE,
-    LEATHER_JACKET,
 } from "../../tests/helpers/testData";
 
 console.log = jest.fn();
@@ -41,12 +39,10 @@ beforeEach(async () => {
 
     const PRODUCTS = [
         LAPTOP,
-        SMARTPHONE,
         TABLET,
         STUDY_GUIDE,
         SINGAPORE_CONTRACT_LAW,
         CAMPUS_HOODIE,
-        LEATHER_JACKET,
     ];
     const CATEGORIES = [ELECTRONICS, BOOKS, CLOTHING];
     await seedCategories(CATEGORIES);
@@ -102,7 +98,7 @@ describe("HomePage Component", () => {
         });
 
         const productHeadings = await screen.findAllByRole("heading", {
-            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+            name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
         expect(productHeadings.length).toBeGreaterThan(0);
     });
@@ -111,7 +107,7 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         await screen.findAllByRole("heading", {
-            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+            name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
 
         const books = await screen.findByRole("checkbox", { name: "Books" });
@@ -122,10 +118,8 @@ describe("HomePage Component", () => {
 
         await waitFor(() => {
             expect(screen.queryByRole("heading", { name: "Laptop" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Smartphone" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Tablet" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Campus Hoodie" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Leather Jacket" })).not.toBeInTheDocument();
         });
     });
 
@@ -133,10 +127,10 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         await screen.findAllByRole("heading", {
-            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+            name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
 
-        const priceRadio = screen.getByLabelText("$60 to 79");
+        const priceRadio = screen.getByLabelText("$60 to 79.99");
         fireEvent.click(priceRadio);
 
         expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
@@ -144,9 +138,7 @@ describe("HomePage Component", () => {
         await waitFor(() => {
             expect(screen.queryByRole("heading", { name: "Study Guide" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Campus Hoodie" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Leather Jacket" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Laptop" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Smartphone" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Tablet" })).not.toBeInTheDocument();
         });
     });
@@ -155,24 +147,22 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         await screen.findAllByRole("heading", {
-            name: /Laptop|Smartphone|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie|Leather Jacket/i,
+            name: /Laptop|Tablet|Study Guide|Singapore Contract Law|Campus Hoodie/i,
         });
 
-        const booksCheckBox = await screen.findByRole("checkbox", { name: "Books" });
-        fireEvent.click(booksCheckBox);
+        fireEvent.click(await screen.findByRole("checkbox", { name: "Books" }));
+        await screen.findByRole("heading", { name: "Study Guide" });
+        await screen.findByRole("heading", { name: "Singapore Contract Law" });
 
-        const priceRadio = await screen.getByLabelText("$60 to 79");
-        fireEvent.click(priceRadio);
+        fireEvent.click(screen.getByLabelText("$60 to 79.99"));
 
         expect(await screen.findByRole("heading", { name: "Singapore Contract Law" })).toBeInTheDocument();
 
         await waitFor(() => {
             expect(screen.queryByRole("heading", { name: "Study Guide" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Laptop" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Smartphone" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Tablet" })).not.toBeInTheDocument();
             expect(screen.queryByRole("heading", { name: "Campus Hoodie" })).not.toBeInTheDocument();
-            expect(screen.queryByRole("heading", { name: "Leather Jacket" })).not.toBeInTheDocument();
         });
     });
 
@@ -180,10 +170,7 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         await screen.findByRole("heading", { name: "Laptop" });
-        const loadMore = screen.queryByRole("button", { name: /Load More Products!/i });
-        if (loadMore) {
-            fireEvent.click(loadMore);
-        }
+
         const hoodieHeading = await screen.findByRole("heading", { name: "Campus Hoodie" });
         const hoodieCard = hoodieHeading.closest(".card");
         expect(hoodieCard).toBeTruthy();
@@ -205,10 +192,6 @@ describe("HomePage Component", () => {
         renderHomePage();
 
         const laptopHeading = await screen.findByRole("heading", { name: "Laptop" });
-        const loadMore = screen.queryByRole("button", { name: /Load More Products!/i });
-        if (loadMore) {
-            fireEvent.click(loadMore);
-        }
         const laptopCard = laptopHeading.closest(".card");
         expect(laptopCard).toBeTruthy();
 

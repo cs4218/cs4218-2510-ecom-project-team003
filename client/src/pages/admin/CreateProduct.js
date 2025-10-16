@@ -62,8 +62,11 @@ const CreateProduct = () => {
         toast.error(data?.message);
       }
     } catch (error) {
+      if ([400, 500].includes(error.response?.status)) {
+        return toast.error(error.response.data.message);
+      }
       console.log(error);
-      toast.error(error.response.data.error || "something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
