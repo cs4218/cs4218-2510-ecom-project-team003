@@ -1,4 +1,5 @@
-import {expect, jest} from "@jest/globals";
+import { expect, jest } from "@jest/globals";
+import slugify from "slugify";
 import {
     categoryController,
     createCategoryController,
@@ -135,7 +136,7 @@ describe("Category Controllers", () => {
 
             await createCategoryController(req, res);
 
-            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "NewCategory" });
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: slugify("NewCategory") });
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.send).toHaveBeenCalledWith({
                 success: true,
@@ -145,17 +146,17 @@ describe("Category Controllers", () => {
         });
 
         it("Rejects repeated category and returns 409", async () => {
-            const newCategory = { name: "Category1" };
+            const newCategory = { name: "Category1", slug: "newcategory" };
             req.body = newCategory;
             categoryModel.findOne = jest.fn().mockResolvedValue(newCategory);
 
             await createCategoryController(req, res);
 
-            expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Category1" });
+            expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: slugify("Category1") });
             expect(res.status).toHaveBeenCalledWith(409);
             expect(res.send).toHaveBeenCalledWith({
                 success: false,
-                message: "Category Already Exists",
+                message: "Category Already Exists (*Names are case-insensitive)",
             });
         });
 
@@ -188,7 +189,7 @@ describe("Category Controllers", () => {
 
             expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
                 "12345",
-                { name: "UpdatedCategory", slug: "UpdatedCategory" },
+                { name: "UpdatedCategory", slug: slugify("UpdatedCategory") },
                 { new: true }
             );
         });
