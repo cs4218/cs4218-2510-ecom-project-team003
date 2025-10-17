@@ -34,6 +34,7 @@ describe('Auth Controller', () => {
 
   afterEach(async () => {
     await clearTestDB();
+    jest.clearAllMocks();
   });
 
   afterAll(async () => {
