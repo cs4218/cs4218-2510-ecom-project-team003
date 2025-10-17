@@ -1,14 +1,3 @@
-export const ADMIN = {
-    id: "66db427fdb0119d9234b27aa",
-    name: "Test Admin",
-    email: "testAdmin@example.com",
-    password: "password123",
-    role: 1,
-    phone: "1234567890",
-    address: "123 Test Street",
-    answer: "Test",
-}
-
 export const ELECTRONICS = {
   _id: '68e3f943282387623f0a0736',
   name: 'Electronics',
@@ -28,6 +17,7 @@ export const CLOTHING = {
 };
 
 export const LAPTOP = {
+  _id: '507f1f77bcf86cd799439011',
   name: 'Laptop',
   slug: 'laptop',
   description: 'A powerful laptop',
@@ -37,6 +27,7 @@ export const LAPTOP = {
 };
 
 export const SMARTPHONE = {
+  _id: '68e3f943282387623f0a0738',
   name: 'Smartphone',
   slug: 'smartphone',
   description: 'A high-end smartphone',
@@ -46,6 +37,7 @@ export const SMARTPHONE = {
 };
 
 export const TABLET = {
+  _id: '68e3f943282387623f0a0746',
   name: 'Tablet',
   slug: 'tablet',
   description: 'A sleek tablet with high performance',
@@ -80,3 +72,48 @@ export const CAMPUS_HOODIE = {
     category: CLOTHING._id,
     quantity: 90,
 };
+
+export const LONG_DESC_PRODUCT = {
+    name: "CS2103T textbook",
+    slug: "swe-textbook-1",
+    description: "Software Engineering is the skill to design good and extensible code, this could" +
+        "involve using various patterns to abstract information into modular code, avoiding highly coupled code" +
+        "Considering scalability issues and project requirements. There is plenty to talk about so we can begin from" +
+        "Chapter 1: Why write good code anyway?" +
+        "Ever wrote some code then came back later and saw the meme:" +
+        "When I wrote this, God and I knew what this code was about, but now only God knows",
+    price: 55,
+    category: BOOKS._id,
+    quantity: 90,
+}
+
+export const USER = {
+  _id: 'a1b2c3d4e5f6789012345678',
+  name: 'John Doe',
+  email: 'johndoe@gmail.com',
+  password: 'dont care value',
+  phone: '91234567',
+  address: '123 Main St, City, Country',
+  answer: 'security answer',
+  role: 0,
+};
+
+export const ADMIN = {
+  _id: 'a1b2c3d4e5f6789012345679',
+  name: 'Admin User',
+  email: 'Administrator@gmail.com',
+  password: 'dont care value',
+  phone: '98765432',
+  address: '456 Admin Rd, City, Country',
+  answer: 'admin security answer',
+  role: 1,
+};
+
+export const ORDER_TWO_ITEMS_PROCESSING = {
+  _id: 'a1b2c3d4e5f6789012345680',
+  products: [LAPTOP._id, SMARTPHONE._id],
+  status: 'Processing',
+  buyer: USER._id,
+  createAt: new Date().toISOString(),
+  payment: { success: true },
+}
