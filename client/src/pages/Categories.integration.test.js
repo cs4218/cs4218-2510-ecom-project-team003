@@ -29,6 +29,10 @@ const renderCategories = (initial = '/categories') => {
     );
 };
 
+beforeAll(async () => {
+    await resetDatabase();
+})
+
 beforeEach(() => {
     jest.clearAllMocks();
 });

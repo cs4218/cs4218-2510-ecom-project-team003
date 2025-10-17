@@ -32,6 +32,10 @@ const renderProductDetails = (slug) => {
 }
 
 describe('Product Details Component', () => {
+  beforeAll(async () => {
+    await resetDatabase();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

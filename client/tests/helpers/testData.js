@@ -83,7 +83,7 @@ export const LONG_DESC_PRODUCT = {
         "Ever wrote some code then came back later and saw the meme:" +
         "When I wrote this, God and I knew what this code was about, but now only God knows",
     price: 55,
-    category: CLOTHING._id,
+    category: BOOKS._id,
     quantity: 90,
 }
 
