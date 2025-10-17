@@ -149,3 +149,76 @@ export async function resetHomeFilters(page) {
     await reset.click();
     await expect.poll(async () => await getHomeCards(page).count()).toBeGreaterThan(0);
 }
+
+export async function loginAs(page, { email, password, name }) {
+    await page.goto('/login');
+    await expect(page.getByRole('heading', { name: /login form/i })).toBeVisible();
+
+    await page.getByPlaceholder(/^enter your email ?$/i).fill(email);
+    await page.getByPlaceholder(/^enter your password$/i).fill(password);
+    await page.getByRole('button', { name: /^login$/i }).click();
+
+    await expect(page.getByRole('button', { name: new RegExp(`^${name}$`, 'i') })).toBeVisible();
+}
+
+export async function openUserMenu(page, name) {
+    await page.getByRole('button', { name: new RegExp(`^${name}$`, 'i') }).click();
+}
+
+export async function goToAdminDashboard(page, name = 'Daniel') {
+    await openUserMenu(page, name);
+    await page.getByRole('link', { name: /dashboard/i }).click();
+    await expect(page.getByRole('heading', { name: /admin panel/i })).toBeVisible();
+}
+
+export async function goToAdminCreateCategory(page) {
+    await page.getByRole('link', { name: /create category/i }).click();
+    await expect(page.getByRole('heading', { name: /manage category/i })).toBeVisible();
+    await expect(page.getByTestId('create-category-form')).toBeVisible();
+    await expect(page.getByTestId('category-table')).toBeVisible();
+}
+
+export async function headerOpenCategoriesMenu(page) {
+    await page.getByRole('link', { name: /^categories$/i }).click();
+}
+
+export async function headerExpectCategoryVisible(page, name) {
+    await headerOpenCategoriesMenu(page);
+    await expect(page.getByRole('link', { name: new RegExp(`^${name}$`, 'i') })).toBeVisible();
+}
+
+export async function headerExpectCategoryNotVisible(page, name) {
+    await headerOpenCategoriesMenu(page);
+    await expect(page.getByRole('link', { name: new RegExp(`^${name}$`, 'i') })).toHaveCount(0);
+}
+
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const exactReg = (s) => new RegExp(`^${escapeRegExp(s)}$`, 'i');
+
+export async function createCategory(page, name) {
+    const table = page.getByTestId('category-table');
+    const form = page.getByTestId('create-category-form');
+    await form.getByRole('textbox').fill(name);
+    await form.getByRole('button', { name: /submit/i }).click();
+    await expect(table.getByRole('cell', { name: exactReg(name) })).toBeVisible();
+}
+
+export async function updateCategory(page, oldName, newName) {
+    const table = page.getByTestId('category-table');
+    const row = table.getByRole('row', { name: new RegExp(escapeRegExp(oldName), 'i') }).first();
+    await row.getByRole('button', { name: /edit/i }).click();
+
+    const modal = page.getByRole('dialog');
+    await modal.getByRole('textbox').fill(newName);
+    await modal.getByRole('button', { name: /submit/i }).click();
+
+    await expect(table.getByRole('cell', { name: exactReg(newName) })).toBeVisible();
+    await expect(table.getByRole('cell', { name: exactReg(oldName) })).toHaveCount(0);
+}
+
+export async function deleteCategory(page, name) {
+    const table = page.getByTestId('category-table');
+    const row = table.getByRole('row', { name: new RegExp(name, 'i') }).first();
+    await row.getByRole('button', { name: /delete/i }).click();
+    await expect(table).not.toContainText(name);
+}
