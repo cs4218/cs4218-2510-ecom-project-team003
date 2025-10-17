@@ -48,7 +48,6 @@ export const renderAdminOrders = () => {
 
 describe("Admin Orders API integration and Data fetching",  () => {
     beforeEach(async () => {
-        await resetDatabase();
         const fakeAuth = {
             user: { _id: "user1", role: 1, name: "Admin User" },
             token: admin_token,
@@ -56,7 +55,8 @@ describe("Admin Orders API integration and Data fetching",  () => {
         localStorage.setItem("auth", JSON.stringify(fakeAuth));
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await resetDatabase();
         localStorage.clear();
     })
 

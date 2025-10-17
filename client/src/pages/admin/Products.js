@@ -5,7 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 const Products = () => {
-  const [products, setProducts] = useState([]);// should be 1 (truthy)
+  const [products, setProducts] = useState([]);
 
   //getall products
   const getAllProducts = async () => {
