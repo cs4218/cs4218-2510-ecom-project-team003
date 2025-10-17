@@ -37,6 +37,7 @@ describe('PrivateRoute Integration', () => {
     jest.clearAllMocks();
     await seedUsers([
       {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d0',
         name: 'John Doe',
         email: 'john@example.com',
         password: 'password123',
@@ -46,6 +47,7 @@ describe('PrivateRoute Integration', () => {
         role: 0
       },
       {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d1',
         name: 'Admin User',
         email: 'admin@example.com',
         password: 'adminpass123',
@@ -64,8 +66,19 @@ describe('PrivateRoute Integration', () => {
 
   it('renders protected content for a valid user token', async () => {
     // ARRANGE
-    const token = JWT.sign({ _id: 'john@example.com' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    const authState = { token, user: { _id: 'john@example.com', role: 0 } };
+    const token = JWT.sign({ _id: '64f3b2f9e1f1c2a1a0b0c0d0' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const authState = { token, 
+      user: {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d0',
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+        phone: '12345678',
+        address: '123 Main St',
+        answer: 'Blue',
+        role: 0
+      },
+    };
 
     // ACT
     renderPrivateRoute(authState);
@@ -78,8 +91,19 @@ describe('PrivateRoute Integration', () => {
 
   it('renders protected content for a valid admin token', async () => {
     // ARRANGE
-    const token = JWT.sign({ _id: 'admin@example.com' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    const authState = { token, user: { _id: 'admin@example.com', role: 1 } };
+    const token = JWT.sign({ _id: '64f3b2f9e1f1c2a1a0b0c0d1' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const authState = { token,
+      user: {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d1',
+        name: 'Admin User',
+        email: 'admin@example.com',
+        password: 'adminpass123',
+        phone: '87654321',
+        address: '456 Admin Ave',
+        answer: 'Red',
+        role: 1
+      }
+    };
 
     // ACT
     renderPrivateRoute(authState);
@@ -106,8 +130,19 @@ describe('PrivateRoute Integration', () => {
 
   it('handles expired token correctly', async () => {
     // ARRANGE
-    const token = JWT.sign({ _id: 'john@example.com' }, process.env.JWT_SECRET, { expiresIn: '1s' });
-    const authState = { token, user: { _id: 'john@example.com', role: 0 } };
+    const token = JWT.sign({ _id: '64f3b2f9e1f1c2a1a0b0c0d0' }, process.env.JWT_SECRET, { expiresIn: '1s' });
+    const authState = { token, 
+      user: {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d0',
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+        phone: '12345678',
+        address: '123 Main St',
+        answer: 'Blue',
+        role: 0
+      }
+    };
     localStorage.setItem('auth', JSON.stringify(authState));
 
     await new Promise(resolve => setTimeout(resolve, 2000)); // wait for token to expire
@@ -124,7 +159,18 @@ describe('PrivateRoute Integration', () => {
 
   it('handles invalid token correctly', async () => {
     // ARRANGE
-    const authState = { token: 'invalid-token', user: { _id: 'john@example.com', role: 0 } };
+    const authState = { token: 'invalid-token', 
+      user: {
+        _id: '64f3b2f9e1f1c2a1a0b0c0d0',
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+        phone: '12345678',
+        address: '123 Main St',
+        answer: 'Blue',
+        role: 0
+      }
+     };
     localStorage.setItem('auth', JSON.stringify(authState));
 
     // ACT
