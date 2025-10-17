@@ -48,3 +48,36 @@ export async function expectCartCount(page, count) {
   const cartLocator = page.locator('sup.ant-scroll-number.ant-badge-count');
   await expect(cartLocator).toHaveText(count.toString());
 }
+
+export async function goToCategoriesPage(page) {
+    await page.getByRole('link', { name: /^categories$/i }).click();
+    await page.getByRole('link', { name: /all categories/i }).click();
+    await expect(page).toHaveTitle(/all categories/i);
+    await expect(page.getByTestId('categories')).toBeVisible();
+}
+
+export async function selectCategory(page, categoryText) {
+    await page.getByRole('link', { name: categoryText }).click();
+    await expect(page).toHaveTitle(/category products/i);
+    await expect(page.getByTestId('category-product')).toBeVisible();
+}
+
+export async function expectResultCount(page, expectedCount) {
+    const region = page.getByTestId('category-product');
+    const heading = region.getByRole('heading', { level: 6 });
+
+    if (expectedCount == null) {
+        await expect(heading).toHaveText(/\d+\s+results?\s+found/i);
+    } else {
+        const re = new RegExp(`^${expectedCount}\\s+results?\\s+found$`, 'i');
+        await expect(heading).toHaveText(re);
+    }
+}
+
+export async function goToProductMoreDetails(page, productText) {
+    const card = page.locator('.card', { hasText: productText });
+    await expect(card).toBeVisible();
+    await card.getByRole('button', { name: /more details/i }).click();
+    await expect(page).toHaveTitle(/product details/i);
+    await expect(page.getByTestId('product-details')).toBeVisible();
+}
