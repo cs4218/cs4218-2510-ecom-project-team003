@@ -185,7 +185,6 @@ export async function headerOpenCategoriesMenu(page) {
 export async function headerExpectCategoryVisible(page, name) {
     await headerOpenCategoriesMenu(page);
     await expect(page.getByRole('link', { name: new RegExp(`^${name}$`, 'i') })).toBeVisible();
-
 }
 
 export async function headerExpectCategoryNotVisible(page, name) {
