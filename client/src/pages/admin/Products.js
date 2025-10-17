@@ -20,7 +20,6 @@ const Products = () => {
 
   //lifecycle method
   useEffect(() => {
-    console.log(auth);
     getAllProducts();
   }, []);
   return (
