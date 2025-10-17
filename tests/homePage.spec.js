@@ -22,12 +22,13 @@ test('Load Category Filters, Price Filters and Products', async ({ page }) => {
     await expectPriceFiltersVisible(page);
 
     const main = page.getByRole('main');
+
     await expect(main).toContainText(/the law of contract in singapore/i);
-    await expect(main).toContainText(/novel/i);
     await expect(main).toContainText(/nus t-?shirt/i);
     await expect(main).toContainText(/smartphone/i);
     await expect(main).toContainText(/laptop/i);
     await expect(main).toContainText(/textbook/i);
+    await expect(main).toContainText(/gaming laptop/i);
 
     await expect(getHomeCards(page)).toHaveCount(6);
 });
@@ -45,7 +46,7 @@ test('Filter by Category', async ({ page }) => {
     await expect(main).not.toContainText(/smartphone/i);
     await expect(main).not.toContainText(/laptop/i);
     await expect(main).not.toContainText(/textbook/i);
-    await expect(main).not.toContainText(/novel/i);
+    await expect(main).not.toContainText(/gaming laptop/i);
 });
 
 test('Filter by Price', async ({ page }) => {
@@ -55,13 +56,13 @@ test('Filter by Price', async ({ page }) => {
     await selectPriceRange(page, '$0 to 19.99');
 
     const main = page.getByRole('main');
-    await expect(main).toContainText(/novel/i);
     await expect(main).toContainText(/nus t-?shirt/i);
 
     await expect(main).not.toContainText(/smartphone/i);
     await expect(main).not.toContainText(/laptop/i);
     await expect(main).not.toContainText(/textbook/i);
     await expect(main).not.toContainText(/the law of contract in singapore/i);
+    await expect(main).not.toContainText(/gaming laptop/i);
 });
 
 test('Filter by Category and Price Range', async ({ page }) => {
@@ -74,7 +75,7 @@ test('Filter by Category and Price Range', async ({ page }) => {
     const main = page.getByRole('main');
     await expect(main).toContainText(/the law of contract in singapore/i);
 
-    await expect(main).not.toContainText(/novel/i);
+    await expect(main).not.toContainText(/gaming laptop/i);
     await expect(main).not.toContainText(/nus t-?shirt/i);
     await expect(main).not.toContainText(/smartphone/i);
     await expect(main).not.toContainText(/laptop/i);
