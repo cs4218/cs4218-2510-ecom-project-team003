@@ -246,12 +246,18 @@ describe("Admin Orders API integration and Data fetching",  () => {
         expect(orderItems.length).toBeGreaterThan(0); // expect something
 
         const firstProduct = orderItems[0];
-        const laptops = await within(firstProduct).findAllByText(laptop_price);
-        expect(laptops.length).toBeGreaterThan(0);
+        expect(
+            within(firstProduct).getByText((text) =>
+                text.includes(String(laptop_price))
+            )
+        ).toBeInTheDocument();
 
         const secondProduct = orderItems[1];
-        const smartphones = await within(secondProduct).findAllByText(smartphone_price);
-        expect(smartphones.length).toBeGreaterThan(0);
+        expect(
+            within(secondProduct).getByText((text) =>
+                text.includes(String(smartphone_price))
+            )
+        ).toBeInTheDocument();
 
     });
 

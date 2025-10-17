@@ -5,7 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);// should be 1 (truthy)
 
   //getall products
   const getAllProducts = async () => {
@@ -20,6 +20,7 @@ const Products = () => {
 
   //lifecycle method
   useEffect(() => {
+    console.log(auth);
     getAllProducts();
   }, []);
   return (
@@ -36,6 +37,7 @@ const Products = () => {
                 key={p._id}
                 to={`/dashboard/admin/product/${p.slug}`}
                 className="product-link"
+                data-testid="product-link"
               >
                 <div className="card m-2" style={{ width: "18rem", maxHeight:"10vh" }} data-testid="product-card">
                   <img

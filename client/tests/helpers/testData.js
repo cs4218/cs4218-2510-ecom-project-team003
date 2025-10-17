@@ -73,6 +73,20 @@ export const CAMPUS_HOODIE = {
     quantity: 90,
 };
 
+export const LONG_DESC_PRODUCT = {
+    name: "CS2103T textbook",
+    slug: "swe-textbook-1",
+    description: "Software Engineering is the skill to design good and extensible code, this could" +
+        "involve using various patterns to abstract information into modular code, avoiding highly coupled code" +
+        "Considering scalability issues and project requirements. There is plenty to talk about so we can begin from" +
+        "Chapter 1: Why write good code anyway?" +
+        "Ever wrote some code then came back later and saw the meme:" +
+        "When I wrote this, God and I knew what this code was about, but now only God knows",
+    price: 55,
+    category: CLOTHING._id,
+    quantity: 90,
+}
+
 export const USER = {
   _id: 'a1b2c3d4e5f6789012345678',
   name: 'John Doe',
