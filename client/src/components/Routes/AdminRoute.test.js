@@ -13,9 +13,11 @@ jest.mock('../../context/auth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-jest.mock('../Spinner', () => () => <div data-testid='spinner' />);
-
-jest.mock('../Loader', () => () => <div data-testid='loader' />);
+const mockSpinner = jest.fn();
+jest.mock('../Spinner', () => (props) => {
+  mockSpinner(props);
+  return <div data-testid='spinner' />;
+});
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -35,15 +37,15 @@ const renderAdminRoute = () => {
 describe('AdminRoute Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
+  }); 
 
-  it('renders Loader while awaiting admin auth', async () => {
+  it('renders Spinner while awaiting admin auth', async () => {
     mockUseAuth.mockReturnValue([{ token: 'valid-token' }, jest.fn(), jest.fn()]);
     axios.get.mockImplementation(() => new Promise(() => { }));
 
     renderAdminRoute();
 
-    expect(await screen.findByTestId('loader')).toBeInTheDocument();
+    expect(await screen.findByTestId('spinner')).toBeInTheDocument();
   });
 
   it('renders Outlet if admin auth is successful', async () => {
@@ -103,7 +105,7 @@ describe('AdminRoute Component', () => {
     renderAdminRoute();
 
     expect(await screen.findByTestId('outlet')).toBeInTheDocument();
-    waitFor(() => expect(mockLogout).not.toHaveBeenCalled());
+    await waitFor(() => expect(mockLogout).not.toHaveBeenCalled());
   });
 
   it('logs out user if admin auth is unsuccessful', async () => {
@@ -115,6 +117,9 @@ describe('AdminRoute Component', () => {
     renderAdminRoute();
 
     expect(await screen.findByTestId('spinner')).toBeInTheDocument();
-    waitFor(() => expect(mockLogout).toHaveBeenCalled());
+    expect(mockSpinner).toHaveBeenCalledTimes(1);
+    const onTimeoutProp = mockSpinner.mock.calls[0][0].onTimeout;
+    onTimeoutProp();
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 });

@@ -67,6 +67,7 @@ describe('Category Controller', () => {
     describe('POST /api/v1/category/create-category', () => {
         it('Should create a category', async () => {
             const newName = 'Clothing';
+            const slugNewName = slugify(newName).toLowerCase();
 
             const res = await request(app)
                 .post('/api/v1/category/create-category')
@@ -76,7 +77,7 @@ describe('Category Controller', () => {
             expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
             expect(res.body.category).toHaveProperty("name", newName);
-            expect(res.body.category).toHaveProperty("slug", slugify(newName).toLowerCase());
+            expect(res.body.category).toHaveProperty("slug", slugNewName);
         });
 
         it('Should return 409 when category already exists', async () => {
@@ -87,7 +88,7 @@ describe('Category Controller', () => {
 
             expect(res.status).toBe(409);
             expect(res.body.success).toBe(false);
-            expect(res.body.message).toBe('Category Already Exists');
+            expect(res.body.message).toBe('Category Already Exists (*Names are case-insensitive)');
         });
 
         it('Should return 400 when name is missing', async () => {
@@ -195,6 +196,7 @@ describe('Category Controller', () => {
     describe('PUT /api/v1/category/update-category/:id', () => {
         it('Should update a category', async () => {
             const newName = 'Furniture';
+            const slugNewName = slugify(newName).toLowerCase();
 
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
@@ -205,7 +207,7 @@ describe('Category Controller', () => {
             expect(res.body.success).toBe(true);
             expect(res.body.message).toBe('Category Updated Successfully');
             expect(res.body.category).toHaveProperty("name", newName);
-            expect(res.body.category).toHaveProperty("slug", slugify(newName).toLowerCase());
+            expect(res.body.category).toHaveProperty("slug", slugNewName);
         });
 
         it('Should return 400 when name is missing', async () => {
@@ -238,7 +240,7 @@ describe('Category Controller', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(false);
-            expect(res.body.message).toBe('Category Already Exists');
+            expect(res.body.message).toBe('Category Already Exists (*Names are case-insensitive)');
         });
 
         it('Should return 500 for invalid ID', async () => {

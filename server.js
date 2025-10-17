@@ -11,15 +11,19 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import seedRoutes from "./testUtils/routes/seedRoutes.js";
 import cors from "cors";
 import { createAndConnectTestDB } from "./config/testDb.js";
+import { seedData } from "./testUtils/seed/seed.js";
 
 // configure env
 dotenv.config();
 
 //database config
-if (process.env.NODE_ENV === "test-frontend-integration") {
+if (["test-frontend-integration", "test-ui"].includes(process.env.NODE_ENV)) {
     createAndConnectTestDB();
 } else if (process.env.NODE_ENV !== "test-backend-integration") {
     connectDB();
+}
+if (process.env.NODE_ENV === 'test-ui') {
+    seedData();
 }
 
 const app = express();

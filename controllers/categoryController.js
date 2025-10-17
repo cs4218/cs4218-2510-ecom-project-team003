@@ -9,16 +9,17 @@ export const createCategoryController = async (req, res) => {
     if (name.trim().length === 0){
         return res.status(400).send({ message: "Name cannot contain only whitespace" });
     }
-    const existingCategory = await categoryModel.findOne({ name: name });
+    const normalizedSlug = slugify(name);
+    const existingCategory = await categoryModel.findOne({ slug: normalizedSlug });
     if (existingCategory) {
       return res.status(409).send({
         success: false,
-        message: "Category Already Exists",
+        message: "Category Already Exists (*Names are case-insensitive)",
       });
     }
     const category = await new categoryModel({
       name,
-      slug: slugify(name),
+      slug: normalizedSlug,
     }).save();
     res.status(201).send({
       success: true,
@@ -52,16 +53,17 @@ export const updateCategoryController = async (req, res) => {
               message: "Category name cannot contain only whitespace",
           });
       }
-      const existingCategory = await categoryModel.findOne({ name });
+      const normalizedSlug = slugify(name);
+      const existingCategory = await categoryModel.findOne({ slug: normalizedSlug, _id: { $ne: id } });
       if (existingCategory) {
           return res.status(200).send({
               success: false,
-              message: "Category Already Exists",
+              message: "Category Already Exists (*Names are case-insensitive)",
           });
       }
     const category = await categoryModel.findByIdAndUpdate(
       id,
-      { name, slug: slugify(name) },
+      { name, slug: normalizedSlug },
       { new: true }
     );
     res.status(200).send({

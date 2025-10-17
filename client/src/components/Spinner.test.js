@@ -62,4 +62,28 @@ describe("Spinner Component", () => {
     });
     expect(navigateMock).toHaveBeenCalledWith("/dashboard", { state: "/current" });
   });
+
+  it("uses login if no path provided", async () => {
+    const navigateMock = jest.fn();
+    useNavigate.mockReturnValue(navigateMock);
+    useLocation.mockReturnValue({ pathname: "/current" });
+
+    render(<Spinner />);
+    act(() => {
+        jest.advanceTimersByTime(3000);
+    });
+    expect(navigateMock).toHaveBeenCalledWith("/login", { state: "/current" });
+  });
+
+  it("uses onTimeout prop if provided", async () => {
+    useNavigate.mockReturnValue(jest.fn());
+    useLocation.mockReturnValue({ pathname: "/current" });
+    const mockOnTimeout = jest.fn();
+
+    render(<Spinner path="dashboard" onTimeout={() => mockOnTimeout()}/>);
+    act(() => {
+        jest.advanceTimersByTime(3000);
+    });
+    expect(mockOnTimeout).toHaveBeenCalledTimes(1);
+  });
 });
