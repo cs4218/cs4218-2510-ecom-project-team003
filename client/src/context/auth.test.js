@@ -103,6 +103,27 @@ describe('AuthContext', () => {
       expect(axios.defaults.headers.common['Authorization']).toBe('Bearer mockToken123');
     });
 
+    it('restores user and token from localStorage on reload (rehydration)', () => {
+      // Arrange
+      const persistedAuth = {
+        user: { id: '789', name: 'Reload User', email: 'reload@example.com' },
+        token: 'reloadToken789'
+      };
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(persistedAuth));
+
+      // Act
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      });
+
+      // Assert
+      const [auth] = result.current;
+      expect(auth.user).toEqual(persistedAuth.user);
+      expect(auth.token).toBe('reloadToken789');
+      expect(axios.defaults.headers.common['Authorization']).toBe('Bearer reloadToken789');
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('auth');
+    });
+
     it('handles corrupted localStorage data gracefully', () => {
       // Arrange
       localStorageMock.getItem.mockReturnValue('invalid json');

@@ -170,7 +170,7 @@ describe('Auth Middleware', () => {
       expect(res.status).toBe(401);
       expect(res.body).toEqual({
         success: false,
-        message: 'UnAuthorized Access'
+        message: 'Unauthorized Access'
       });
     });
 

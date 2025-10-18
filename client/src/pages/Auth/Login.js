@@ -47,7 +47,7 @@ const Login = () => {
       toast.error(message);
     }
   };
-  // added role = "form" to retrieve form element in test file
+
   return (
     <Layout title="Login - Ecommerce App">
       <div className="form-container " style={{ minHeight: "90vh" }}>

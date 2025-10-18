@@ -131,7 +131,7 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: 'UnAuthorized Access'
+        message: 'Unauthorized Access'
       });
       expect(next).not.toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: 'UnAuthorized Access'
+        message: 'Unauthorized Access'
       });
       expect(next).not.toHaveBeenCalled();
     });
@@ -165,7 +165,7 @@ describe('Auth Middleware', () => {
 
       // Assert
       expect(userModel.findById).toHaveBeenCalledWith('user123');
-      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
         message: 'Error in admin middleware'
@@ -187,7 +187,7 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: 'UnAuthorized Access'
+        message: 'Unauthorized Access'
       });
       expect(next).not.toHaveBeenCalled();
     });
