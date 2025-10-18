@@ -43,6 +43,7 @@ export default {
     "client/src/utils/*.js",
   ],
   coveragePathIgnorePatterns: ["/node_modules/", "\.test\.js"],
+  coverageDirectory: "coverage/frontend",
   passWithNoTests: true,
-  setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
+  setupFilesAfterEnv: ["<rootDir>/client/tests/jest/setupTests.js"],
 };
