@@ -32,6 +32,10 @@ const renderSearch = () => {
 }
 
 describe('Search Component', () => {
+  beforeAll(async () => {
+    await resetDatabase();
+  });
+
   beforeEach(async () => {
     await seedCategories([ELECTRONICS]);
     await seedProducts([LAPTOP]);

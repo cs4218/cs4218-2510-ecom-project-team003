@@ -25,6 +25,11 @@ const AdminOrders = () => {
       setOrders(data);
     } catch (error) {
       console.log(error);
+      if (error.response?.status === 401) {
+        toast.error("You are not authorized to view this page");
+      } else {
+        toast.error("Something went wrong while fetching orders");
+      }
     }
   };
 
@@ -52,7 +57,7 @@ const AdminOrders = () => {
           <h1 className="text-center">All Orders</h1>
           {orders?.map((o, i) => {
             return (
-              <div className="border shadow">
+              <div className="border shadow" data-testid="order-table" key={o._id}>
                 <table className="table">
                   <thead>
                     <tr>
@@ -69,7 +74,7 @@ const AdminOrders = () => {
                       <td>{i + 1}</td>
                       <td>
                         <Select
-                          bordered={false}
+                          variant={"borderless"}
                           onChange={(value) => handleChange(o._id, value)}
                           defaultValue={o?.status}
                         >
@@ -89,7 +94,7 @@ const AdminOrders = () => {
                 </table>
                 <div className="container">
                   {o?.products?.map((p, i) => (
-                    <div className="row mb-2 p-3 card flex-row" key={p._id}>
+                    <div className="row mb-2 p-3 card flex-row" data-testid="order-item" key={p._id}>
                       <div className="col-md-4">
                         <img
                           src={`/api/v1/product/product-photo/${p._id}`}

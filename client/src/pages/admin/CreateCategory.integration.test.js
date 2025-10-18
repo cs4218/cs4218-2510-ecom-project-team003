@@ -25,6 +25,10 @@ import { ADMIN, ELECTRONICS, BOOKS } from "../../../tests/helpers/testData";
 
 console.log = jest.fn();
 
+beforeAll(async () => {
+    await resetDatabase();
+});
+
 beforeEach(async () => {
     const INITIAL_CATEGORIES = [ELECTRONICS, BOOKS]
     await seedCategories(INITIAL_CATEGORIES);
