@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import UserMenu from "../../components/UserMenu";
 import Layout from "./../../components/Layout";
 import axios from "axios";
@@ -7,18 +9,21 @@ import moment from "moment";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const navigate = useNavigate();
+  const [auth, ,] = useAuth();
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/order/orders");
       setOrders(data);
     } catch (error) {
       console.log(error);
+      toast.error("Something when wrong while fetching category products");
     }
   };
 
   useEffect(() => {
-    if (auth?.token) getOrders();
+    if (!auth?.token) return navigate('/pagenotfound');
+    getOrders();
   }, [auth?.token]);
   return (
     <Layout title={"Your Orders"}>
@@ -31,14 +36,14 @@ const Orders = () => {
             <h1 className="text-center">All Orders</h1>
             {orders?.map((o, i) => {
               return (
-                <div className="border shadow">
+                <div className="border shadow" key={o._id}>
                   <table className="table">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
                         <th scope="col">Status</th>
                         <th scope="col">Buyer</th>
-                        <th scope="col"> date</th>
+                        <th scope="col">Date</th>
                         <th scope="col">Payment</th>
                         <th scope="col">Quantity</th>
                       </tr>
@@ -48,8 +53,8 @@ const Orders = () => {
                         <td>{i + 1}</td>
                         <td>{o?.status}</td>
                         <td>{o?.buyer?.name}</td>
-                        <td>{moment(o?.createAt).fromNow()}</td>
-                        <td>{o?.payment.success ? "Success" : "Failed"}</td>
+                        <td>{moment(o?.createdAt).fromNow()}</td>
+                        <td>{o?.payment.success ? "Successful" : "Failed"}</td>
                         <td>{o?.products?.length}</td>
                       </tr>
                     </tbody>
@@ -69,7 +74,11 @@ const Orders = () => {
                         <div className="col-md-8">
                           <p>{p.name}</p>
                           <p>{p.description.substring(0, 30)}</p>
-                          <p>Price : {p.price}</p>
+                          <p>Price :&nbsp;
+                            {p?.price?.toLocaleString("en-US", {
+                              style: "currency",
+                              currency: "USD",
+                            })}</p>
                         </div>
                       </div>
                     ))}
