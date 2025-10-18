@@ -27,5 +27,6 @@ export default {
     "models/**",
   ],
   coveragePathIgnorePatterns: ["/node_modules/", "\.test\.js"],
+  coverageDirectory: "coverage/backend",
   passWithNoTests: true,
 };
