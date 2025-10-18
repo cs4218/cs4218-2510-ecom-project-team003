@@ -34,6 +34,10 @@ const renderCategoryProduct = (slug) => {
 }
 
 describe('Category Product Component', () => {
+  beforeAll(async () => {
+    await resetDatabase();
+  });
+
   beforeEach(async () => {
     jest.clearAllMocks();
     await seedCategories([ELECTRONICS]);
