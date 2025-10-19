@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
-import { Toaster } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import Profile from "./Profile";
 import HomePage from "../HomePage";
 import { seedUsers, resetDatabase } from "../../../tests/helpers/seedApi";
@@ -38,7 +38,6 @@ const renderProfilePage = (authData) => {
 };
 
 describe("Profile Page Integration Tests", () => {
-
   let validToken;
   let hashedPassword;
 
@@ -52,7 +51,6 @@ describe("Profile Page Integration Tests", () => {
       { expiresIn: "7d" }
     );
   });
-
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -72,6 +70,7 @@ describe("Profile Page Integration Tests", () => {
   });
 
   afterEach(async () => {
+    toast.dismiss();
     localStorage.clear();
     await resetDatabase();
   });
@@ -90,11 +89,19 @@ describe("Profile Page Integration Tests", () => {
       token: validToken,
     });
 
-    expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue("John Doe");
-    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue("john@example.com");
+    expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue(
+      "John Doe"
+    );
+    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue(
+      "john@example.com"
+    );
     expect(screen.getByPlaceholderText(/enter your password/i)).toHaveValue("");
-    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue("91234567");
-    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue("123 Main St");
+    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue(
+      "91234567"
+    );
+    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue(
+      "123 Main St"
+    );
   });
 
   it("should update user profile successfully and show success toast", async () => {
@@ -125,14 +132,62 @@ describe("Profile Page Integration Tests", () => {
     fireEvent.click(screen.getByRole("button", { name: /update/i }));
 
     // Assert
-    await waitFor(async () => {
-      expect(await screen.findByText(/profile updated successfully/i)).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/profile updated successfully/i)
+        ).toBeInTheDocument();
+      }
+    );
+
+    expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue(
+      "John Smith"
+    );
+    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue(
+      "99887766"
+    );
+    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue(
+      "456 Updated Street"
+    );
+    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue(
+      "john@example.com"
+    ); // email should remain unchanged
+  });
+
+  it("should update auth context and localStorage after successful profile update", async () => {
+    // Arrange
+    renderProfilePage({
+      user: {
+        _id: "64f3b2f9e1f1c2a1a0b0c0d9",
+        name: "John Doe",
+        email: "john@example.com",
+        hashPassword: hashedPassword,
+        phone: "91234567",
+        address: "123 Main St",
+        role: 0,
+      },
+      token: validToken,
     });
 
-    expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue("John Smith");
-    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue("99887766");
-    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue("456 Updated Street");
-    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue("john@example.com"); // email should remain unchanged
+    // Act
+    fireEvent.change(screen.getByPlaceholderText(/enter your name/i), {
+      target: { value: "John Updated" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/enter your phone/i), {
+      target: { value: "90000000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /update/i }));
+
+    // Assert
+    await waitFor(() => {
+      const storedAuth = JSON.parse(localStorage.getItem("auth"));
+      expect(storedAuth?.user?.name).toBe("John Updated");
+    });
+
+    const storedAuth = JSON.parse(localStorage.getItem("auth"));
+    expect(storedAuth).toBeTruthy();
+    expect(storedAuth.user.phone).toBe("90000000");
+    expect(storedAuth.user.email).toBe("john@example.com");
   });
 
   it("should keep previous values when fields are left empty", async () => {
@@ -164,15 +219,19 @@ describe("Profile Page Integration Tests", () => {
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText(/profile updated successfully/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue(
+        "John Doe"
+      );
     });
-
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText(/enter your name/i)).toHaveValue("John Doe");
-    });
-    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue("john@example.com");
+    expect(screen.getByPlaceholderText(/enter your email/i)).toHaveValue(
+      "john@example.com"
+    );
     expect(screen.getByPlaceholderText(/enter your password/i)).toHaveValue("");
-    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue("91234567");
-    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue("123 Main St");
+    expect(screen.getByPlaceholderText(/enter your phone/i)).toHaveValue(
+      "91234567"
+    );
+    expect(screen.getByPlaceholderText(/enter your address/i)).toHaveValue(
+      "123 Main St"
+    );
   });
 });
