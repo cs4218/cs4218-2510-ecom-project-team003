@@ -16,11 +16,13 @@ const Profile = () => {
 
   //get user data
   useEffect(() => {
-    const { email, name, phone, address } = auth?.user;
-    setName(name);
-    setPhone(phone);
-    setEmail(email);
-    setAddress(address);
+    if (auth?.user) {
+      const { email, name, phone, address } = auth.user;
+      setName(name || "");
+      setPhone(phone || "");
+      setEmail(email || "");
+      setAddress(address || "");
+    }
   }, [auth?.user]);
 
   // form function
@@ -34,18 +36,25 @@ const Profile = () => {
         phone,
         address,
       });
-      if (data?.error) {
-        console.log(data.error);
-        toast.error(data.error);
-      } else {
+      if (data?.success) {
         setAuth({ ...auth, user: data?.updatedUser });
-        toast.success("Profile Updated Successfully");
+        setName(data?.updatedUser.name || "");
+        setPhone(data?.updatedUser.phone || "");
+        setEmail(data?.updatedUser.email || "");
+        setAddress(data?.updatedUser.address || "");
+        toast.success(data?.message || "Profile Updated Successfully");
+      } else {
+        console.log(data.error);
+        toast.error(data?.message || data?.error || "Something went wrong");
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      let message =
+        error?.response?.data?.message || "Network error. Please try again.";
+      toast.error(message);
     }
   };
+
   return (
     <Layout title={"Your Profile"}>
       <div className="container-fluid m-3 p-3">
