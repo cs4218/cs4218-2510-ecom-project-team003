@@ -45,8 +45,8 @@ const Products = () => {
                     alt={p.name}
                   />
                   <div className="card-body">
-                    <h5 className="card-title">{p.name}</h5>
-                    <p className="card-text">
+                    <h5 className="card-title" data-testid="product-name">{p.name}</h5>
+                    <p className="card-text" data-testid="product-description">
                       {
                         p.description.length < 200
                           ? p.description

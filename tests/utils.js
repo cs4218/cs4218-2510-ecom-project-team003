@@ -178,6 +178,17 @@ export async function goToAdminCreateCategory(page) {
     await expect(page.getByTestId('category-table')).toBeVisible();
 }
 
+export async function goToAdminOrders(page) {
+    await page.getByRole('link', { name: /orders/i }).click();
+    await expect(page.getByRole('heading', { name: /all orders/i })).toBeVisible();
+    await expect(page.getByTestId('order-table')).toBeVisible();
+}
+
+export async function goToAdminProducts(page) {
+    await page.getByRole('link', { name: /products/i }).click();
+    await expect(page.getByRole('heading', { name: /all products/i })).toBeVisible();
+}
+
 export async function headerOpenCategoriesMenu(page) {
     await page.getByRole('link', { name: /^categories$/i }).click();
 }
