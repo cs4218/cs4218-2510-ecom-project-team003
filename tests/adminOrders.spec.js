@@ -13,7 +13,7 @@ test('Test Update Status flow', async ({ page }) => {
     // find the status
     const status_locator = page.getByTestId('status-select').first();
     await status_locator.click();
-    await status_locator.getByText('Processing', {exact: true}).click();
+    await status_locator.getByText('Processing').click();
 
     await expect(status_locator).toHaveText(/Processing/i);
 });

@@ -21,7 +21,6 @@ test('Test: Click on a product in Admin', async ({ page }) => {
     // }
 
     const firstLink = links.first();
-    const linkText = await firstLink.innerText();
     const productName = await firstLink
         .getByTestId('product-name')
         .innerText();
@@ -29,8 +28,6 @@ test('Test: Click on a product in Admin', async ({ page }) => {
     const productDescription = await firstLink
         .getByTestId('product-description')
         .innerText();
-
-    console.log("link text is: ", linkText);
 
     await firstLink.click();
     await expect(page).toHaveURL(/\/product\//);
