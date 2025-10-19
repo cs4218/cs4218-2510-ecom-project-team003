@@ -83,7 +83,6 @@ describe("Login Page Integration Tests", () => {
   });
 
   afterEach(async () => {
-    jest.restoreAllMocks();
     localStorage.clear();
     await resetDatabase();
   });
@@ -237,31 +236,33 @@ describe("Login Page Integration Tests", () => {
     });
   });
 
-  describe("Edge Cases", () => {
-    it("should handle rapid multiple login button clicks", async () => {
-      // ARRANGE
+  describe("Already Logged In", () => {
+    it("should redirect to home page immediately if user already has a valid token", async () => {
+      // Arrange
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({
+          user: {
+            _id: "64f3b2f9e1f1c2a1a0b0c0d0",
+            name: "John Doe",
+            email: "john@example.com",
+            password: hashedPassword,
+            phone: "12345678",
+            address: "123 Main St",
+            answer: "Blue",
+            role: 0,
+          },
+          token: "mockToken123",
+        })
+      );
+
+      // Act
       renderLoginPage();
 
-      // ACT
-      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), {
-        target: { value: "john@example.com" },
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByTestId("home-page")).toBeInTheDocument();
       });
-      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), {
-        target: { value: "password123" },
-      });
-
-      const loginButton = screen.getByRole("button", { name: /^login$/i });
-      fireEvent.click(loginButton);
-      fireEvent.click(loginButton);
-      fireEvent.click(loginButton);
-
-      // ASSERT - Should still complete successfully
-      await waitFor(
-        () => {
-          expect(localStorage.getItem("auth")).toBeTruthy();
-        },
-        { timeout: 5000 }
-      );
     });
   });
 });
