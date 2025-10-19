@@ -178,4 +178,22 @@ GitHub Actions Run Link: https://github.com/cs4218/cs4218-2510-ecom-project-team
 
 ### Milestone 2: Integration and UI Testing
 
-GitHub Actions Run Link:
+| Contributor           | Test File                             | Integration                                                                               |
+|-----------------------|---------------------------------------|-------------------------------------------------------------------------------------------|
+| Adam Ang Zi Jun       |                                       |                                                                                           |
+| Ethan Jed Tan Jia En  |                                       |                                                                                           |
+| Guo Yu Hao            |                                       |                                                                                           |
+| Lim Song Yang, Samuel | productModel.integration.test.js      | productModel, mongoose                                                                    |
+| Lim Song Yang, Samuel | productController.integration.test.js | productController, mongoose<br>Note: All routes except create, update, delete             |
+| Lim Song Yang, Samuel | productDetails.integration.test.js    | productDetails, Layout, CartProvider, Toaster, React Router, Backend                      |
+| Lim Song Yang, Samuel | categoryProduct.integration.test.js   | categoryProduct, Layout, CartProvider, Toaster, React Router, Backend                     |
+| Lim Song Yang, Samuel | Search.integration.test.js            | Search, Layout, SearchInput, SearchProvider, CartProvider, Toaster, React Router, Backend |
+| Yek Khoon Sun         |                                       |                                                                                           |
+
+| Contributor           | UI Test Files                                                       |
+|-----------------------|---------------------------------------------------------------------|
+| Adam Ang Zi Jun       |                                                                     |
+| Ethan Jed Tan Jia En  |                                                                     |
+| Guo Yu Hao            |                                                                     |
+| Lim Song Yang, Samuel | productDetails.spec.js<br>categoryProduct.spec.js<br>search.spec.js |
+| Yek Khoon Sun         |                                                                     |
