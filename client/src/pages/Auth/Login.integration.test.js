@@ -2,9 +2,11 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom/extend-expect";
-import axios from "axios";
 import { Toaster } from "react-hot-toast";
 import Login from "./Login";
+import HomePage from "../HomePage";
+import DashboardPage from "../user/Dashboard";
+import ForgotPassword from "./ForgotPassword";
 import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
@@ -15,13 +17,6 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
 console.log = jest.fn();
-
-// Mock components for navigation testing
-const HomePage = () => <div data-testid="home-page">Home Page</div>;
-const DashboardPage = () => <div data-testid="dashboard-page">Dashboard</div>;
-const ForgotPasswordPage = () => (
-  <div data-testid="forgot-password-page">Forgot Password Page</div>
-);
 
 const renderLoginPage = (locationState = null) => {
   return render(
@@ -36,7 +31,7 @@ const renderLoginPage = (locationState = null) => {
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<HomePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
             </Routes>
           </MemoryRouter>
         </SearchProvider>
@@ -122,7 +117,7 @@ describe("Login Page Integration Tests", () => {
       expect(typeof auth.token).toBe("string");
 
       await waitFor(() => {
-        expect(screen.getByTestId("home-page")).toBeInTheDocument();
+        expect(screen.getByText(/all products/i)).toBeInTheDocument();
       });
     });
 
@@ -154,7 +149,7 @@ describe("Login Page Integration Tests", () => {
     });
 
     it("should redirect to previous location (dashboard) after successful login", async () => {
-      // ARRANGE - User was redirected to login from dashboard
+      // ARRANGE 
       renderLoginPage("/dashboard");
 
       // ACT
@@ -174,9 +169,14 @@ describe("Login Page Integration Tests", () => {
         { timeout: 5000 }
       );
 
-      await waitFor(() => {
-        expect(screen.getByTestId("dashboard-page")).toBeInTheDocument();
-      });
+      expect(screen.getByRole("link", { name: /profile/i })).toHaveAttribute(
+        "href",
+        "/dashboard/user/profile"
+      );
+      expect(screen.getByRole("link", { name: /orders/i })).toHaveAttribute(
+        "href",
+        "/dashboard/user/orders"
+      );
     });
   });
 
@@ -261,7 +261,7 @@ describe("Login Page Integration Tests", () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByTestId("home-page")).toBeInTheDocument();
+        expect(screen.getByText(/all products/i)).toBeInTheDocument();
       });
     });
   });

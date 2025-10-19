@@ -313,7 +313,6 @@ describe('Register Component', () => {
         </MemoryRouter>
       );
 
-      // Act
       fireEvent.change(screen.getByPlaceholderText(/enter your name/i), { target: { value: 'John Doe' } });
       fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'john@example.com' } });
       fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
@@ -322,8 +321,8 @@ describe('Register Component', () => {
       fireEvent.change(screen.getByPlaceholderText(/enter your dob/i), { target: { value: '2000-01-01' } });
       fireEvent.change(screen.getByPlaceholderText(/favorite sports/i), { target: { value: 'Football' } });
 
+      // Act
       const registerButton = screen.getByRole('button', { name: /register/i });
-
       fireEvent.click(registerButton);
 
       // Assert
@@ -346,7 +345,6 @@ describe('Register Component', () => {
         </MemoryRouter>
       );
 
-      // Act
       fireEvent.change(screen.getByPlaceholderText(/enter your name/i), { target: { value: 'John Doe' } });
       fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'john@example.com' } });
       fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
@@ -355,8 +353,8 @@ describe('Register Component', () => {
       fireEvent.change(screen.getByPlaceholderText(/enter your dob/i), { target: { value: '2000-01-01' } });
       fireEvent.change(screen.getByPlaceholderText(/favorite sports/i), { target: { value: 'Football' } });
 
+      // Act
       const button = screen.getByRole('button', { name: /register/i });
-
       fireEvent.click(button);
       fireEvent.click(button);
       fireEvent.click(button);

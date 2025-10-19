@@ -233,4 +233,44 @@ describe('ForgotPassword Component - Unit Tests', () => {
       });
     });
   });
+
+  describe('Edge Cases', () => {
+    it('should prevent multiple submissions when loading', async () => {
+      // Arrange
+      axios.post.mockResolvedValueOnce({
+        data: { success: true, message: 'Password Reset Successfully' }
+      });
+
+      renderWithProviders();
+      const { submitButton } = getFormElements();
+      fillForm('john@example.com', 'cricket', 'newpassword123');
+
+      // Act
+      fireEvent.click(submitButton);
+      fireEvent.click(submitButton);
+      fireEvent.click(submitButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(axios.post).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should disable button and show "Resetting password..." while submitting', async () => {
+      // Arrange
+      axios.post.mockResolvedValueOnce({
+        data: { success: true, message: 'Password Reset Successfully' }
+      });
+      renderWithProviders();
+      const { submitButton } = getFormElements();
+
+      // Act
+      fillForm('john@example.com', 'cricket', 'newpassword123');
+      fireEvent.click(submitButton);
+
+      // Button should be disabled immediately
+      expect(submitButton).toBeDisabled();
+      expect(submitButton).toHaveTextContent(/resetting password/i);
+    });    
+  });
 });

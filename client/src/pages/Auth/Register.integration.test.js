@@ -7,16 +7,14 @@ import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
 import { Toaster } from "react-hot-toast";
 import Register from "./Register";
+import LoginPage from "./Login";
+import HomePage from "../HomePage";
 import { seedUsers, resetDatabase } from "../../../tests/helpers/seedApi";
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
 
 console.log = jest.fn();
-
-// Mock navigation target
-const HomePage = () => <div data-testid="home-page">Home Page</div>;
-const LoginPage = () => <div data-testid="login-page">Login Page</div>;
 
 const renderRegisterPage = (locationState = null) => {
   return render(
@@ -96,15 +94,17 @@ describe("Register Page Integration Tests", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId("login-page")).toBeInTheDocument();
+        expect(screen.getByText(/login form/i)).toBeInTheDocument();
       });
     });
   });
 
   describe("Failed Registration", () => {
     it("should show error if email already exists", async () => {
+      // Arrange
       renderRegisterPage();
 
+      // Act
       fireEvent.change(screen.getByPlaceholderText(/enter your name/i), {
         target: { value: "Existing User" },
       });
@@ -130,6 +130,7 @@ describe("Register Page Integration Tests", () => {
 
       fireEvent.click(screen.getByRole("button", { name: /register/i }));
 
+      // Assert
       await waitFor(() => {
         expect(
           screen.getByText(/already register please login/i)
@@ -137,7 +138,7 @@ describe("Register Page Integration Tests", () => {
       });
 
       expect(screen.getByText(/register form/i)).toBeInTheDocument();
-      expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
+      expect(screen.queryByText(/login form/i)).not.toBeInTheDocument();
     });
   });
 
@@ -166,7 +167,7 @@ describe("Register Page Integration Tests", () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByTestId("home-page")).toBeInTheDocument();
+        expect(screen.getByText(/all products/i)).toBeInTheDocument();
       });
     });
   });
