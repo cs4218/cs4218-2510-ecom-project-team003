@@ -179,20 +179,20 @@ GitHub Actions Run Link: https://github.com/cs4218/cs4218-2510-ecom-project-team
 
 ### Milestone 2: Integration and UI Testing
 
-| Contributor           | Test File                              | Integration                                                                               |
-|-----------------------|----------------------------------------|-------------------------------------------------------------------------------------------|
-| Adam Ang Zi Jun       |                                        |                                                                                           |
-| Ethan Jed Tan Jia En  |                                        |                                                                                           |
-| Guo Yu Hao            |                                        |                                                                                           |
-| Lim Song Yang, Samuel | productModel.integration.test.js       | productModel, mongoose                                                                    |
-| Lim Song Yang, Samuel | productController.integration.test.js  | productController, mongoose<br>Note: All routes except create, update, delete             |
-| Lim Song Yang, Samuel | productDetails.integration.test.js     | productDetails, Layout, CartProvider, Toaster, React Router, Backend                      |
-| Lim Song Yang, Samuel | categoryProduct.integration.test.js    | categoryProduct, Layout, CartProvider, Toaster, React Router, Backend                     |
+| Contributor           | Test File                              | Integration                                                   |
+|-----------------------|----------------------------------------|---------------------------------------------------------------|
+| Adam Ang Zi Jun       |                                        |                                                               |
+| Ethan Jed Tan Jia En  |                                        |                                                               |
+| Guo Yu Hao            |                                        |                                                               |
+| Lim Song Yang, Samuel | productModel.integration.test.js       | productModel, mongoose                                        |
+| Lim Song Yang, Samuel | productController.integration.test.js  | productController, mongoose<br>Note: All routes except create, update, delete |
+| Lim Song Yang, Samuel | productDetails.integration.test.js     | productDetails, Layout, CartProvider, Toaster, React Router, Backend |
+| Lim Song Yang, Samuel | categoryProduct.integration.test.js    | categoryProduct, Layout, CartProvider, Toaster, React Router, Backend |
 | Lim Song Yang, Samuel | Search.integration.test.js             | Search, Layout, SearchInput, SearchProvider, CartProvider, Toaster, React Router, Backend |
-| Yek Khoon Sun         | categoryController.integration.test.js | categoryController, mongoose                                                              |
-| Yek Khoon Sun         | HomePage.integration.test.js           | HomePage, Layout, CartProvider, Toaster, React Router, ProductDetails, Backend            |
-| Yek Khoon Sun         | Categories.integration.test.js         | Categories, Layout, Toaster, React Router, Backend                                        |
-| Yek Khoon Sun         | CreateCategory.integration.test.js     | CreateCategory, Layout, Toaster, React Router, Backend                                    |
+| Yek Khoon Sun         | categoryController.integration.test.js | categoryController, mongoose                                  |
+| Yek Khoon Sun         | HomePage.integration.test.js           | HomePage, Layout, Toaster, React Router, Backend              |
+| Yek Khoon Sun         | Categories.integration.test.js         | Categories, Layout, Toaster, React Router, Backend            |
+| Yek Khoon Sun         | CreateCategory.integration.test.js     | CreateCategory, Layout, Toaster, React Router, Backend        |
 
 | Contributor           | UI Test Files                                                       |
 |-----------------------|---------------------------------------------------------------------|
