@@ -165,7 +165,7 @@ export async function openUserMenu(page, name) {
     await page.getByRole('button', { name: new RegExp(`^${name}$`, 'i') }).click();
 }
 
-export async function goToAdminDashboard(page, name = 'Daniel') {
+export async function goToAdminDashboard(page, name) {
     await openUserMenu(page, name);
     await page.getByRole('link', { name: /dashboard/i }).click();
     await expect(page.getByRole('heading', { name: /admin panel/i })).toBeVisible();
