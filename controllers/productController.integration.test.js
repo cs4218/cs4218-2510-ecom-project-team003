@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../server.js';
 import productModel from '../models/productModel.js';
 import categoryModel from '../models/categoryModel.js';
+import userModel from '../models/userModel.js';
 import { createAndConnectTestDB, clearTestDB, closeTestDB } from '../config/testDb.js';
 import mongoose from 'mongoose';
 
@@ -62,7 +63,47 @@ const TEXTBOOK = {
   'createdAt': '2024-12-07T12:11:04.440Z'
 };
 
+export const USER = {
+  _id: 'a1b2c3d4e5f6789012345678',
+  name: 'John Doe',
+  email: 'johndoe@gmail.com',
+  password: 'dont care value',
+  phone: '91234567',
+  address: '123 Main St, City, Country',
+  answer: 'security answer',
+  role: 0,
+};
+
+export const ADMIN = {
+  _id: 'a1b2c3d4e5f6789012345679',
+  name: 'Admin User',
+  email: 'Administrator@gmail.com',
+  password: 'dont care value',
+  phone: '98765432',
+  address: '456 Admin Rd, City, Country',
+  answer: 'admin security answer',
+  role: 1,
+};
+
 console.log = jest.fn();
+
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import {expect} from "@jest/globals";
+dotenv.config({"path": ".env"});
+
+const admin_token = jwt.sign(
+    { _id: ADMIN._id},
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+);
+
+const user_token = jwt.sign(
+    { _id: USER._id},
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+);
+
 
 describe('Product Controller', () => {
   beforeAll(async () => {
@@ -78,6 +119,106 @@ describe('Product Controller', () => {
     await closeTestDB();
   });
 
+  /* ------------ CREATE TESTS ----------------------- */
+  describe('POST /api/v1/product/create-product', () => {
+    it('should return 401 for non admins', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', user_token)
+
+      expect(res.status).toBe(401);
+    });
+
+    it('should return 201 if product created successfully', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+
+      // because of formidable() we MUST send in .fields instead of .send({LAPTOP})
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', admin_token)
+          .field('name', LAPTOP.name)
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(201);
+    })
+
+    it('should return 400 if the object sent is missing a field', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      // let name be missing
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', admin_token)
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 if the object sent is missing a combination of fields', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      // let name and quantity to be missing
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', admin_token)
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return description of 1 (one) missing field if there are any', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      // let name be missing
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', admin_token)
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+      expect(res.body?.message).toMatch(/Name.*required/i);
+    });
+
+    it('should return helpful message on invalid field entries', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+
+      // let price be negative
+      const res = await request(app)
+          .post('/api/v1/product/create-product')
+          .set('Authorization', admin_token)
+          .field('name', LAPTOP.name)
+          .field('description', LAPTOP.description)
+          .field('price', -1)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+      expect(res.body?.message).toMatch(/price.*positive/i);
+    })
+  })
+
+  /* ------------ READ OPERATION TESTS --------------------------- */
   describe('GET /api/v1/product/get-product', () => {
     it('should return 200 with a list of products in decreasing creation', async () => {
       await categoryModel.insertMany([ELECTRONICS, BOOK]);
@@ -362,4 +503,227 @@ describe('Product Controller', () => {
       expect(res.status).toBe(404);
     });
   });
+
+  /* ----------------- UPDATE TESTS ------------------ */
+  describe('PUT /api/v1/product/update-product/:pid', () => {
+    it('should return 401 for non-admins', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', user_token)
+
+      expect(res.status).toBe(401);
+    });
+
+    it('should not alter contents if update request is non-admin', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const before = (await productModel.find({})).map(p => (
+          {
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            category: p.category,
+            quantity: p.quantity,
+          })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', user_token)
+          .field('name', "Ultra Pro Mac")
+          .field('description', "new_description")
+          .field('price', 69420)
+          .field('category', BOOK._id)
+          .field('quantity', 69420)
+
+      const after = (await productModel.find({})).map(p => (
+          {
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            category: p.category,
+            quantity: p.quantity,
+          })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+      expect(res.status).toBe(401);
+      expect(before).toEqual(after)
+
+    })
+
+    it('should return 200 if object is updated successfully', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 200 if just photo is not reattached', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+
+      expect(res.status).toBe(200);
+    });
+
+    it('should return 404 if product id is not found', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/aaaaaaaaaaaaaaaaaaaaaaaa`)
+          .set('Authorization', admin_token)
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 400 if object has missing fields', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      // let description be missing
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', LAPTOP.quantity)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 if multiple fields are missing', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      // let only name be present
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should return description of 1 (one) missing field if there are any', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      // let quantity be missing
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+      expect(res.body?.message).toMatch(/quantity.*required/i);
+    });
+
+    it('should return helpful message on invalid fields', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      // let quantity be negative
+      const res = await request(app)
+          .put(`/api/v1/product/update-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+          .field('name', "Ultra Pro Mac")
+          .field('description', LAPTOP.description)
+          .field('price', LAPTOP.price)
+          .field('category', LAPTOP.category)
+          .field('quantity', -1)
+          .attach('photo', Buffer.from('dummy'), 'test.jpg');
+
+      expect(res.status).toBe(400);
+      expect(res.body?.message).toMatch(/quantity.*non-negative/i);
+    });
+  });
+
+  /* ----------------- DELETE TESTS ------------------ */
+  describe('DELETE /api/v1/product/delete-product/:pid', () => {
+    it('returns 401 if a non-admin user tries deleting', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
+          .set('Authorization', user_token)
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 200 on successful delete', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
+          .set('Authorization', admin_token)
+
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 404 on deleting non existent product', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .delete(`/api/v1/product/delete-product/aaaaaaaaaaaaaaaaaaaaaaaa`)
+          .set('Authorization', admin_token)
+
+      expect(res.status).toBe(404);
+    });
+
+    it('nothing is actually deleted for non-admins', async () => {
+      await userModel.insertOne(ADMIN);
+      await categoryModel.insertMany([ELECTRONICS, BOOK]);
+      await productModel.insertMany([LAPTOP, SMARTPHONE, TEXTBOOK]);
+
+      const res = await request(app)
+          .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
+          .set('Authorization', user_token)
+
+      expect(res.status).toBe(401);
+      const products = await productModel.find({})
+      expect(products.length).toBe(3)
+    })
+  })
 });

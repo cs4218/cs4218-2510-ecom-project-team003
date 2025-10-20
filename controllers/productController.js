@@ -160,9 +160,17 @@ export const productPhotoController = async (req, res) => {
 //delete controller
 export const deleteProductController = async (req, res) => {
   try {
-    await productModel
+    const product = await productModel
       .findByIdAndDelete(req.params.pid)
       .select("-photo");
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      })
+    }
+
     res.status(200).send({
       success: true,
       message: "Product Deleted successfully",
@@ -177,12 +185,24 @@ export const deleteProductController = async (req, res) => {
   }
 };
 
-//upate products
+//update products
 export const updateProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, shipping } =
       req.fields;
     const { photo } = req.files;
+
+    const product = await productModel.findById(
+        req.params.pid,
+    )
+
+    if(!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      })
+    }
+
     // Validation
     switch (true) {
       case !name:
