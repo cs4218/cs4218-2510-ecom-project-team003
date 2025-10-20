@@ -72,7 +72,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: newName })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
@@ -84,7 +84,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send(ELECTRONIC)
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(409);
             expect(res.body.success).toBe(false);
@@ -95,7 +95,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: "" })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(400);
             expect(res.body.message).toBe('Name is required');
@@ -105,7 +105,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: "   " })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(400);
             expect(res.body.message).toBe('Name cannot contain only whitespace');
@@ -117,7 +117,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send({ name: 'Anything' })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(500);
             expect(res.body.success).toBe(false);
@@ -201,7 +201,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: 'Furniture' })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
@@ -214,7 +214,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: "" })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);
@@ -225,7 +225,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: "   " })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);
@@ -236,7 +236,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: BOOK.name })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(false);
@@ -247,7 +247,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put('/api/v1/category/update-category/invalid-id')
                 .send({ name: 'Invalid' })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(500);
             expect(res.body.success).toBe(false);
@@ -259,7 +259,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: 'Furniture' })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(500);
             expect(res.body.success).toBe(false);
@@ -273,7 +273,7 @@ describe('Category Controller', () => {
         it('Should delete a category', async () => {
             const res = await request(app)
                 .delete(`/api/v1/category/delete-category/${ELECTRONIC._id}`)
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
@@ -287,7 +287,7 @@ describe('Category Controller', () => {
             const fakeId = new mongoose.Types.ObjectId().toString();
             const res = await request(app)
                 .delete(`/api/v1/category/delete-category/${fakeId}`)
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(404);
             expect(res.body.success).toBe(false);
@@ -298,7 +298,7 @@ describe('Category Controller', () => {
             const spy = jest.spyOn(categoryModel, 'findByIdAndDelete').mockRejectedValueOnce(new Error(''));
             const res = await request(app)
                 .delete(`/api/v1/category/delete-category/${ELECTRONIC._id}`)
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(500);
             expect(res.body.success).toBe(false);
