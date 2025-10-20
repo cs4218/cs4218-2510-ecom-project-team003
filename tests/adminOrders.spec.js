@@ -11,9 +11,11 @@ test('Test Update Status flow', async ({ page }) => {
     await goToAdminOrders(page);
 
     // find the status
+    await page.locator('.ant-select-dropdown .ant-select-item-option-content').getByText('Processing').click();
+
     const status_locator = page.getByTestId('status-select').first();
-    await status_locator.click();
-    await status_locator.getByText('Processing').click();
+    // await status_locator.click();
+    // await status_locator.getByText('Processing').click();
 
     await expect(status_locator).toHaveText(/Processing/i);
 });
