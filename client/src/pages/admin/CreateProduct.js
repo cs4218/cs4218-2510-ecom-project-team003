@@ -129,7 +129,9 @@ const CreateProduct = () => {
                   placeholder="write a name"
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
+                  maxLength={30}
                 />
+                <small>{name.length}/30</small>
               </div>
               <div className="mb-3">
                 <textarea
