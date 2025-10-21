@@ -12,7 +12,12 @@ const AuthProvider = ({ children }) => {
   const setAuth = (value) => {
     _setAuth(value);
 
-    axios.defaults.headers.common["Authorization"] = value?.token;
+    if (value?.token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${value.token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+    
     localStorage.setItem("auth", JSON.stringify(value));
   }
 
@@ -33,6 +38,7 @@ const AuthProvider = ({ children }) => {
         });
       } catch (error) {
         localStorage.removeItem("auth");
+        delete axios.defaults.headers.common["Authorization"];
       }
     }
   }, []);
