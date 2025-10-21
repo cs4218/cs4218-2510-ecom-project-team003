@@ -30,6 +30,11 @@ export async function addToCartFromDetails(page) {
   await details.getByRole('button', { name: /add to cart/i }).click();
 }
 
+export async function removeFromCart(page) {
+    const cartItem = page.locator('.row.card.flex-row', { hasText: productText }).first();
+    await cartItem.getByRole('button', { name: /remove/i }).click();
+}
+
 export async function goToCategory(page, categoryText) {
   await page.getByRole('link', { name: /categories/i }).click();
   await page.getByRole('link', { name: categoryText }).click();
