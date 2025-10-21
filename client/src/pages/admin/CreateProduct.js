@@ -129,7 +129,9 @@ const CreateProduct = () => {
                   placeholder="write a name"
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
+                  maxLength={30}
                 />
+                <small>{name.length}/30</small>
               </div>
               <div className="mb-3">
                 <textarea
@@ -175,7 +177,7 @@ const CreateProduct = () => {
                 </Select>
               </div>
               <div className="mb-3">
-                <button className="btn btn-primary" onClick={handleCreate}>
+                <button className="btn btn-primary" onClick={handleCreate} data-testid="create-button">
                   CREATE PRODUCT
                 </button>
               </div>
