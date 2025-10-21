@@ -127,7 +127,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', user_token)
+          .set('Authorization', `Bearer ${user_token}`)
 
       expect(res.status).toBe(401);
     });
@@ -139,7 +139,7 @@ describe('Product Controller', () => {
       // because of formidable() we MUST send in .fields instead of .send({LAPTOP})
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', LAPTOP.name)
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
@@ -156,7 +156,7 @@ describe('Product Controller', () => {
       // let name be missing
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
           .field('category', LAPTOP.category)
@@ -172,7 +172,7 @@ describe('Product Controller', () => {
       // let name and quantity to be missing
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
           .field('category', LAPTOP.category)
@@ -187,7 +187,7 @@ describe('Product Controller', () => {
       // let name be missing
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
           .field('category', LAPTOP.category)
@@ -205,7 +205,7 @@ describe('Product Controller', () => {
       // let price be negative
       const res = await request(app)
           .post('/api/v1/product/create-product')
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', LAPTOP.name)
           .field('description', LAPTOP.description)
           .field('price', -1)
@@ -513,7 +513,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', user_token)
+          .set('Authorization', `Bearer ${user_token}`)
 
       expect(res.status).toBe(401);
     });
@@ -534,7 +534,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', user_token)
+          .set('Authorization', `Bearer ${user_token}`)
           .field('name', "Ultra Pro Mac")
           .field('description', "new_description")
           .field('price', 69420)
@@ -562,7 +562,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
@@ -580,7 +580,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
@@ -597,7 +597,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .put(`/api/v1/product/update-product/aaaaaaaaaaaaaaaaaaaaaaaa`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
 
       expect(res.status).toBe(404);
     });
@@ -610,7 +610,7 @@ describe('Product Controller', () => {
       // let description be missing
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
           .field('price', LAPTOP.price)
           .field('category', LAPTOP.category)
@@ -628,7 +628,7 @@ describe('Product Controller', () => {
       // let only name be present
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
 
       expect(res.status).toBe(400);
@@ -642,7 +642,7 @@ describe('Product Controller', () => {
       // let quantity be missing
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
@@ -661,7 +661,7 @@ describe('Product Controller', () => {
       // let quantity be negative
       const res = await request(app)
           .put(`/api/v1/product/update-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
           .field('name', "Ultra Pro Mac")
           .field('description', LAPTOP.description)
           .field('price', LAPTOP.price)
@@ -683,7 +683,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
-          .set('Authorization', user_token)
+          .set('Authorization', `Bearer ${user_token}`)
 
       expect(res.status).toBe(401);
     });
@@ -695,7 +695,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
 
       expect(res.status).toBe(200);
     });
@@ -707,7 +707,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .delete(`/api/v1/product/delete-product/aaaaaaaaaaaaaaaaaaaaaaaa`)
-          .set('Authorization', admin_token)
+          .set('Authorization', `Bearer ${admin_token}`)
 
       expect(res.status).toBe(404);
     });
@@ -719,7 +719,7 @@ describe('Product Controller', () => {
 
       const res = await request(app)
           .delete(`/api/v1/product/delete-product/${LAPTOP._id}`)
-          .set('Authorization', user_token)
+          .set('Authorization', `Bearer ${user_token}`)
 
       expect(res.status).toBe(401);
       const products = await productModel.find({})

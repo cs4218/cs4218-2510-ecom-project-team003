@@ -3,10 +3,11 @@ import { useAuth } from "../../context/auth";
 import { Outlet } from "react-router-dom";
 import axios from 'axios';
 import Spinner from "../Spinner";
+import toast from "react-hot-toast";
 
 export default function PrivateRoute(){
-    const [ok,setOk] = useState(false)
-    const [auth] = useAuth()
+    const [ok,setOk] = useState(false);
+    const [auth ,logout] = useAuth();
 
     useEffect(()=> {
         const authCheck = async() => {
@@ -28,5 +29,8 @@ export default function PrivateRoute(){
         }
     }, [auth?.token]);
 
-    return ok ? <Outlet /> : <Spinner path=""/>;
+    return ok ? <Outlet /> : <Spinner onTimeout={() => {
+        logout();
+        toast.success("You have been logged out", { duration: 5000 });
+    }} />;
 }

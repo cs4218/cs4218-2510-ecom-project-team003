@@ -297,4 +297,70 @@ describe('Register Component', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
+
+  describe('Edge Cases', () => {
+    it('disables register button and shows "Registering..." after clicking once', async () => {
+      // Arrange
+      axios.post.mockResolvedValueOnce({
+        data: { success: true, message: 'User registered successfully' }
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/register']}>
+          <Routes>
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      fireEvent.change(screen.getByPlaceholderText(/enter your name/i), { target: { value: 'John Doe' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'john@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your phone/i), { target: { value: '12345678' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your address/i), { target: { value: '123 Main St' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your dob/i), { target: { value: '2000-01-01' } });
+      fireEvent.change(screen.getByPlaceholderText(/favorite sports/i), { target: { value: 'Football' } });
+
+      // Act
+      const registerButton = screen.getByRole('button', { name: /register/i });
+      fireEvent.click(registerButton);
+
+      // Assert
+      expect(registerButton).toBeDisabled();
+      expect(registerButton).toHaveTextContent(/registering/i);
+    });
+
+    it('prevents multiple rapid register submissions', async () => {
+      // Arrange
+      axios.post.mockResolvedValueOnce({
+        data: { success: true, message: 'User registered successfully' }
+      });
+      const postSpy = jest.spyOn(axios, 'post');
+
+      render(
+        <MemoryRouter initialEntries={['/register']}>
+          <Routes>
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      fireEvent.change(screen.getByPlaceholderText(/enter your name/i), { target: { value: 'John Doe' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'john@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'password123' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your phone/i), { target: { value: '12345678' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your address/i), { target: { value: '123 Main St' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your dob/i), { target: { value: '2000-01-01' } });
+      fireEvent.change(screen.getByPlaceholderText(/favorite sports/i), { target: { value: 'Football' } });
+
+      // Act
+      const button = screen.getByRole('button', { name: /register/i });
+      fireEvent.click(button);
+      fireEvent.click(button);
+      fireEvent.click(button);
+
+      // Assert
+      await waitFor(() => expect(postSpy).toHaveBeenCalledTimes(1));
+    });
+  });
 });
