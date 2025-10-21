@@ -798,27 +798,13 @@ describe('Auth Controller', () => {
         expect(isOldPasswordStill).toBe(true);
       });
 
-      it('should return 401 when password is exactly 6 characters', async () => {
+      it('should accept password with 6 or more characters', async () => {
         // Act
         const res = await request(app)
           .put('/api/v1/auth/profile')
           .set('Authorization', `Bearer ${authToken}`)
           .send({
-            password: '123456' // Exactly 6 characters, but code checks < 7
-          });
-
-        // Assert
-        expect(res.status).toBe(401);
-        expect(res.body.success).toBe(false);
-      });
-
-      it('should accept password with 7 or more characters', async () => {
-        // Act
-        const res = await request(app)
-          .put('/api/v1/auth/profile')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send({
-            password: '1234567' // Exactly 7 characters
+            password: '123456' // Exactly 6 characters
           });
 
         // Assert

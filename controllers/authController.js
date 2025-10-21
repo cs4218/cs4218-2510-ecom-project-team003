@@ -178,7 +178,7 @@ export const updateProfileController = async (req, res) => {
       return res.status(401).send({ success: false, message: "User not found, please authenticate" });
     }
 
-    if (password && password.length < 7) {
+    if (password && password.length < 6) {
       return res.status(401).send({ success: false, message: "Password is required and must be at least 6 characters long." });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
