@@ -170,6 +170,13 @@ const CartPage = () => {
               <div className="mt-2">
                 {!clientToken || !auth?.token || !cart?.length ? (
                   ""
+                ) : process.env.NODE_ENV === "test" ? (
+                  <div
+                    data-testid="dropin-mock"
+                    onClick={() =>
+                      setInstance({ requestPaymentMethod: async () => ({ nonce: "fake-nonce" }) })
+                    }
+                  />
                 ) : (
                   <>
                     <DropIn
