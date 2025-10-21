@@ -73,15 +73,15 @@ const UpdateProduct = () => {
       if (shipping) {
         productData.append("shipping", shipping);
       }
-      const { data } = axios.put(
+      const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
         productData
       );
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
         toast.success("Product Updated Successfully");
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data?.message);
       }
     } catch (error) {
       if ([400, 500].includes(error.response?.status)) {
@@ -218,12 +218,12 @@ const UpdateProduct = () => {
                 </Select>
               </div>
               <div className="mb-3">
-                <button className="btn btn-primary" onClick={handleUpdate}>
+                <button className="btn btn-primary" onClick={handleUpdate} data-testid="update-button">
                   UPDATE PRODUCT
                 </button>
               </div>
               <div className="mb-3">
-                <button className="btn btn-danger" onClick={handleDelete}>
+                <button className="btn btn-danger" onClick={handleDelete} data-testid="delete-button">
                   DELETE PRODUCT
                 </button>
               </div>

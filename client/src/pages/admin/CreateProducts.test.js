@@ -1,8 +1,9 @@
 import axios from "axios";
 import React from "react";
-import {fireEvent, render, screen} from "@testing-library/react";
+import {act, fireEvent, render, screen, waitFor} from "@testing-library/react";
 import CreateProduct from "./CreateProduct";
-import {MemoryRouter} from "react-router-dom";
+import { MemoryRouter } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 const CATEGORIES = [
     { _id: 1, name: "Electronics"},
@@ -14,8 +15,8 @@ const SHIPPING = [
     { _id: 2, shipping: false },
 ]
 
-// Mock the fetchCategories function to return a promise that resolves to CATEGORIES
 jest.mock("axios");
+jest.mock("react-hot-toast");
 jest.mock('../../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()])
 }));
@@ -24,6 +25,12 @@ jest.mock('../../context/search', () => ({
 }));
 jest.mock('../../context/cart', () => ({
     useCart: jest.fn(() => [null, jest.fn()])
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: () => mockNavigate,
 }));
 
 const renderCreateProduct = () =>
@@ -36,8 +43,9 @@ const renderCreateProduct = () =>
 describe("Create Product Page", () => {
     it("dropdown shows categories fetched", async () => {
         axios.get.mockResolvedValue({ data: { success: true, category: CATEGORIES } });
-
-        renderCreateProduct();
+        await act(async () => {
+            renderCreateProduct();
+        });
 
         const selectRoot = await screen.findByTestId("category-dropdown");
         expect(selectRoot).toBeInTheDocument();
@@ -56,9 +64,22 @@ describe("Create Product Page", () => {
         expect(axios.get).toHaveBeenCalled();
     });
 
+    it("Toast Failure expected when fetching categories fails", async () => {
+        axios.get.mockRejectedValue(new Error("Network error"));
+        await act(async () => {
+            renderCreateProduct();
+        });
+        expect(axios.get).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalled();
+        });
+    })
+
     it("shipping shows options", async () => {
         axios.get.mockResolvedValue({ data: { success: true, category: SHIPPING } });
-        renderCreateProduct();
+        await act(async () => {
+            renderCreateProduct();
+        });
 
         const selectRoot = await screen.findByTestId("shipping-dropdown");
         expect(selectRoot).toBeInTheDocument();
@@ -74,6 +95,73 @@ describe("Create Product Page", () => {
             ).toBeInTheDocument();
         }
         expect(axios.get).toHaveBeenCalled();
+    });
+
+    it("shows success Toast when add product is successful", async () => {
+        // axios.get.mockResolvedValueOnce({ data: { success: true, category: CATEGORIES } });
+        await act(async () => {
+            renderCreateProduct();
+        });
+
+        axios.post.mockResolvedValueOnce({
+            data: { success: true },
+        })
+        const submitButton = await screen.getByTestId("create-button")
+        fireEvent.click(submitButton);
+
+        expect(axios.post).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(toast.success).toHaveBeenCalledWith("Product Created Successfully");
+        });
+    });
+
+    it("Navigates upon successful add product", async () => {
+        await act(async () => {
+            renderCreateProduct();
+        });
+
+        axios.post.mockResolvedValueOnce({
+            data: { success: true },
+        })
+        const submitButton = await screen.getByTestId("create-button")
+        fireEvent.click(submitButton);
+
+        expect(axios.post).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalled();
     })
+
+    it("Shows Toast on failure to add product (success != true)", async () => {
+        // axios.get.mockResolvedValueOnce({ data: { success: true, category: CATEGORIES } });
+        await act(async () => {
+            renderCreateProduct();
+        });
+
+        axios.post.mockResolvedValueOnce({
+            data: { success: false, message: "don't care value" },
+        })
+        const submitButton = await screen.getByTestId("create-button")
+        fireEvent.click(submitButton);
+
+        expect(axios.post).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalled();
+        });
+    });
+
+    it("Shows Toast on failure to add product (other Errors)", async () => {
+        // axios.get.mockResolvedValueOnce({ data: { success: true, category: CATEGORIES } });
+        await act(async () => {
+            renderCreateProduct();
+        });
+
+        axios.post.mockRejectedValueOnce(new Error("Network error"));
+        const submitButton = await screen.getByTestId("create-button")
+        fireEvent.click(submitButton);
+
+        expect(axios.post).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalled();
+        });
+    });
 
 })
