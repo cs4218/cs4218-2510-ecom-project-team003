@@ -35,16 +35,16 @@ test('Add items to cart and check totals', async ({ page }) => {
     await expectCartCount(page, 0);
 
     // Add items
-    await addToCartFromCard(page, /novel/i);
-    await addToCartFromCard(page, /novel/i);
+    await addToCartFromCard(page, /smartphone/i);
+    await addToCartFromCard(page, /smartphone/i);
     await expectCartCount(page, 2);
 
     // Go to Cart page
     await goToCart(page);
 
     // Verify cart contents
-    await expect(page.getByText(/novel/i).first()).toBeVisible();
-    await expect(page.getByText(/\$29.98/i)).toBeVisible();
+    await expect(page.getByText(/smartphone/i).first()).toBeVisible();
+    await expect(page.getByText(/\$1,999.98/i)).toBeVisible();
 });
 
 test('Remove item from cart updates totals and count', async ({ page }) => {
@@ -52,15 +52,15 @@ test('Remove item from cart updates totals and count', async ({ page }) => {
     await expectHomeReady(page);
 
     // Add two items
-    await addToCartFromCard(page, /novel/i);
-    await addToCartFromCard(page, /novel/i);
+    await addToCartFromCard(page, /smartphone/i);
+    await addToCartFromCard(page, /smartphone/i);
     await goToCart(page);
     await expectCartCount(page, 2);
 
     // Remove one
-    await removeFromCartByName(page, /novel/i);
+    await removeFromCartByName(page, /smartphone/i);
     await expectCartCount(page, 1);
-    await expect(page.getByText(/\$14.99/i)).toBeVisible();
+    await expect(page.getByText(/\$999.99/i)).toBeVisible();
 });
 
 test('Cart with logged-in user displays greeting', async ({ page }) => {
@@ -85,6 +85,7 @@ test('Update Address button navigates to profile page', async ({ page }) => {
 test('Payment button clears cart on click and navigates to orders', async ({page}) => {
     await page.addInitScript(() => {
         window.__CI_TEST__ = true;
+        localStorage.setItem('cart', JSON.stringify([]));
     });
     await page.route('/api/v1/payment/braintree/token', route => {
         route.fulfill({
@@ -94,13 +95,13 @@ test('Payment button clears cart on click and navigates to orders', async ({page
         });
     });
     await page.goto('/');
-    await addToCartFromCard(page, /novel/i);
-    await addToCartFromCard(page, /novel/i);
+    await addToCartFromCard(page, /smartphone/i);
+    await addToCartFromCard(page, /smartphone/i);
 
     await loginAs(page, test_user);
     await goToCart(page);
 
-    await expect(page.getByText(/novel/i).first()).toBeVisible();
+    await expect(page.getByText(/smartphone/i).first()).toBeVisible();
     // await expect(page.getByText(/choose a way to pay/i)).toBeVisible();
     const dropin = page.getByTestId('dropin-mock'); 
     await expect(dropin).toBeVisible();
