@@ -45,6 +45,7 @@ const AdminOrders = () => {
       getOrders();
     } catch (error) {
       console.log(error);
+      toast.error("something went wrong while changing order status");
     }
   };
   return (
