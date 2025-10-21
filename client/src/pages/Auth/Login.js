@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "./../../components/Layout";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -10,15 +10,26 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [auth, setAuth] = useAuth();
-  
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
-  
 
+  useEffect(() => {
+    if (auth?.token) {
+      navigate("/");
+    }
+  }, [auth, navigate]);
+  
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // prevent duplicate clicks
+    if (loading) return;
+
+    setLoading(true);
+
     try {
       const res = await axios.post("/api/v1/auth/login", {
         email,
@@ -26,28 +37,30 @@ const Login = () => {
       });
       if (res && res.data.success) {
         toast.success(res.data && res.data.message, {
-            duration: 5000,
-            icon: "🙏",
-            style: {
-              background: "green",
-              color: "white",
-            },
-          });
+          duration: 5000,
+          icon: "🙏",
+          style: {
+            background: "green",
+            color: "white",
+          },
+        });
         setAuth({
-            user: res.data.user,
-            token: res.data.token,
+          user: res.data.user,
+          token: res.data.token,
         });
         navigate(location.state || "/");
-      } 
-      else {
+      } else {
         toast.error(res.data.message);
       }
     } catch (error) {
-      let message = error?.response?.data?.message || "Network error. Please try again."
+      let message =
+        error?.response?.data?.message || "Network error. Please try again.";
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
-  // added role = "form" to retrieve form element in test file
+
   return (
     <Layout title="Login - Ecommerce App">
       <div className="form-container " style={{ minHeight: "90vh" }}>
@@ -89,8 +102,8 @@ const Login = () => {
             </button>
           </div>
 
-          <button type="submit" className="btn btn-primary">
-            LOGIN
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Logging in..." : "LOGIN"}
           </button>
         </form>
       </div>

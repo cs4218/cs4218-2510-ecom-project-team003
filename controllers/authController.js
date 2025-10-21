@@ -122,13 +122,13 @@ export const forgotPasswordController = async (req, res) => {
   try {
     const { email, answer, newPassword } = req.body;
     if (!email) {
-      res.status(400).send({ message: "Email is required" });
+      return res.status(400).send({ success: false, message: "Email is required" });
     }
     if (!answer) {
-      res.status(400).send({ message: "Answer is required" });
+      return res.status(400).send({ success: false, message: "Answer is required" });
     }
     if (!newPassword) {
-      res.status(400).send({ message: "New Password is required" });
+      return res.status(400).send({ success: false, message: "New Password is required" });
     }
     //check
     const user = await userModel.findOne({ email, answer });
@@ -156,26 +156,30 @@ export const forgotPasswordController = async (req, res) => {
 
 //test controller
 // note: this thing is completely unused
-export const testController = (req, res) => {
-  try {
-    res.send("Protected Routes");
-  } catch (error) {
-    console.log(error);
-    res.send({ error });
-  }
-};
+// export const testController = (req, res) => {
+//   try {
+//     res.send("Protected Routes");
+//   } catch (error) {
+//     console.log(error);
+//     res.send({ error });
+//   }
+// };
 
 export const updateProfileController = async (req, res) => {
   try {
-    const { name, email, password, address, phone } = req.body;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: "Missing user" });
+    }
+
+    const { name, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
 
-    if (!req.user || !req.user._id) {
-      throw new Error("Missing User");
+    if (!user) {
+      return res.status(401).send({ success: false, message: "User not found, please authenticate" });
     }
 
     if (password && password.length < 6) {
-      return res.json({ error: "A password is required and has to be at least 6 characters long." });
+      return res.status(401).send({ success: false, message: "Password is required and must be at least 6 characters long." });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
@@ -194,8 +198,7 @@ export const updateProfileController = async (req, res) => {
       updatedUser,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: "Error While Updating Profile",
       error: error.message,

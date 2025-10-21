@@ -179,25 +179,35 @@ GitHub Actions Run Link: https://github.com/cs4218/cs4218-2510-ecom-project-team
 
 ### Milestone 2: Integration and UI Testing
 
-| Contributor           | Test File                              | Integration                                                   |
-|-----------------------|----------------------------------------|---------------------------------------------------------------|
-| Adam Ang Zi Jun       |                                        |                                                               |
-| Ethan Jed Tan Jia En  |                                        |                                                               |
-| Guo Yu Hao            |                                        |                                                               |
-| Lim Song Yang, Samuel | productModel.integration.test.js       | productModel, mongoose                                        |
-| Lim Song Yang, Samuel | productController.integration.test.js  | productController, mongoose<br>Note: All routes except create, update, delete |
-| Lim Song Yang, Samuel | productDetails.integration.test.js     | productDetails, Layout, CartProvider, Toaster, React Router, Backend |
-| Lim Song Yang, Samuel | categoryProduct.integration.test.js    | categoryProduct, Layout, CartProvider, Toaster, React Router, Backend |
+| Contributor           | Test File                              | Integration                                                                               |
+|-----------------------|----------------------------------------|-------------------------------------------------------------------------------------------|
+| Adam Ang Zi Jun       |Login.integration.test.js               |AuthController, Layout, Toaster, React Router, Backend                                     |
+| Adam Ang Zi Jun       |Register.integration.test.js            |AuthController, Layout, Toaster, React Router, Backend                                     |
+| Adam Ang Zi Jun       |ForgotPassword.integration.test.js      |AuthController, Layout, Toaster, React Router, Backend                                     |
+| Adam Ang Zi Jun       |Profile.integration.test.js             |AuthController, Layout, Toaster, React Router, Backend                                     |
+| Adam Ang Zi Jun       |AuthController.integration.test.js      |AuthController, UserModel, mongoose                                                        |
+| Adam Ang Zi Jun       |Private.integration.test.js             |PrivateRoute, Layout, Toaster, React Router, Backend                                       |
+| Adam Ang Zi Jun       |AdminRoute.integration.test.js          |AdminRoute, Layout, Toaster, React Router, Backend                                         |
+| Adam Ang Zi Jun       |AuthMiddleware.integration.test.js      |AuthMiddleware, Layout, Toaster, React Router, Backend                                     |
+| Ethan Jed Tan Jia En  |                                        |                                                                                           |
+| Guo Yu Hao            | AdminOrders.integration.test.js        | AdminOrders, Layout, Toaster, React Router, Backend                                       |
+| Guo Yu Hao            | Products.integration.test.js           | Products (Admin), Layout, Toaster, React Router, Backend                                  |
+| Guo Yu Hao            | productController.integration.test.js  | productController, mongoose<br>Note: All routes except read operations                    |
+| Guo Yu Hao            | orderController.integration.test.js    | orderModel, mongoose<br>Note: Only Get All Orders and Update Order Status                 |
+| Lim Song Yang, Samuel | productModel.integration.test.js       | productModel, mongoose                                                                    |
+| Lim Song Yang, Samuel | productController.integration.test.js  | productController, mongoose<br>Note: All routes except create, update, delete             |
+| Lim Song Yang, Samuel | productDetails.integration.test.js     | productDetails, Layout, CartProvider, Toaster, React Router, Backend                      |
+| Lim Song Yang, Samuel | categoryProduct.integration.test.js    | categoryProduct, Layout, CartProvider, Toaster, React Router, Backend                     |
 | Lim Song Yang, Samuel | Search.integration.test.js             | Search, Layout, SearchInput, SearchProvider, CartProvider, Toaster, React Router, Backend |
-| Yek Khoon Sun         | categoryController.integration.test.js | categoryController, mongoose                                  |
-| Yek Khoon Sun         | HomePage.integration.test.js           | HomePage, Layout, Toaster, React Router, Backend              |
-| Yek Khoon Sun         | Categories.integration.test.js         | Categories, Layout, Toaster, React Router, Backend            |
-| Yek Khoon Sun         | CreateCategory.integration.test.js     | CreateCategory, Layout, Toaster, React Router, Backend        |
+| Yek Khoon Sun         | categoryController.integration.test.js | categoryController, mongoose                                                              |
+| Yek Khoon Sun         | HomePage.integration.test.js           | HomePage, Prices, Layout, Toaster, React Router, Backend                                  |
+| Yek Khoon Sun         | Categories.integration.test.js         | Categories, Layout, Toaster, React Router, Backend                                        |
+| Yek Khoon Sun         | CreateCategory.integration.test.js     | CreateCategory, Layout, Toaster, React Router, Backend                                    |
 
 | Contributor           | UI Test Files                                                       |
 |-----------------------|---------------------------------------------------------------------|
-| Adam Ang Zi Jun       |                                                                     |
+| Adam Ang Zi Jun       | auth.spec.js<br>profile.spec.js                                     |
 | Ethan Jed Tan Jia En  |                                                                     |
-| Guo Yu Hao            |                                                                     |
+| Guo Yu Hao            | adminOrders.spec.js<br>adminProducts.spec.js                        |
 | Lim Song Yang, Samuel | productDetails.spec.js<br>categoryProduct.spec.js<br>search.spec.js |
 | Yek Khoon Sun         | categories.spec.js<br>createCategory.spec.js<br>homePage.spec.js    |

@@ -108,7 +108,7 @@ describe('Profile Component', () => {
   });
 
   it('should update the user profile successfully', async () => {
-    axios.put.mockResolvedValue({ data: { updatedUser: UPDATED_USER } });
+    axios.put.mockResolvedValue({ data: { success: true, updatedUser: UPDATED_USER } });
     renderProfile();
 
     fillProfileForm({ ...UPDATED_USER, password: UPDATED_PASSWORD });

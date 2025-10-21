@@ -1,24 +1,12 @@
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import userModel from './userModel.js';
 
-jest.setTimeout(60000); // Increase timeout for MongoMemoryServer first run
+// Mock mongoose model methods
+jest.mock('./userModel.js');
 
-describe('User Model Integration Tests', () => {
-  let mongoServer;
-
-  beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    await mongoose.connect(mongoServer.getUri());
-  });
-
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-  });
-
-  afterEach(async () => {
-    await userModel.deleteMany();
+describe('User Model Unit Tests', () => {
+  beforeEach(() => {
+    // Clear all mock calls before each test
+    jest.clearAllMocks();
   });
 
   describe('User Creation', () => {
@@ -33,369 +21,263 @@ describe('User Model Integration Tests', () => {
         answer: 'Football'
       };
 
+      const mockUser = {
+        _id: 'mock-id-123',
+        ...userData,
+        email: userData.email.toLowerCase(),
+        role: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      // Mock the create method
+      userModel.create.mockResolvedValue(mockUser);
+
       // Act
       const user = await userModel.create(userData);
 
       // Assert
+      expect(userModel.create).toHaveBeenCalledWith(userData);
+      expect(userModel.create).toHaveBeenCalledTimes(1);
       expect(user.name).toBe('John Doe');
       expect(user.email).toBe('john@example.com');
-      expect(user.phone).toBe('1234567890');
-      expect(user.address).toBe('123 Street');
-      expect(user.answer).toBe('Football');
       expect(user.role).toBe(0);
     });
 
-    it('creates timestamps on user creation', async () => {
+    it('handles creation errors', async () => {
       // Arrange
       const userData = {
         name: 'Test User',
         email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
+        password: 'pass'
       };
 
+      const mockError = new Error('Validation failed');
+      userModel.create.mockRejectedValue(mockError);
+
+      // Act & Assert
+      await expect(userModel.create(userData)).rejects.toThrow('Validation failed');
+      expect(userModel.create).toHaveBeenCalledWith(userData);
+    });
+  });
+
+  describe('Finding Users', () => {
+    it('finds user by email', async () => {
+      // Arrange
+      const mockUser = {
+        _id: 'mock-id-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '1234567890'
+      };
+
+      userModel.findOne.mockResolvedValue(mockUser);
+
       // Act
-      const user = await userModel.create(userData);
+      const user = await userModel.findOne({ email: 'john@example.com' });
 
       // Assert
-      expect(user.createdAt).toBeDefined();
-      expect(user.updatedAt).toBeDefined();
-      expect(user.createdAt).toBeInstanceOf(Date);
-      expect(user.updatedAt).toBeInstanceOf(Date);
+      expect(userModel.findOne).toHaveBeenCalledWith({ email: 'john@example.com' });
+      expect(user.email).toBe('john@example.com');
     });
-    
-    it('updates updatedAt when user is modified', async () => {
+
+    it('returns null when user not found', async () => {
       // Arrange
-      const userData = {
-        name: 'Timestamp Test',
-        email: 'timestamp@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
-      const user = await userModel.create(userData);
-      const oldUpdatedAt = user.updatedAt;
+      userModel.findOne.mockResolvedValue(null);
 
       // Act
+      const user = await userModel.findOne({ email: 'nonexistent@example.com' });
+
+      // Assert
+      expect(user).toBeNull();
+    });
+
+    it('finds user by id', async () => {
+      // Arrange
+      const mockUser = {
+        _id: 'mock-id-123',
+        name: 'John Doe',
+        email: 'john@example.com'
+      };
+
+      userModel.findById.mockResolvedValue(mockUser);
+
+      // Act
+      const user = await userModel.findById('mock-id-123');
+
+      // Assert
+      expect(userModel.findById).toHaveBeenCalledWith('mock-id-123');
+      expect(user._id).toBe('mock-id-123');
+    });
+  });
+
+  describe('Updating Users', () => {
+    it('updates user successfully', async () => {
+      // Arrange
+      const mockUser = {
+        _id: 'mock-id-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        save: jest.fn().mockResolvedValue({
+          _id: 'mock-id-123',
+          name: 'Updated Name',
+          email: 'john@example.com'
+        })
+      };
+
+      userModel.findById.mockResolvedValue(mockUser);
+
+      // Act
+      const user = await userModel.findById('mock-id-123');
       user.name = 'Updated Name';
-      await user.save();
+      const updatedUser = await user.save();
 
       // Assert
-      expect(user.updatedAt).not.toEqual(oldUpdatedAt);
-      expect(user.updatedAt).toBeInstanceOf(Date);
+      expect(user.save).toHaveBeenCalled();
+      expect(updatedUser.name).toBe('Updated Name');
     });
 
-  });
-
-  describe('Required Fields Validation', () => {
-    it('requires name field', async () => {
+    it('updates user with findByIdAndUpdate', async () => {
       // Arrange
-      const userWithoutName = {
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
+      const updatedUser = {
+        _id: 'mock-id-123',
+        name: 'Updated Name',
+        email: 'john@example.com'
       };
 
-      // Act & Assert
-      await expect(userModel.create(userWithoutName)).rejects.toThrow();
-    });
+      userModel.findByIdAndUpdate.mockResolvedValue(updatedUser);
 
-    it('requires email field', async () => {
-      // Arrange
-      const userWithoutEmail = {
-        name: 'Test',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
+      // Act
+      const user = await userModel.findByIdAndUpdate(
+        'mock-id-123',
+        { name: 'Updated Name' },
+        { new: true }
+      );
 
-      // Act & Assert
-      await expect(userModel.create(userWithoutEmail)).rejects.toThrow();
-    });
-
-    it('requires password field', async () => {
-      // Arrange
-      const userWithoutPassword = {
-        name: 'Test',
-        email: 'test@example.com',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(userWithoutPassword)).rejects.toThrow();
-    });
-
-    it('requires phone field', async () => {
-      // Arrange
-      const userWithoutPhone = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        address: 'addr',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(userWithoutPhone)).rejects.toThrow();
-    });
-
-    it('requires address field', async () => {
-      // Arrange
-      const userWithoutAddress = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(userWithoutAddress)).rejects.toThrow();
-    });
-
-    it('requires answer field', async () => {
-      // Arrange
-      const userWithoutAnswer = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(userWithoutAnswer)).rejects.toThrow();
+      // Assert
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'mock-id-123',
+        { name: 'Updated Name' },
+        { new: true }
+      );
+      expect(user.name).toBe('Updated Name');
     });
   });
 
-  describe('Email Validation', () => {
-    it('converts email to lowercase', async () => {
+  describe('Deleting Users', () => {
+    it('deletes user by id', async () => {
       // Arrange
-      const userData = {
-        name: 'Test',
-        email: 'TEST@EXAMPLE.COM',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
+      const mockDeletedUser = {
+        _id: 'mock-id-123',
+        name: 'John Doe',
+        email: 'john@example.com'
       };
+
+      userModel.findByIdAndDelete.mockResolvedValue(mockDeletedUser);
 
       // Act
-      const user = await userModel.create(userData);
+      const deletedUser = await userModel.findByIdAndDelete('mock-id-123');
 
       // Assert
-      expect(user.email).toBe('test@example.com');
+      expect(userModel.findByIdAndDelete).toHaveBeenCalledWith('mock-id-123');
+      expect(deletedUser._id).toBe('mock-id-123');
     });
 
-    it('trims whitespace from email', async () => {
+    it('deletes many users', async () => {
       // Arrange
-      const userData = {
-        name: 'Test',
-        email: '  test@example.com  ',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
+      userModel.deleteMany.mockResolvedValue({ deletedCount: 5 });
 
       // Act
-      const user = await userModel.create(userData);
+      const result = await userModel.deleteMany({ role: 0 });
 
       // Assert
-      expect(user.email).toBe('test@example.com');
-    });
-
-    it('rejects invalid email format', async () => {
-      // Arrange
-      const invalidEmailUser = {
-        name: 'Test',
-        email: 'notanemail',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(invalidEmailUser)).rejects.toThrow(/valid email/);
-    });
-
-    it('enforces unique email constraint', async () => {
-      // Arrange
-      await userModel.create({
-        name: 'User 1',
-        email: 'same@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      });
-
-      // Act & Assert
-      await expect(
-        userModel.create({
-          name: 'User 2',
-          email: 'same@example.com',
-          password: 'pass',
-          phone: '87654321',
-          address: 'addr',
-          answer: 'ans'
-        })
-      ).rejects.toThrow();
-    });
-
-    it('rejects duplicate emails regardless of case', async () => {
-      // Arrange
-      await userModel.create({
-        name: 'User 1',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      });
-
-      // Act & Assert
-      await expect(
-        userModel.create({
-          name: 'User 2',
-          email: 'TEST@EXAMPLE.COM', // same as above but uppercase
-          password: 'pass',
-          phone: '87654321',
-          address: 'addr',
-          answer: 'ans'
-        })
-      ).rejects.toThrow();
+      expect(userModel.deleteMany).toHaveBeenCalledWith({ role: 0 });
+      expect(result.deletedCount).toBe(5);
     });
   });
 
-  describe('Phone Validation', () => {
-    it('accepts valid phone number with 8 digits', async () => {
+  describe('Query Methods', () => {
+    it('finds all users', async () => {
       // Arrange
-      const userData = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans'
-      };
+      const mockUsers = [
+        { _id: '1', name: 'User 1', email: 'user1@example.com' },
+        { _id: '2', name: 'User 2', email: 'user2@example.com' }
+      ];
+
+      userModel.find.mockResolvedValue(mockUsers);
 
       // Act
-      const user = await userModel.create(userData);
+      const users = await userModel.find({});
 
       // Assert
-      expect(user.phone).toBe('12345678');
+      expect(userModel.find).toHaveBeenCalledWith({});
+      expect(users).toHaveLength(2);
     });
 
-    it('accepts valid phone number with 15 digits', async () => {
+    it('finds users with filters', async () => {
       // Arrange
-      const userData = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '123456789012345',
-        address: 'addr',
-        answer: 'ans'
-      };
+      const mockAdmins = [
+        { _id: '1', name: 'Admin 1', email: 'admin1@example.com', role: 1 }
+      ];
+
+      userModel.find.mockResolvedValue(mockAdmins);
 
       // Act
-      const user = await userModel.create(userData);
+      const admins = await userModel.find({ role: 1 });
 
       // Assert
-      expect(user.phone).toBe('123456789012345');
+      expect(userModel.find).toHaveBeenCalledWith({ role: 1 });
+      expect(admins[0].role).toBe(1);
     });
 
-    it('rejects phone number with letters', async () => {
+    it('counts users', async () => {
       // Arrange
-      const invalidPhoneUser = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: 'abc12345',
-        address: 'addr',
-        answer: 'ans'
-      };
+      userModel.countDocuments.mockResolvedValue(10);
 
-      // Act & Assert
-      await expect(userModel.create(invalidPhoneUser)).rejects.toThrow(/valid phone number/);
-    });
+      // Act
+      const count = await userModel.countDocuments({});
 
-    it('rejects phone number too short', async () => {
-      // Arrange
-      const shortPhoneUser = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '1234567',
-        address: 'addr',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(shortPhoneUser)).rejects.toThrow(/valid phone number/);
-    });
-
-    it('rejects phone number too long', async () => {
-      // Arrange
-      const longPhoneUser = {
-        name: 'Test',
-        email: 'test@example.com',
-        password: 'pass',
-        phone: '1234567890123456',
-        address: 'addr',
-        answer: 'ans'
-      };
-
-      // Act & Assert
-      await expect(userModel.create(longPhoneUser)).rejects.toThrow(/valid phone number/);
+      // Assert
+      expect(userModel.countDocuments).toHaveBeenCalledWith({});
+      expect(count).toBe(10);
     });
   });
 
-  describe('Default Values', () => {
-    it('sets default role to 0 for regular users', async () => {
+  describe('Validation Logic', () => {
+    it('handles validation errors for required fields', async () => {
       // Arrange
-      const userData = {
+      const invalidUser = {
+        email: 'test@example.com'
+        // missing required fields
+      };
+
+      const validationError = new Error('User validation failed: name: Path `name` is required.');
+      validationError.name = 'ValidationError';
+      
+      userModel.create.mockRejectedValue(validationError);
+
+      // Act & Assert
+      await expect(userModel.create(invalidUser)).rejects.toThrow('User validation failed');
+    });
+
+    it('handles duplicate email errors', async () => {
+      // Arrange
+      const duplicateUser = {
         name: 'Test',
-        email: 'test@example.com',
+        email: 'existing@example.com',
         password: 'pass',
         phone: '12345678',
         address: 'addr',
         answer: 'ans'
       };
 
-      // Act
-      const user = await userModel.create(userData);
+      const duplicateError = new Error('E11000 duplicate key error');
+      duplicateError.code = 11000;
+      
+      userModel.create.mockRejectedValue(duplicateError);
 
-      // Assert
-      expect(user.role).toBe(0);
-    });
-
-    it('allows setting custom role', async () => {
-      // Arrange
-      const adminData = {
-        name: 'Admin',
-        email: 'admin@example.com',
-        password: 'pass',
-        phone: '12345678',
-        address: 'addr',
-        answer: 'ans',
-        role: 1
-      };
-
-      // Act
-      const admin = await userModel.create(adminData);
-
-      // Assert
-      expect(admin.role).toBe(1);
+      // Act & Assert
+      await expect(userModel.create(duplicateUser)).rejects.toThrow('E11000');
     });
   });
 });

@@ -129,6 +129,35 @@ describe("CreateCategory Component", () => {
         logSpy.mockRestore();
     });
 
+    it("Creates new category and handles empty input field", async () => {
+        renderCreateCategory();
+
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+        const categoryTable = await screen.findByTestId("category-table");
+        await waitFor(() => {
+            const tbody = categoryTable.querySelector("tbody");
+            expect(tbody.querySelectorAll("tr").length).toBe(2);
+        });
+
+        const createCategoryForm = screen.getByTestId("create-category-form");
+        const input = within(createCategoryForm).getByPlaceholderText("Enter new category");
+        const submitButton = within(createCategoryForm).getByText("Submit");
+
+        fireEvent.change(input, { target: { value: "" } });
+        fireEvent.click(submitButton);
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+
+        await waitFor(() => {
+            const tbody = categoryTable.querySelector("tbody");
+            const rows = tbody.querySelectorAll("tr");
+            expect(rows.length).toBe(2);
+        });
+
+        logSpy.mockRestore();
+    });
+
     it("Creates new category and handles duplicate category", async () => {
         renderCreateCategory();
 
@@ -179,6 +208,35 @@ describe("CreateCategory Component", () => {
 
         await waitFor(() => {
             expect(within(categoryTable).getByText("Updated Books")).toBeInTheDocument();
+        });
+    });
+
+    it("Updates a category and handles whitespace", async () => {
+        renderCreateCategory();
+
+        const categoryTable = await screen.findByTestId("category-table");
+        await waitFor(() => {
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
+        });
+
+        const bookRow = within(categoryTable).getByText("Books").closest("tr");
+        const editButton = within(bookRow).getByText("Edit");
+        fireEvent.click(editButton);
+
+        const modal = await screen.findByRole("dialog");
+        const updateInput = await within(modal).findByDisplayValue("Books");
+        const updateSubmitButton = within(modal).getByText("Submit");
+
+        const logSpy = jest.spyOn(axios, "put");
+
+        fireEvent.change(updateInput, { target: { value: " " } });
+        fireEvent.click(updateSubmitButton);
+
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        logSpy.mockRestore();
+
+        await waitFor(() => {
+            expect(within(categoryTable).getByText("Books")).toBeInTheDocument();
         });
     });
 
