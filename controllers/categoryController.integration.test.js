@@ -101,7 +101,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send(ELECTRONIC_CASE_INSENSITIVE)
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(409);
             expect(res.body.success).toBe(false);
@@ -264,7 +264,7 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${BOOK._id}`)
                 .send({ name: ELECTRONIC_CASE_INSENSITIVE.name })
-                .set('Authorization', token);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(false);
