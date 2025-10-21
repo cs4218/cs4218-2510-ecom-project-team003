@@ -148,6 +148,27 @@ describe("Create Product Page", () => {
         });
     });
 
+    it("Shows Specific Error Message in Toast for 4xx or 5xx errors", async () => {
+        axios.post.mockRejectedValueOnce({
+            response: {
+                status: 400,
+                data: { message: "Missing name field" },
+            },
+        });
+
+        await act(async () => {
+            renderCreateProduct();
+        });
+
+        const createButton = await screen.findByTestId("create-button");
+        fireEvent.click(createButton);
+
+        await waitFor(() => {
+            expect(axios.post).toHaveBeenCalled();
+            expect(toast.error).toHaveBeenCalledWith("Missing name field");
+        });
+    })
+
     it("Shows Toast on failure to add product (other Errors)", async () => {
         // axios.get.mockResolvedValueOnce({ data: { success: true, category: CATEGORIES } });
         await act(async () => {
