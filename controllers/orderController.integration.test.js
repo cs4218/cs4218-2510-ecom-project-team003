@@ -47,6 +47,29 @@ describe("Order Controller Integration Tests", () => {
         await closeTestDB();
     })
 
+    describe("getOrders tests", () => {
+        it("should return orders for the logged-in user", async () => {
+            const response = await request(app)
+                .get("/api/v1/order/orders") // adjust if your route differs
+                .set("Authorization", `Bearer ${user_token}`)
+                .expect(200);
+            expect(Array.isArray(response.body)).toBe(true);
+
+            const order = response.body[0];
+            expect(order).toHaveProperty("_id");
+            expect(order).toHaveProperty("products");
+            expect(order).toHaveProperty("buyer");
+
+            // Buyer should match USER fixture
+            expect(order.buyer._id.toString()).toBe(USER._id.toString());
+            expect(order.buyer.name).toBe(USER.name);
+
+            // Products should be populated
+            expect(order.products.length).toBeGreaterThan(0);
+            expect(order.products[0]).not.toHaveProperty("photo");
+        });
+    })
+
     describe("getAllOrders tests", () => {
         it("should return 500 for unexpected error", async () => {
             // Mock find() to simulate DB failure
