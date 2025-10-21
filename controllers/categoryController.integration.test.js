@@ -28,6 +28,12 @@ const ELECTRONIC = {
     slug: slugify("Electronic"),
 };
 
+const ELECTRONIC_CASE_INSENSITIVE = {
+    _id: "66db427fdb0119d9234b27f4",
+    name: "eLeCtRoNiC",
+    slug: slugify("eLeCtRoNiC"),
+}
+
 const BOOK = {
     _id: "66db427fdb0119d9234b27f1",
     name: "Book",
@@ -84,6 +90,17 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .post('/api/v1/category/create-category')
                 .send(ELECTRONIC)
+                .set('Authorization', token);
+
+            expect(res.status).toBe(409);
+            expect(res.body.success).toBe(false);
+            expect(res.body.message).toBe('Category Already Exists (*Names are case-insensitive)');
+        });
+
+        it('Should return 409 when category (same name but case insensitive) already exists', async () => {
+            const res = await request(app)
+                .post('/api/v1/category/create-category')
+                .send(ELECTRONIC_CASE_INSENSITIVE)
                 .set('Authorization', token);
 
             expect(res.status).toBe(409);
@@ -236,6 +253,17 @@ describe('Category Controller', () => {
             const res = await request(app)
                 .put(`/api/v1/category/update-category/${ELECTRONIC._id}`)
                 .send({ name: BOOK.name })
+                .set('Authorization', token);
+
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(false);
+            expect(res.body.message).toBe('Category Already Exists (*Names are case-insensitive)');
+        });
+
+        it('Should return 200 with success is false when updating using an existing category name (same name but case insensitive)', async () => {
+            const res = await request(app)
+                .put(`/api/v1/category/update-category/${BOOK._id}`)
+                .send({ name: ELECTRONIC_CASE_INSENSITIVE.name })
                 .set('Authorization', token);
 
             expect(res.status).toBe(200);

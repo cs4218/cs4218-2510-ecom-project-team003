@@ -132,17 +132,14 @@ export async function selectPriceRange(page, label) {
 }
 
 export async function resetHomeFilters(page) {
-    const home = getHomeRegion(page);
-    const onHome = await home.isVisible().catch(() => false);
+    const onHome = await getHomeRegion(page).isVisible().catch(() => false);
     if (!onHome) {
-        return;
+        await page.goto('/');
+        await expectHomeReady(page);
     }
 
     const reset = page.getByRole('button', { name: /reset filters/i });
-    if ((await reset.count()) === 0) {
-        return;
-    }
-    if (!(await reset.isVisible())) {
+    if ((await reset.count()) === 0 || !(await reset.isVisible())) {
         return;
     }
 
@@ -229,7 +226,7 @@ export async function updateCategory(page, oldName, newName) {
 
 export async function deleteCategory(page, name) {
     const table = page.getByTestId('category-table');
-    const row = table.getByRole('row', { name: new RegExp(name, 'i') }).first();
+    const row = table.getByRole('row', { name: new RegExp(escapeRegExp(name), 'i') }).first();
     await row.getByRole('button', { name: /delete/i }).click();
-    await expect(table).not.toContainText(name);
+    await expect(table.getByRole('cell', { name: exactReg(name) })).toHaveCount(0);
 }

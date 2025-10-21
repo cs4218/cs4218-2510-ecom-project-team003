@@ -50,7 +50,7 @@ export const STUDY_GUIDE = {
     name: "Study Guide",
     slug: "study-guide",
     description: "Concise exam study guide",
-    price: 22,
+    price: 80,
     category: BOOKS._id,
     quantity: 200,
 };
@@ -59,7 +59,7 @@ export const SINGAPORE_CONTRACT_LAW = {
     name: "Singapore Contract Law",
     slug: "singapore-contract-law",
     description: "The definitive text on contract law",
-    price: 70,
+    price: 79.99,
     category: BOOKS._id,
     quantity: 80,
 };
