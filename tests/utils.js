@@ -189,6 +189,12 @@ export async function goToAdminProducts(page) {
     await expect(page.getByRole('heading', { name: /all products/i })).toBeVisible();
 }
 
+export async function goToFirstProduct(page) {
+    const links = await page.getByTestId('product-link');
+    const firstLink = links.first();
+    await firstLink.click();
+}
+
 export async function headerOpenCategoriesMenu(page) {
     await page.getByRole('link', { name: /^categories$/i }).click();
 }
