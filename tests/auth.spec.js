@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { expectHomeReady, expectToastCount } from "./utils";
+import { expectHomeReady, expectToastCount, registerUser } from "./utils";
 
 test("Existing user logs in successfully -> logs out successfully", async ({
   page,
 }) => {
   const user = {
-    email: "asdf@gmail.com",
-    password: "asdf",
-    name: "asdf",
+    email: "user@test.com",
+    password: "user@test.com",
+    name: "user@test.com",
   };
   // Go to login page
   await page.goto("/login");
@@ -45,9 +45,11 @@ test("Existing user logs in successfully -> logs out successfully", async ({
 test("New user registers account -> logs in successfully -> logs out successfully", async ({
   page,
 }) => {
+  const timestamp = Date.now();
+
   const user = {
-    name: `testUser`,
-    email: `testuser@test.com`,
+    name: `testUser_${timestamp}`,
+    email: `testuser_${timestamp}@test.com`,
     password: "password123",
     phone: "91234567",
     address: "123 Test Street",
@@ -150,16 +152,44 @@ test("Existing admin logs in successfully -> logs out successfully", async ({
   ).toBeVisible();
 });
 
-test("Existing user forgots password and resets it successfully -> successfully logs in -> logs out successfully", async ({
+test("New user forgots password and resets it successfully -> successfully logs in -> logs out successfully", async ({
   page,
 }) => {
+  const timestamp = Date.now();
+
   const user = {
-    email: "asdf@gmail.com",
-    oldPassword: "asdf",
+    name: `testUser3_${timestamp}`,
+    email: `testuser3_${timestamp}@test.com`,
+    password: "password123",
     newPassword: "newpass123",
-    name: "asdf",
-    answer: "asdf",
+    phone: "91234567",
+    address: "123 Test Street",
+    DOB: "2000-01-01",
+    answer: "football",
   };
+
+  // Register the new user first
+  await registerUser(page, user);
+
+  // attempt to login with original password to verify registration
+  await page.getByPlaceholder(/^enter your email ?$/i).fill(user.email);
+  await page.getByPlaceholder(/^enter your password$/i).fill(user.password);
+  await page.getByRole("button", { name: /^login$/i }).click();
+
+  // Verify navigation to home page
+  await expectHomeReady(page);
+  await expect(page).toHaveURL(/\/$/);
+  // Log out
+  await page
+    .getByRole("button", { name: new RegExp(`^${user.name}$`, "i") })
+    .click();
+  await page.getByRole("link", { name: /^logout$/i }).click();
+
+  // Verify redirection to login page
+  await expectToastCount(page, /logout successfully/i, 1);
+  await expect(
+    page.getByRole("heading", { name: /login form/i })
+  ).toBeVisible();
 
   // Go to forgot password page
   await page.goto("/forgot-password");
@@ -226,4 +256,3 @@ test('Invalid login shows error toast', async ({ page }) => {
   // Expect error toast
   await expectToastCount(page, /invalid email or password/i, 1);
 });
-
