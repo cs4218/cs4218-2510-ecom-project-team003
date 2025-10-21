@@ -168,16 +168,20 @@ const CartPage = () => {
                 </div>
               )}
               <div className="mt-2">
-                {!clientToken || !auth?.token || !cart?.length ? (
-                  ""
-                ) : process.env.NODE_ENV === "test" ? (
+                {window.__CI_TEST__ ? (
                   <div
                     data-testid="dropin-mock"
                     onClick={() =>
                       setInstance({ requestPaymentMethod: async () => ({ nonce: "fake-nonce" }) })
                     }
-                  />
-                ) : (
+                    style={{ width: "100px", height: "100px", background: "lightgray", cursor: "pointer" }}
+                  >
+                    DropIn Mock
+                  </div>
+                ) : null}
+                {!clientToken || !auth?.token || !cart?.length ? (
+                  ""
+                ) :  (
                   <>
                     <DropIn
                       options={{
