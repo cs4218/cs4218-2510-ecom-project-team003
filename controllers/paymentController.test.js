@@ -60,7 +60,7 @@ describe('Payment Controller', () => {
       await braintreeTokenController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith(fakeError);
+      expect(res.json).toHaveBeenCalledWith({ message: fakeError.message });
     });
   });
 
@@ -116,7 +116,7 @@ describe('Payment Controller', () => {
       await braintreePaymentController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith(fakeError);
+      expect(res.json).toHaveBeenCalledWith({ message: fakeError.message });
     });
   });
 });
