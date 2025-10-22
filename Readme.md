@@ -189,7 +189,9 @@ GitHub Actions Run Link: https://github.com/cs4218/cs4218-2510-ecom-project-team
 | Adam Ang Zi Jun       |Private.integration.test.js             |PrivateRoute, Layout, Toaster, React Router, Backend                                       |
 | Adam Ang Zi Jun       |AdminRoute.integration.test.js          |AdminRoute, Layout, Toaster, React Router, Backend                                         |
 | Adam Ang Zi Jun       |AuthMiddleware.integration.test.js      |AuthMiddleware, Layout, Toaster, React Router, Backend                                     |
-| Ethan Jed Tan Jia En  |                                        |                                                                                           |
+| Ethan Jed Tan Jia En  | orderController.integration.test.js    | orderModel, Backend, mongoose<br>Note: Only Get Orders                                    |
+| Ethan Jed Tan Jia En  | paymentController.integration.test.js  | React Router, Backend, mongoose                                                           |
+| Ethan Jed Tan Jia En  | CartPage.integration.test.js           | AuthProvider, CartProvider, React Router, Backend                                         |
 | Guo Yu Hao            | AdminOrders.integration.test.js        | AdminOrders, Layout, Toaster, React Router, Backend                                       |
 | Guo Yu Hao            | Products.integration.test.js           | Products (Admin), Layout, Toaster, React Router, Backend                                  |
 | Guo Yu Hao            | productController.integration.test.js  | productController, mongoose<br>Note: All routes except read operations                    |
@@ -207,7 +209,7 @@ GitHub Actions Run Link: https://github.com/cs4218/cs4218-2510-ecom-project-team
 | Contributor           | UI Test Files                                                       |
 |-----------------------|---------------------------------------------------------------------|
 | Adam Ang Zi Jun       | auth.spec.js<br>profile.spec.js                                     |
-| Ethan Jed Tan Jia En  |                                                                     |
+| Ethan Jed Tan Jia En  | CartPage.spec.js                                                    |
 | Guo Yu Hao            | adminOrders.spec.js<br>adminProducts.spec.js                        |
 | Lim Song Yang, Samuel | productDetails.spec.js<br>categoryProduct.spec.js<br>search.spec.js |
 | Yek Khoon Sun         | categories.spec.js<br>createCategory.spec.js<br>homePage.spec.js    |
