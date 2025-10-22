@@ -30,6 +30,18 @@ export async function addToCartFromDetails(page) {
   await details.getByRole('button', { name: /add to cart/i }).click();
 }
 
+export async function getCartItem(page, productText) {
+    // Find the first cart item containing the productText
+    return page.locator('.row.card.flex-row').filter({
+        hasText: productText
+    }).first();
+}
+
+export async function removeFromCartByName(page, productText) {
+    const cartItem = await getCartItem(page, productText);
+    await cartItem.getByRole('button', { name: /remove/i }).click();
+}
+
 export async function goToCategory(page, categoryText) {
   await page.getByRole('link', { name: /categories/i }).click();
   await page.getByRole('link', { name: categoryText }).click();
