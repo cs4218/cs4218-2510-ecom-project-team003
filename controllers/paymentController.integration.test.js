@@ -70,7 +70,7 @@ describe("Payment Controller Integration Tests", () => {
   it("should process a payment successfully", async () => {
     const res = await request(app)
       .post("/api/v1/payment/braintree/payment")
-      .set("Authorization", userToken)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ nonce: "fake-nonce", cart: fakeCart });
 
     expect(res.status).toBe(200);
@@ -100,7 +100,7 @@ describe("Payment Controller Integration Tests", () => {
     braintreeMocks.mockSale.mockImplementationOnce((transaction, cb) => cb(new Error("Payment failed")));
     const res = await request(app)
       .post("/api/v1/payment/braintree/payment")
-      .set("Authorization", userToken)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ nonce: "fake-nonce", cart: fakeCart });
 
     expect(res.status).toBe(500);
