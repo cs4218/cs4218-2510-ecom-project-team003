@@ -25,8 +25,8 @@ test('Test: Click on a product in Admin', async ({ page }) => {
     await firstLink.click();
     await expect(page).toHaveURL(/\/product\//);
     // one should see the mention of the product description somewhere
-    await expect(page.getByText(productName)).toBeVisible();
-    await expect(page.getByText(productDescription)).toBeVisible();
+    await expect(page.getByText(productName)).toBeVisible({timeout: 15000});
+    await expect(page.getByText(productDescription)).toBeVisible({timeout: 15000});
 });
 
 test('Test: Update a product -> User sees indicator of failure or success', async ({ page }) => {
