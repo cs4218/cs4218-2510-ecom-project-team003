@@ -51,7 +51,7 @@ describe("Order Controller Integration Tests", () => {
         it("should return orders for the logged-in user", async () => {
             const response = await request(app)
                 .get("/api/v1/order/orders")
-                .set("Authorization", user_token)
+                .set("Authorization", `Bearer ${user_Token}`)
                 .expect(200);
             expect(Array.isArray(response.body)).toBe(true);
 
@@ -85,7 +85,7 @@ describe("Order Controller Integration Tests", () => {
 
             const response = await request(app)
                 .get("/api/v1/order/orders")
-                .set("Authorization", user_token)
+                .set("Authorization", `Bearer ${user_Token}`)
                 .expect(200);
 
             expect(Array.isArray(response.body)).toBe(true);
@@ -100,7 +100,7 @@ describe("Order Controller Integration Tests", () => {
 
             const response = await request(app)
                 .get("/api/v1/order/orders")
-                .set("Authorization", user_token)
+                .set("Authorization", `Bearer ${user_Token}`)
                 .expect(500);
 
             expect(response.body).toHaveProperty("error");
