@@ -381,6 +381,7 @@ describe('Auth Controller', () => {
         // Assert
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
+          success: false,
           message: 'Email is required'
         });
       });
@@ -398,6 +399,7 @@ describe('Auth Controller', () => {
         // Assert
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
+          success: false,
           message: 'Answer is required'
         });
       });
@@ -415,6 +417,7 @@ describe('Auth Controller', () => {
         // Assert
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
+          success: false,
           message: 'New Password is required'
         });
       });
@@ -577,15 +580,17 @@ describe('Auth Controller', () => {
     });
 
     it("should return error if req.user is missing", async () => {
-      const [req, res] = mockRequestResponse({ body: { name: "New" }, user: undefined });
+      const [req, res] = mockRequestResponse({ body: { name: "New" }, user: null });
       const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
       await updateProfileController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(401);
       expect(res.send).toHaveBeenCalledWith(
-        expect.objectContaining({ success: false, message: "Error While Updating Profile", error: "Missing User" })
-      );
+        expect.objectContaining({ 
+          success: false, 
+          message: "Missing user" 
+        }));
       logSpy.mockRestore();
     });
 
@@ -597,23 +602,25 @@ describe('Auth Controller', () => {
 
       await updateProfileController(req, res);
 
-      expect(res.json).toHaveBeenCalledWith(
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: "A password is required and has to be at least 6 characters long.",
+          success: false, 
+          message: "Password is required and must be at least 6 characters long."
         })
       );
       expect(userModel.findById).toHaveBeenCalledWith("user123");
       expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
     });
 
-    it("should handle errors and return 400", async () => {
+    it("should handle errors and return 500", async () => {
       let [req, res] = mockRequestResponse();
       const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
       userModel.findById.mockImplementation(() => { throw new Error("DB failure"); });
 
       await updateProfileController(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,

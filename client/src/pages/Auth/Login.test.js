@@ -337,4 +337,59 @@ describe('Login Component', () => {
       });
     });
   })
+
+  describe("Edge Cases", () => {
+    it("should disable login button and show 'Logging in...' text after clicking", async () => {
+      // ARRANGE
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // ACT
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), {
+        target: { value: "john@example.com" },
+      });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), {
+        target: { value: "password123" },
+      });
+
+      const loginButton = screen.getByRole("button", { name: /^login$/i });
+      fireEvent.click(loginButton);
+
+      // ASSERT
+      expect(loginButton).toBeDisabled();
+      expect(loginButton).toHaveTextContent(/logging in/i);
+      
+    });
+
+    it('prevents multiple clicks during submission', async () => {
+      // Arrange
+      axios.post.mockResolvedValueOnce({
+        data: { success: true, message: 'Login Successful', user: {}, token: 't' },
+      });
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Act
+      fireEvent.change(screen.getByPlaceholderText(/enter your email/i), { target: { value: 'a@b.com' } });
+      fireEvent.change(screen.getByPlaceholderText(/enter your password/i), { target: { value: 'pass' } });
+
+      const button = screen.getByRole('button', { name: /login/i });
+      fireEvent.click(button);
+      fireEvent.click(button);
+
+      // Assert
+      await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+    });
+  });
 });

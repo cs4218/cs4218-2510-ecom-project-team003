@@ -121,7 +121,7 @@ describe("Order Controller Integration Tests", () => {
 
             const res = await request(app)
                 .get("/api/v1/order/all-orders")
-                .set("Authorization", admin_token);
+                .set("Authorization", `Bearer ${admin_token}`);
 
             expect(res.status).toBe(500);
             expect(res.body).toMatchObject({
@@ -136,21 +136,21 @@ describe("Order Controller Integration Tests", () => {
         it("should return 401 for non admin user", async () => {
             const res = await request(app)
                 .get('/api/v1/order/all-orders')
-                .set("Authorization", user_token);
+                .set("Authorization", `Bearer ${user_token}`);
             expect(res.status).toEqual(401);
         });
 
         it("should return 200 with empty list if no products exist", async () => {
             const res = await request(app)
                 .get('/api/v1/order/all-orders')
-                .set("Authorization", admin_token);
+                .set("Authorization", `Bearer ${admin_token}`);
             expect(res.status).toEqual(200);
         });
 
         it("should return products in order when there are orders", async () => {
             const res = await request(app)
                 .get('/api/v1/order/all-orders')
-                .set("Authorization", admin_token);
+                .set("Authorization", `Bearer ${admin_token}`);
             expect(res.status).toEqual(200);
 
             expect(res.body.length).toBe(1); // obj equality. ok for primitives
@@ -167,7 +167,7 @@ describe("Order Controller Integration Tests", () => {
 
             const res = await request(app)
                 .put(`/api/v1/order/order-status/${LAPTOP._id}`)
-                .set("Authorization", admin_token)
+                .set("Authorization", `Bearer ${admin_token}`)
                 .send({ status: "don't care" });
 
             expect(res.status).toBe(500);
@@ -181,7 +181,7 @@ describe("Order Controller Integration Tests", () => {
         it("should return 401 for non admin user", async () => {
             const res = await request(app)
                 .put(`/api/v1/order/order-status/${ORDER_TWO_ITEMS_PROCESSING._id}`)
-                .set("Authorization", user_token)
+                .set("Authorization", `Bearer ${user_token}`)
                 .send({ status: "don't care" });
             expect(res.status).toEqual(401);
         });
@@ -189,7 +189,7 @@ describe("Order Controller Integration Tests", () => {
         it("should return 404 if no such order exists", async () => {
             const res = await request(app)
                 .put(`/api/v1/order/order-status/aaaaaaaaaaaaaaaaaaaaaaaa`) // an order id not in the model
-                .set("Authorization", admin_token)
+                .set("Authorization", `Bearer ${admin_token}`)
                 .send({ status: "don't care" });
 
             expect(res.status).toEqual(404);
@@ -198,7 +198,7 @@ describe("Order Controller Integration Tests", () => {
         it("should return 200 when update is successful", async () => {
             const res = await request(app)
                 .put(`/api/v1/order/order-status/${ORDER_TWO_ITEMS_PROCESSING._id}`)
-                .set("Authorization", admin_token)
+                .set("Authorization", `Bearer ${admin_token}`)
                 .send({ status: "Delivered" });
 
             expect(res.status).toEqual(200);
@@ -207,14 +207,14 @@ describe("Order Controller Integration Tests", () => {
         it("should return the correct status after update", async () => {
             const res = await request(app)
                 .put(`/api/v1/order/order-status/${ORDER_TWO_ITEMS_PROCESSING._id}`)
-                .set("Authorization", admin_token)
+                .set("Authorization", `Bearer ${admin_token}`)
                 .send({ status: "Cancelled" });
 
             expect(res.status).toEqual(200);
 
             const new_res = await request(app)
                 .get('/api/v1/order/all-orders')
-                .set("Authorization", admin_token);
+                .set("Authorization", `Bearer ${admin_token}`);
 
             expect(new_res.status).toEqual(200);
             expect(new_res.body.length).toBe(1);

@@ -1,18 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
+import { useAuth } from "../../context/auth";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [answer, setAnswer] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
+  const [auth, setAuth] = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (auth?.token) {
+      navigate("/");
+    }
+  }, [auth, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // prevent duplicate clicks
+    if (loading) return;
+
+    setLoading(true);
+
     try {
       const res = await axios.post("/api/v1/auth/forgot-password", {
         email,
@@ -29,6 +44,8 @@ const ForgotPassword = () => {
     } catch (error) {
       const message = error?.response?.data?.message || "Network error. Please try again.";
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,8 +88,8 @@ const ForgotPassword = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary">
-            RESET PASSWORD
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Resetting password..." : "RESET PASSWORD"}
           </button>
         </form>
       </div>

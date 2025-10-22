@@ -230,3 +230,34 @@ export async function deleteCategory(page, name) {
     await row.getByRole('button', { name: /delete/i }).click();
     await expect(table.getByRole('cell', { name: exactReg(name) })).toHaveCount(0);
 }
+
+export async function registerUser(page, user) {
+  await page.goto("/register");
+
+  // Wait for register form to be visible
+  await expect(page.getByRole("heading", { name: /register form/i })).toBeVisible();
+
+  // Fill out registration form
+  await page.getByPlaceholder(/^enter your name$/i).fill(user.name);
+  await page.getByPlaceholder(/^enter your email ?$/i).fill(user.email);
+  await page.getByPlaceholder(/^enter your password$/i).fill(user.password);
+  await page.getByPlaceholder(/^enter your phone$/i).fill(user.phone);
+  await page.getByPlaceholder(/^enter your address$/i).fill(user.address);
+  await page.getByPlaceholder(/^enter your dob$/i).fill(user.DOB);
+  await page.getByPlaceholder(/what is your favorite sport/i).fill(user.answer);
+
+  // Submit form
+  await page.getByRole("button", { name: /^register$/i }).click();
+
+  // Wait for either success or "User already exists" toast
+  try {
+    await expectToastCount(page, /user register successfully/i, 1);
+  } catch {
+    // If already exists, ignore and continue
+    await expectToastCount(page, /(user already exists|email already)/i, 1);
+  }
+
+  // Wait for login page after redirect
+  await expect(page.getByRole("heading", { name: /login form/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
+}

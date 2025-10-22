@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "./../../components/Layout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
+import { useAuth } from "../../context/auth";
+
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,10 +15,24 @@ const Register = () => {
   const [DOB, setDOB] = useState("");
   const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [auth, setAuth] = useAuth();
+
+  useEffect(() => {
+    if (auth?.token) {
+      navigate("/");
+    }
+  }, [auth, navigate]);
 
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // prevent duplicate clicks
+    if (loading) return;
+
+    setLoading(true);
+
     try {
       const res = await axios.post("/api/v1/auth/register", {
         name,
@@ -36,6 +52,8 @@ const Register = () => {
     } catch (error) {
       const message = error?.response?.data?.message || "Network error. Please try again.";
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,8 +145,8 @@ const Register = () => {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary">
-            REGISTER
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Registering..." : "REGISTER"}
           </button>
         </form>
       </div>
