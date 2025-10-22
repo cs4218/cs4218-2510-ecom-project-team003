@@ -1,76 +1,97 @@
+// CartPage.integration.test.js
 import React from "react";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import CartPage from "../pages/CartPage";
 import { AuthProvider } from "../context/auth";
 import { CartProvider } from "../context/cart";
+import { MemoryRouter } from "react-router-dom";
 import { SearchProvider } from "../context/search";
-import { Toaster } from "react-hot-toast";
 import axios from "axios";
-import { USER } from "../../tests/helpers/testData";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config({"path": ".env"});
-// Mock DropIn
 
-const userToken = jwt.sign(
-    { _id: USER._id},
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-);
-
-const setCartMock = jest.fn();
-
-jest.mock("braintree-web-drop-in-react", () => (props) => (
-  <div
-    data-testid="dropin-mock"
-    onClick={() => props.onInstance({ requestPaymentMethod: async () => ({ nonce: "fake-nonce" }) })}
-  ></div>
-));
+// Mock Braintree DropIn
+jest.mock("braintree-web-drop-in-react", () => (props) => {
+  return (
+    <div
+      data-testid="braintree-dropin"
+      onClick={() =>
+        props.onInstance({
+          requestPaymentMethod: jest.fn(() =>
+            Promise.resolve({ nonce: "fake-nonce" })
+          ),
+        })
+      }
+    >
+      Mock DropIn
+    </div>
+  );
+});
 
 // Mock axios
 jest.mock("axios");
-axios.get.mockResolvedValue({ data: { clientToken: "fake-client-token" } });
-console.log = jest.fn();
+axios.get.mockImplementation((url) => {
+  if (url === "/api/v1/payment/braintree/token") {
+    return Promise.resolve({ data: { clientToken: "fake-client-token" } });
+  }
+  return Promise.reject(new Error("not found"));
+});
 
-const renderCartPage = ({ auth, cart } = {}) => {
-  return render(
-    <AuthProvider value= {{auth, setAuth: jest.fn()}}>
-      <SearchProvider>
-        <CartProvider value={{ cart, setCart: setCartMock }}>
-          <MemoryRouter initialEntries={["/cart"]}>
-            <Toaster />
-            <Routes>
-              <Route path="/cart" element={<CartPage />} />
-            </Routes>
+const USER = { _id: "user123", name: "Test User" };
+const CART = [
+  { _id: "prod1", name: "Product 1", description: "Desc 1", price: 100 },
+  { _id: "prod2", name: "Product 2", description: "Desc 2", price: 50 },
+];
+
+const renderCartPage = () => {
+  // Pre-populate localStorage so AuthProvider initializes correctly
+  localStorage.setItem("auth", JSON.stringify({ user: USER, token: "fake-token" }));
+  localStorage.setItem("cart", JSON.stringify(CART));
+
+  render(
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>
+          <MemoryRouter>
+            <CartPage />
           </MemoryRouter>
-        </CartProvider>
-      </SearchProvider>
+        </SearchProvider>
+      </CartProvider>
     </AuthProvider>
   );
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  axios.get.mockResolvedValue({ data: { clientToken: "fake-client-token" } });
-  axios.post.mockResolvedValue({ data: { ok: true } });
-});
+describe("CartPage Integration Tests", () => {
+  beforeEach(() => {
+    axios.post.mockReset();
+    axios.get.mockReset();
+  });
 
-test("handles payment successfully", async () => {
-  
-  const cart = [{ _id: "1", name: "Product 1", description: "desc", price: 100 }];
-  const auth = { user: USER, token: userToken };
+  afterEach(() => {
+    localStorage.clear();
+  });
 
-  renderCartPage({auth, cart});
-  await waitFor(() => expect(screen.getByTestId("dropin-mock")).toBeInTheDocument());
-  // click DropIn mock to set instance
-  fireEvent.click(screen.getByTestId("dropin-mock"));
+  it("should handle payment successfully", async () => {
+    axios.get.mockResolvedValueOnce({ data: { clientToken: "fake-client-token" } });
+    axios.post.mockResolvedValue({ data: { ok: true } });
 
-  const payButton = screen.getByRole("button", { name: /Make Payment/i });
-  fireEvent.click(payButton);
+    // renderCartPage();
+    await act( async () => renderCartPage());
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/payment/braintree/token");
+    });
+    // Wait for DropIn mock to render
+    const button = await screen.findByText("Make Payment");
+        await waitFor(() => expect(button).not.toBeDisabled());
+        fireEvent.click(button);
 
-  await waitFor(() =>
-    expect(axios.post).toHaveBeenCalledWith("/api/v1/payment/braintree/payment", { nonce: "fake-nonce", cart })
-  );
-  expect(setCartMock).toHaveBeenCalledWith([]);
+    await waitFor(() =>
+      expect(axios.post).toHaveBeenCalledWith("/api/v1/payment/braintree/payment", {
+        nonce: "fake-nonce",
+        cart: CART,
+      })
+    );
+
+    // Expect cart to be cleared after successful payment
+    expect(screen.getByText(/Total :/)).toHaveTextContent("Total :$0.00");
+    // expect(setCartMock).toHaveBeenCalledWith([]);
+  });
 });
